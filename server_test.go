@@ -30,3 +30,20 @@ func TestGetServer(t *testing.T) {
 		assert.Equal(t, serverName, server.Name, fmt.Sprintf("expecting server name: %s", serverName))
 	}
 }
+
+func TestDeleteServer(t *testing.T) {
+
+	apiKey := os.Getenv("SH_APIKEY")
+	clientId := os.Getenv("SH_CLIENTID")
+	serverName := "ch-gonzalo"
+
+	c := NewClient(nil)
+	c.SetDebug(true)
+	c.SetToken(apiKey, clientId)
+
+	ctx := context.Background()
+
+	err := c.DeleteServer(ctx, serverName)
+
+	assert.Nil(t, err, "expecting nil error")
+}

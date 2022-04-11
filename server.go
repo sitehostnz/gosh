@@ -117,6 +117,7 @@ type ServersResponse struct {
 	Status  bool   `json:"status"`
 }
 
+// GetServer gets the server information with the provided Name
 func (c *Client) GetServer(ctx context.Context, serverName string) (*Server, error) {
 	e, err := c.Servers.Endpoint()
 	if err != nil {
@@ -135,4 +136,21 @@ func (c *Client) GetServer(ctx context.Context, serverName string) (*Server, err
 	}
 
 	return &serverResponse.Server, nil
+}
+
+// DeleteServer delete a server with the provided Name
+func (c *Client) DeleteServer(ctx context.Context, serverName string) error {
+	e, err := c.Servers.Endpoint()
+	if err != nil {
+		return err
+	}
+
+	req := c.R(ctx)
+	req.SetQueryParam("name", serverName)
+
+	e = fmt.Sprintf("%s/delete.json", e)
+
+	_, err = coupleAPIErrors(req.Delete(e))
+
+	return err
 }
