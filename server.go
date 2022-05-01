@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+type ServersService service
+
 type Server struct {
 	Name             string `json:"name"`
 	Label            string `json:"label"`
@@ -111,46 +113,107 @@ type Job struct {
 	State string `json:"state"`
 }
 
-type ServersResponse struct {
+type ServersGetResponse struct {
 	Server  Server `json:"return"`
 	Message string `json:"msg"`
 	Status  bool   `json:"status"`
 }
 
-// GetServer gets the server information with the provided Name
-func (c *Client) GetServer(ctx context.Context, serverName string) (*Server, error) {
-	e, err := c.Servers.Endpoint()
-	if err != nil {
-		return nil, err
-	}
-
-	serverResponse := &ServersResponse{}
-	req := c.R(ctx)
-	req.SetQueryParam("name", serverName)
-
-	e = fmt.Sprintf("%s/get_server.json", e)
-
-	_, err = coupleAPIErrors(req.SetResult(serverResponse).Get(e))
-	if err != nil {
-		return nil, err
-	}
-
-	return &serverResponse.Server, nil
+type ServerCreateResponse struct {
+	Return struct {
+		JobID    string   `json:"job_id"`
+		Name     string   `json:"name"`
+		Password string   `json:"password"`
+		Ips      []string `json:"ips"`
+		ServerID string   `json:"server_id"`
+	} `json:"return"`
+	Msg    string `json:"msg"`
+	Status bool   `json:"status"`
 }
 
-// DeleteServer delete a server with the provided Name
-func (c *Client) DeleteServer(ctx context.Context, serverName string) error {
-	e, err := c.Servers.Endpoint()
+type ServerCreateRequest struct {
+	ClientID    string        `json:"client_id"`
+	Label       string        `json:"label"`
+	Location    string        `json:"location"`
+	ProductCode string        `json:"product_code"`
+	Image       string        `json:"image"`
+	Params      ParamsOptions `json:"params"`
+}
+
+type ParamsOptions struct {
+	Name      string   `json:"name,omitempty"`
+	IPv4      []string `json:"ipv4"`
+	IPv6      []string `json:"ipv6,omitempty"`
+	SSHKeys   []string `json:"ssh_keys,omitempty"`
+	ContactID string   `json:"contact_id,omitempty"`
+	Backup    string   `json:"backup,omitempty"`
+	SendEmail string   `json:"send_email,omitempty"`
+}
+
+type ServerDeleteResponse struct {
+	Return struct {
+		JobID string `json:"job_id"`
+	} `json:"return"`
+	Msg    string `json:"msg"`
+	Status bool   `json:"status"`
+}
+
+type ServerDeleteRequest struct {
+	ClientID string `json:"client_id"`
+	Name     string `json:"name"`
+}
+
+func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) {
+	u := fmt.Sprintf("server/get_server.json?name=%v", name)
+
+	req, err := s.client.NewRequest("GET", u, "")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	req := c.R(ctx)
-	req.SetQueryParam("name", serverName)
+	response := new(ServersGetResponse)
+	err = s.client.Do(ctx, req, response)
+	if err != nil {
+		return nil, err
+	}
 
-	e = fmt.Sprintf("%s/delete.json", e)
+	return &response.Server, nil
+}
 
-	_, err = coupleAPIErrors(req.Delete(e))
+func (s ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (*ServerCreateResponse, error) {
+	u := fmt.Sprintf("server/provision.json")
 
-	return err
+	create := fmt.Sprintf("client_id=%s&label=%s&location=%s&product_code=%s&image=%s&params[ipv4]=auto", s.client.ClientID, opts.Label, opts.Location, opts.ProductCode, opts.Image)
+
+	req, err := s.client.NewRequest("POST", u, create)
+	if err != nil {
+		return nil, err
+	}
+
+	response := new(ServerCreateResponse)
+	err = s.client.Do(ctx, req, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (s ServersService) Delete(ctx context.Context, serverName string) (*ServerDeleteResponse, error) {
+	u := fmt.Sprintf("server/delete.json")
+
+	delete := fmt.Sprintf("client_id=%s&name=%s", s.client.ClientID, serverName)
+
+	req, err := s.client.NewRequest("POST", u, delete)
+	if err != nil {
+		return nil, err
+	}
+
+	response := new(ServerDeleteResponse)
+	err = s.client.Do(ctx, req, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

@@ -27,12 +27,10 @@ func main() {
   apiKey := os.Getenv("SH_APIKEY")
   clientId := os.Getenv("SH_CLIENTID")
 
-  sitehostClient := gosh.NewClient(nil)
+  sh := gosh.NewClient(apiKey, clientId)
+  ctx = context.Background()
 
-  sitehostClient.SetToken(apiKey, clientId)
-  sitehostClient.SetDebug(true)
-
-  server, err := sitehostClient.GetServer(context.Background(), "ch-server1")
+  server, err := sh.Servers.Get(ctx, "ch-server1")
   if err != nil {
     log.Fatal(err)
   }
