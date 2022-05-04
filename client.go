@@ -41,6 +41,19 @@ type service struct {
 	client *Client
 }
 
+type ClientOpt func(*Client) error
+
+func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
+	c := NewClient(apiKey, clientID)
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
+}
+
 func NewClient(apiKey, clientID string) *Client {
 	baseURL, _ := url.Parse(fmt.Sprintf("%s/%s/", defaultBaseURL, defaultVersion))
 
@@ -55,6 +68,17 @@ func NewClient(apiKey, clientID string) *Client {
 	c.Servers = (*ServersService)(&c.common)
 
 	return c
+}
+
+func SetBaseURL(bu string) ClientOpt {
+	return func(c *Client) error {
+		u, err := url.Parse(bu)
+		if err != nil {
+			return err
+		}
+		c.BaseURL = u
+		return nil
+	}
 }
 
 func (c *Client) NewRequest(method, uri string, body string) (*http.Request, error) {

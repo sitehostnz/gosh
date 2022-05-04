@@ -15,18 +15,18 @@ func TestNewClient(t *testing.T) {
 	ctx := context.Background()
 
 	// CREATE Server
-	//resp, err := c.Servers.Create(ctx, &ServerCreateRequest{
-	//	Label:       "API10",
-	//	Location:    "SHQLIN",
-	//	ProductCode: "XENLIT",
-	//	Image:       "ubuntu-focal.amd64",
-	//})
+	resp, err := c.Servers.Create(ctx, &ServerCreateRequest{
+		Label:       "API10",
+		Location:    "SHQLIN",
+		ProductCode: "XENLIT",
+		Image:       "ubuntu-focal.amd64",
+	})
 
 	// GET Server
 	//resp, err := c.Servers.Get(ctx, "ch-testing")
 
 	// DELETE Server
-	resp, err := c.Servers.Delete(ctx, "api10")
+	//resp, err := c.Servers.Delete(ctx, "api10")
 
 	if err != nil {
 		fmt.Println(err)
