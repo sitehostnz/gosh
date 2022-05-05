@@ -16,7 +16,7 @@ func TestNewClient(t *testing.T) {
 
 	// CREATE Server
 	resp, err := c.Servers.Create(ctx, &ServerCreateRequest{
-		Label:       "API10",
+		Label:       "GOSH",
 		Location:    "SHQLIN",
 		ProductCode: "XENLIT",
 		Image:       "ubuntu-focal.amd64",
@@ -33,4 +33,11 @@ func TestNewClient(t *testing.T) {
 	}
 
 	fmt.Println(resp)
+
+	job, err := c.Jobs.Get(ctx, resp.Return.JobID)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(job)
 }

@@ -107,12 +107,6 @@ type Subscription struct {
 	Price string `json:"price"`
 }
 
-type Job struct {
-	ID    string `json:"id"`
-	Type  string `json:"type"`
-	State string `json:"state"`
-}
-
 type ServersGetResponse struct {
 	Server  Server `json:"return"`
 	Message string `json:"msg"`
@@ -180,7 +174,7 @@ func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) 
 	return &response.Server, nil
 }
 
-func (s ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (*ServerCreateResponse, error) {
+func (s *ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (*ServerCreateResponse, error) {
 	u := fmt.Sprintf("server/provision.json")
 
 	create := fmt.Sprintf("client_id=%s&label=%s&location=%s&product_code=%s&image=%s&params[ipv4]=auto", s.client.ClientID, opts.Label, opts.Location, opts.ProductCode, opts.Image)
@@ -199,7 +193,7 @@ func (s ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (
 	return response, nil
 }
 
-func (s ServersService) Delete(ctx context.Context, serverName string) (*ServerDeleteResponse, error) {
+func (s *ServersService) Delete(ctx context.Context, serverName string) (*ServerDeleteResponse, error) {
 	u := fmt.Sprintf("server/delete.json")
 
 	delete := fmt.Sprintf("client_id=%s&name=%s", s.client.ClientID, serverName)

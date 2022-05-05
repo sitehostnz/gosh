@@ -35,6 +35,7 @@ type Client struct {
 
 	// Services used for talking to different par of the SiteHost API
 	Servers *ServersService
+	Jobs    *JobsService
 }
 
 type service struct {
@@ -66,6 +67,7 @@ func NewClient(apiKey, clientID string) *Client {
 	}
 	c.common.client = c
 	c.Servers = (*ServersService)(&c.common)
+	c.Jobs = (*JobsService)(&c.common)
 
 	return c
 }
@@ -110,7 +112,7 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
-func (c Client) NewPostRequest(uri string, reader io.Reader, size int64, mediaType string) (*http.Request, error) {
+func (c *Client) NewPostRequest(uri string, reader io.Reader, size int64, mediaType string) (*http.Request, error) {
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("BaseURL must have a trailing space, but %q does not", c.BaseURL)
 	}
@@ -138,7 +140,7 @@ func (c Client) NewPostRequest(uri string, reader io.Reader, size int64, mediaTy
 	return req, nil
 }
 
-func (c Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
 	res, err := c.client.Do(req)
 	if err != nil {
 		return err
