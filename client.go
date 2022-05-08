@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,6 +17,17 @@ const (
 
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
+
+type ErrorResponse struct {
+	Response *http.Response
+	Message  string `json:"msg"`
+	Status   bool   `json:"status"`
+}
+
+func (r *ErrorResponse) Error() string {
+	return fmt.Sprintf("%v %v: %d %v",
+		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message)
+}
 
 type Client struct {
 	client *http.Client
@@ -112,49 +122,26 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
-func (c *Client) NewPostRequest(uri string, reader io.Reader, size int64, mediaType string) (*http.Request, error) {
-	if !strings.HasSuffix(c.BaseURL.Path, "/") {
-		return nil, fmt.Errorf("BaseURL must have a trailing space, but %q does not", c.BaseURL)
-	}
-
-	u, err := c.BaseURL.Parse(uri)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest("POST", u.String(), reader)
-	if err != nil {
-		return nil, err
-	}
-
-	req.ContentLength = size
-
-	if mediaType == "" {
-		mediaType = defaultMediaType
-	}
-
-	req.Header.Set("Content-Type", mediaType)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", c.UserAgent)
-
-	return req, nil
-}
-
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
-	res, err := c.client.Do(req)
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
 
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return err
-	}
 	//
 	// TODO: CONTROL ERRORS HERE (read the body and check the status)
 	//
+	err = CheckResponse(resp)
+	if err != nil {
+		return err
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 	if v != nil {
 		if err := json.Unmarshal(body, v); err != nil {
 			return err
@@ -162,4 +149,19 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	}
 
 	return nil
+}
+
+func CheckResponse(r *http.Response) error {
+	errorResponse := &ErrorResponse{Response: r}
+	data, err := ioutil.ReadAll(r.Body)
+	if err == nil {
+		err := json.Unmarshal(data, errorResponse)
+		if err == nil {
+			if errorResponse.Status {
+				return nil
+			}
+		}
+	}
+
+	return errorResponse
 }
