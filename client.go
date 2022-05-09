@@ -19,9 +19,9 @@ const (
 )
 
 type ErrorResponse struct {
-	Response *http.Response
-	Message  string `json:"msg"`
-	Status   bool   `json:"status"`
+	Response *http.Response `json:"-"`
+	Message  string         `json:"msg"`
+	Status   bool           `json:"status"`
 }
 
 func (r *ErrorResponse) Error() string {
@@ -130,18 +130,15 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 
 	defer resp.Body.Close()
 
-	//
-	// TODO: CONTROL ERRORS HERE (read the body and check the status)
-	//
-	err = CheckResponse(resp)
-	if err != nil {
-		return err
-	}
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
+
+	if err = CheckResponse(resp, body); err != nil {
+		return err
+	}
+
 	if v != nil {
 		if err := json.Unmarshal(body, v); err != nil {
 			return err
@@ -151,15 +148,12 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	return nil
 }
 
-func CheckResponse(r *http.Response) error {
+func CheckResponse(r *http.Response, data []byte) error {
 	errorResponse := &ErrorResponse{Response: r}
-	data, err := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(data, errorResponse)
 	if err == nil {
-		err := json.Unmarshal(data, errorResponse)
-		if err == nil {
-			if errorResponse.Status {
-				return nil
-			}
+		if errorResponse.Status {
+			return nil
 		}
 	}
 
