@@ -157,6 +157,19 @@ type ServerDeleteRequest struct {
 	Name     string `json:"name"`
 }
 
+type ServerUpgradeRequest struct {
+	Name string `json:"name"`
+	Plan string `json:"plan"`
+}
+
+type ServerCommitResponse struct {
+	Return struct {
+		JobID string `json:"job_id"`
+	} `json:"return"`
+	Msg    string `json:"msg"`
+	Status bool   `json:"status"`
+}
+
 func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) {
 	u := fmt.Sprintf("server/get_server.json?name=%v", name)
 
@@ -204,6 +217,37 @@ func (s *ServersService) Delete(ctx context.Context, serverName string) (*Server
 	}
 
 	response := new(ServerDeleteResponse)
+	err = s.client.Do(ctx, req, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (s *ServersService) Upgrade(ctx context.Context, opts *ServerUpgradeRequest) error {
+	u := fmt.Sprintf("server/upgrade_plan.json")
+	upgrade := fmt.Sprintf("client_id=%s&name=%s&plan=%s", s.client.ClientID, opts.Name, opts.Plan)
+
+	req, err := s.client.NewRequest("POST", u, upgrade)
+	if err != nil {
+		return err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+func (s *ServersService) CommitChanges(ctx context.Context, serverName string) (*ServerCommitResponse, error) {
+	u := fmt.Sprintf("server/commit_disk_changes.json")
+
+	commit := fmt.Sprintf("client_id=%s&name=%s", s.client.ClientID, serverName)
+
+	req, err := s.client.NewRequest("POST", u, commit)
+	if err != nil {
+		return nil, err
+	}
+
+	response := new(ServerCommitResponse)
 	err = s.client.Do(ctx, req, response)
 	if err != nil {
 		return nil, err

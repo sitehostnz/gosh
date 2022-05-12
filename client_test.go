@@ -40,4 +40,18 @@ func TestNewClient(t *testing.T) {
 	}
 
 	fmt.Println(job)
+
+	//err := c.Servers.Upgrade(ctx, &ServerUpgradeRequest{Name: "gosh", Plan: "XENPRO"})
+	//if err != nil {
+	//fmt.Println(err)
+	//} else {
+	//	fmt.Println("Pulento... ahora es PRO")
+	//}
+
+	//resp, err := c.Servers.CommitChanges(ctx, "gosh")
+	//if err != nil {
+	//	fmt.Println(err)
+	//} else {
+	//	fmt.Println(resp)
+	//}
 }
