@@ -162,6 +162,11 @@ type ServerUpgradeRequest struct {
 	Plan string `json:"plan"`
 }
 
+type ServerUpdateRequest struct {
+	Name  string `json:"name"`
+	Label string `json:"label"`
+}
+
 type ServerCommitResponse struct {
 	Return struct {
 		JobID string `json:"job_id"`
@@ -223,6 +228,17 @@ func (s *ServersService) Delete(ctx context.Context, serverName string) (*Server
 	}
 
 	return response, nil
+}
+
+func (s *ServersService) Update(ctx context.Context, opts *ServerUpdateRequest) error {
+	u := fmt.Sprintf("server/update.json")
+	update := fmt.Sprintf("client_id=%s&name=%s&updates[label]=%s", s.client.ClientID, opts.Name, opts.Label)
+	req, err := s.client.NewRequest("POST", u, update)
+	if err != nil {
+		return err
+	}
+
+	return s.client.Do(ctx, req, nil)
 }
 
 func (s *ServersService) Upgrade(ctx context.Context, opts *ServerUpgradeRequest) error {

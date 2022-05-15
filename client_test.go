@@ -25,6 +25,14 @@ func TestNewClient(t *testing.T) {
 	// GET Server
 	//resp, err := c.Servers.Get(ctx, "ch-testing")
 
+	// UPDATE Server
+	//err := c.Servers.Update(ctx, &ServerUpdateRequest{Name: "trtest", Label: "ttgosh"})
+	//if err != nil {
+	//	fmt.Println("ERROR", err)
+	//} else {
+	//	fmt.Println("LISTOKO")
+	//}
+
 	// DELETE Server
 	//resp, err := c.Servers.Delete(ctx, "api10")
 
