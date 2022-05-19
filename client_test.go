@@ -20,6 +20,9 @@ func TestNewClient(t *testing.T) {
 		Location:    "SHQLIN",
 		ProductCode: "XENLIT",
 		Image:       "ubuntu-focal.amd64",
+		Params: ParamsOptions{
+			SSHKeys: []string{"ssh-rsa *************"},
+		},
 	})
 
 	// GET Server
@@ -30,7 +33,7 @@ func TestNewClient(t *testing.T) {
 	//if err != nil {
 	//	fmt.Println("ERROR", err)
 	//} else {
-	//	fmt.Println("LISTOKO")
+	//	fmt.Println("OK")
 	//}
 
 	// DELETE Server
@@ -53,7 +56,7 @@ func TestNewClient(t *testing.T) {
 	//if err != nil {
 	//fmt.Println(err)
 	//} else {
-	//	fmt.Println("Pulento... ahora es PRO")
+	//	fmt.Println("Changed to PRO")
 	//}
 
 	//resp, err := c.Servers.CommitChanges(ctx, "gosh")

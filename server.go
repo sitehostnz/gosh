@@ -3,6 +3,8 @@ package gosh
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
 )
 
 type ServersService service
@@ -175,6 +177,18 @@ type ServerCommitResponse struct {
 	Status bool   `json:"status"`
 }
 
+func (s *ServerCreateRequest) encodeSSHKeys() string {
+	var buf strings.Builder
+
+	if len(s.Params.SSHKeys) > 0 {
+		for _, key := range s.Params.SSHKeys {
+			buf.WriteString(fmt.Sprintf("&params[ssh_keys][]=%s", url.QueryEscape(key)))
+		}
+	}
+
+	return buf.String()
+}
+
 func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) {
 	u := fmt.Sprintf("server/get_server.json?name=%v", name)
 
@@ -195,7 +209,7 @@ func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) 
 func (s *ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (*ServerCreateResponse, error) {
 	u := fmt.Sprintf("server/provision.json")
 
-	create := fmt.Sprintf("client_id=%s&label=%s&location=%s&product_code=%s&image=%s&params[ipv4]=auto", s.client.ClientID, opts.Label, opts.Location, opts.ProductCode, opts.Image)
+	create := fmt.Sprintf("client_id=%s&label=%s&location=%s&product_code=%s&image=%s&params[ipv4]=auto%s", s.client.ClientID, opts.Label, opts.Location, opts.ProductCode, opts.Image, opts.encodeSSHKeys())
 
 	req, err := s.client.NewRequest("POST", u, create)
 	if err != nil {
