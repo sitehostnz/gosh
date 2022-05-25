@@ -9,6 +9,7 @@ import (
 
 type ServersService service
 
+// Server represents a Server in the SiteHost.
 type Server struct {
 	Name             string `json:"name"`
 	Label            string `json:"label"`
@@ -40,7 +41,7 @@ type Server struct {
 	VncScreen        string `json:"vnc_screen"`
 	IPAddrLimit      string `json:"ip_addr_limit"`
 	Notes            string `json:"notes"`
-	Ips              []IPs
+	Ips              []IP
 	Interfaces       []string      `json:"interfaces"`
 	GroupID          string        `json:"group_id"`
 	Partitions       []Partition   `json:"partitions"`
@@ -59,7 +60,8 @@ type Server struct {
 	LocationNode     string        `json:"location_node"`
 }
 
-type IPs struct {
+// IP represents the ips attached to the Server.
+type IP struct {
 	ID         string `json:"id"`
 	ServerID   string `json:"server_id"`
 	Bridge     string `json:"bridge"`
@@ -77,6 +79,7 @@ type IPs struct {
 	Broadcast  string `json:"broadcast"`
 }
 
+// Partition represents the disk partitions attached to the Server.
 type Partition struct {
 	ID             string `json:"id"`
 	Name           string `json:"name"`
@@ -95,6 +98,7 @@ type Partition struct {
 	Type           string `json:"type"`
 }
 
+// Kernel represents the kernel available to the Server.
 type Kernel struct {
 	Default    bool   `json:"default"`
 	Kernel     string `json:"kernel"`
@@ -103,18 +107,21 @@ type Kernel struct {
 	Hypervisor string `json:"hypervisor"`
 }
 
+// Subscription represents the subscription attached to the Server.
 type Subscription struct {
 	Code  string `json:"code"`
 	Name  string `json:"name"`
 	Price string `json:"price"`
 }
 
+// ServersGetResponse represents a result of a get Server call.
 type ServersGetResponse struct {
 	Server  Server `json:"return"`
 	Message string `json:"msg"`
 	Status  bool   `json:"status"`
 }
 
+// ServerCreateResponse represents a request to create a Server.
 type ServerCreateResponse struct {
 	Return struct {
 		JobID    string   `json:"job_id"`
@@ -127,6 +134,7 @@ type ServerCreateResponse struct {
 	Status bool   `json:"status"`
 }
 
+// ServerCreateRequest represents a request to create a Server.
 type ServerCreateRequest struct {
 	ClientID    string        `json:"client_id"`
 	Label       string        `json:"label"`
@@ -136,6 +144,7 @@ type ServerCreateRequest struct {
 	Params      ParamsOptions `json:"params"`
 }
 
+// ParamsOptions represents the additionals parameters in the request to create a Server.
 type ParamsOptions struct {
 	Name      string   `json:"name,omitempty"`
 	IPv4      []string `json:"ipv4"`
@@ -146,6 +155,25 @@ type ParamsOptions struct {
 	SendEmail string   `json:"send_email,omitempty"`
 }
 
+// ServerDeleteRequest represents a request to delete a Server.
+type ServerDeleteRequest struct {
+	ClientID string `json:"client_id"`
+	Name     string `json:"name"`
+}
+
+// ServerUpgradeRequest represents a request to upgrade a Server.
+type ServerUpgradeRequest struct {
+	Name string `json:"name"`
+	Plan string `json:"plan"`
+}
+
+// ServerUpdateRequest represents a request to update a Server.
+type ServerUpdateRequest struct {
+	Name  string `json:"name"`
+	Label string `json:"label"`
+}
+
+// ServerDeleteResponse represents a result of a delete Server call.
 type ServerDeleteResponse struct {
 	Return struct {
 		JobID string `json:"job_id"`
@@ -154,21 +182,7 @@ type ServerDeleteResponse struct {
 	Status bool   `json:"status"`
 }
 
-type ServerDeleteRequest struct {
-	ClientID string `json:"client_id"`
-	Name     string `json:"name"`
-}
-
-type ServerUpgradeRequest struct {
-	Name string `json:"name"`
-	Plan string `json:"plan"`
-}
-
-type ServerUpdateRequest struct {
-	Name  string `json:"name"`
-	Label string `json:"label"`
-}
-
+// ServerCommitResponse represents a result of a commit changes Server call.
 type ServerCommitResponse struct {
 	Return struct {
 		JobID string `json:"job_id"`
@@ -177,6 +191,7 @@ type ServerCommitResponse struct {
 	Status bool   `json:"status"`
 }
 
+// encodeSSHKeys encode the list of SSH Keys.
 func (s *ServerCreateRequest) encodeSSHKeys() string {
 	var buf strings.Builder
 
@@ -189,6 +204,7 @@ func (s *ServerCreateRequest) encodeSSHKeys() string {
 	return buf.String()
 }
 
+// Get gets the Server with the provided name.
 func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) {
 	u := fmt.Sprintf("server/get_server.json?name=%v", name)
 
@@ -206,12 +222,35 @@ func (s *ServersService) Get(ctx context.Context, name string) (*Server, error) 
 	return &response.Server, nil
 }
 
+// Create creates a Server.
 func (s *ServersService) Create(ctx context.Context, opts *ServerCreateRequest) (*ServerCreateResponse, error) {
-	u := fmt.Sprintf("server/provision.json")
+	u := "server/provision.json"
 
-	create := fmt.Sprintf("client_id=%s&label=%s&location=%s&product_code=%s&image=%s&params[ipv4]=auto%s", s.client.ClientID, opts.Label, opts.Location, opts.ProductCode, opts.Image, opts.encodeSSHKeys())
+	keys := []string{
+		"client_id",
+		"label",
+		"location",
+		"product_code",
+		"image",
+		"params[ipv4]",
+		"params[ssh_keys][]",
+	}
 
-	req, err := s.client.NewRequest("POST", u, create)
+	values := url.Values{}
+	values.Add("client_id", s.client.ClientID)
+	values.Add("label", opts.Label)
+	values.Add("location", opts.Location)
+	values.Add("product_code", opts.ProductCode)
+	values.Add("image", opts.Image)
+	values.Add("params[ipv4]", "auto")
+
+	if len(opts.Params.SSHKeys) > 0 {
+		for _, key := range opts.Params.SSHKeys {
+			values.Add("params[ssh_keys][]", key)
+		}
+	}
+
+	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
 	if err != nil {
 		return nil, err
 	}
@@ -225,12 +264,20 @@ func (s *ServersService) Create(ctx context.Context, opts *ServerCreateRequest) 
 	return response, nil
 }
 
+// Delete deletes a Server with the provided name.
 func (s *ServersService) Delete(ctx context.Context, serverName string) (*ServerDeleteResponse, error) {
-	u := fmt.Sprintf("server/delete.json")
+	u := "server/delete.json"
 
-	delete := fmt.Sprintf("client_id=%s&name=%s", s.client.ClientID, serverName)
+	keys := []string{
+		"client_id",
+		"name",
+	}
 
-	req, err := s.client.NewRequest("POST", u, delete)
+	values := url.Values{}
+	values.Add("client_id", s.client.ClientID)
+	values.Add("name", serverName)
+
+	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
 	if err != nil {
 		return nil, err
 	}
@@ -244,10 +291,22 @@ func (s *ServersService) Delete(ctx context.Context, serverName string) (*Server
 	return response, nil
 }
 
+// Update updates a Server with the provided name.
 func (s *ServersService) Update(ctx context.Context, opts *ServerUpdateRequest) error {
-	u := fmt.Sprintf("server/update.json")
-	update := fmt.Sprintf("client_id=%s&name=%s&updates[label]=%s", s.client.ClientID, opts.Name, opts.Label)
-	req, err := s.client.NewRequest("POST", u, update)
+	u := "server/update.json"
+
+	keys := []string{
+		"client_id",
+		"name",
+		"updates[label]",
+	}
+
+	values := url.Values{}
+	values.Add("client_id", s.client.ClientID)
+	values.Add("name", opts.Name)
+	values.Add("updates[label]", opts.Label)
+
+	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
 	if err != nil {
 		return err
 	}
@@ -255,11 +314,22 @@ func (s *ServersService) Update(ctx context.Context, opts *ServerUpdateRequest) 
 	return s.client.Do(ctx, req, nil)
 }
 
+// Upgrade upgrades a Server.
 func (s *ServersService) Upgrade(ctx context.Context, opts *ServerUpgradeRequest) error {
-	u := fmt.Sprintf("server/upgrade_plan.json")
-	upgrade := fmt.Sprintf("client_id=%s&name=%s&plan=%s", s.client.ClientID, opts.Name, opts.Plan)
+	u := "server/upgrade_plan.json"
 
-	req, err := s.client.NewRequest("POST", u, upgrade)
+	keys := []string{
+		"client_id",
+		"name",
+		"plan",
+	}
+
+	values := url.Values{}
+	values.Add("client_id", s.client.ClientID)
+	values.Add("name", opts.Name)
+	values.Add("plan", opts.Plan)
+
+	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
 	if err != nil {
 		return err
 	}
@@ -267,12 +337,20 @@ func (s *ServersService) Upgrade(ctx context.Context, opts *ServerUpgradeRequest
 	return s.client.Do(ctx, req, nil)
 }
 
+// CommitChanges commit changes for upgrade a Server with the provided name.
 func (s *ServersService) CommitChanges(ctx context.Context, serverName string) (*ServerCommitResponse, error) {
-	u := fmt.Sprintf("server/commit_disk_changes.json")
+	u := "server/commit_disk_changes.json"
 
-	commit := fmt.Sprintf("client_id=%s&name=%s", s.client.ClientID, serverName)
+	keys := []string{
+		"client_id",
+		"name",
+	}
 
-	req, err := s.client.NewRequest("POST", u, commit)
+	values := url.Values{}
+	values.Add("client_id", s.client.ClientID)
+	values.Add("name", serverName)
+
+	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
 	if err != nil {
 		return nil, err
 	}

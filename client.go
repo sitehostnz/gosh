@@ -18,32 +18,36 @@ const (
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
 
+// An ErrorResponse reports the error caused by an API request.
 type ErrorResponse struct {
 	Response *http.Response `json:"-"`
 	Message  string         `json:"msg"`
 	Status   bool           `json:"status"`
 }
 
+// Error returns a ErrorResponse message.
 func (r *ErrorResponse) Error() string {
 	return fmt.Sprintf("%v %v: %d %v",
 		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message)
 }
 
+// Client is a wrapper around the http client to manages communication with SiteHost API V1.1.
 type Client struct {
 	client *http.Client
 
-	// Base URL for API request. Always be specified with a trailing slash
+	// Base URL for API request. Always be specified with a trailing slash.
 	BaseURL *url.URL
 
-	// User agent used when communicating with the SiteHost API
+	// User agent used when communicating with the SiteHost API.
 	UserAgent string
 
+	// API Credentials
 	APIKey   string
 	ClientID string
 
 	common service
 
-	// Services used for talking to different par of the SiteHost API
+	// Services used for talking to different par of the SiteHost API.
 	Servers *ServersService
 	Jobs    *JobsService
 }
@@ -52,8 +56,10 @@ type service struct {
 	client *Client
 }
 
+// ClientOpt function parameters to configure a Client.
 type ClientOpt func(*Client) error
 
+// New returns a new Sitehost API client instance.
 func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
 	c := NewClient(apiKey, clientID)
 	for _, opt := range opts {
@@ -65,6 +71,7 @@ func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
 	return c, nil
 }
 
+// NewClient factory to create new Client struct.
 func NewClient(apiKey, clientID string) *Client {
 	baseURL, _ := url.Parse(fmt.Sprintf("%s/%s/", defaultBaseURL, defaultVersion))
 
@@ -82,6 +89,7 @@ func NewClient(apiKey, clientID string) *Client {
 	return c
 }
 
+// SetBaseURL change the default BaseURL
 func SetBaseURL(bu string) ClientOpt {
 	return func(c *Client) error {
 		u, err := url.Parse(bu)
@@ -93,13 +101,14 @@ func SetBaseURL(bu string) ClientOpt {
 	}
 }
 
+// NewRequest creates an SiteHost API Request
 func (c *Client) NewRequest(method, uri string, body string) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: Add apikey and client_id in query string
+	// Check if APIKey or Client ID are empty
 	if c.APIKey == "" || c.ClientID == "" {
 		return nil, fmt.Errorf("API Key and Client ID must be different to empty")
 	}
@@ -122,6 +131,8 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
+// Do sends an API Request and returns back the response. The API response is checked  to see if it was
+// a successful call. A successful call is then checked to see if we have a Status true.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -135,6 +146,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		return err
 	}
 
+	// Check if the Status message is true.
 	if err = CheckResponse(resp, body); err != nil {
 		return err
 	}
@@ -148,6 +160,8 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	return nil
 }
 
+// CheckResponse checks the API response for errors, and returns them if present. A response is considered an
+// error if it has a status code outside the 200 range or if the the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
 	errorResponse := &ErrorResponse{Response: r}
 	err := json.Unmarshal(data, errorResponse)

@@ -21,29 +21,28 @@ func TestNewClient(t *testing.T) {
 		ProductCode: "XENLIT",
 		Image:       "ubuntu-focal.amd64",
 		Params: ParamsOptions{
-			SSHKeys: []string{"ssh-rsa *************"},
+			SSHKeys: []string{"ssh-rsa *****"},
 		},
 	})
 
 	// GET Server
-	//resp, err := c.Servers.Get(ctx, "ch-testing")
+	// resp, err := c.Servers.Get(ctx, "gosh")
 
 	// UPDATE Server
-	//err := c.Servers.Update(ctx, &ServerUpdateRequest{Name: "trtest", Label: "ttgosh"})
-	//if err != nil {
-	//	fmt.Println("ERROR", err)
-	//} else {
-	//	fmt.Println("OK")
-	//}
+	// err := c.Servers.Update(ctx, &ServerUpdateRequest{Name: "gosh", Label: "ttgosh"})
+
+	// UPGRADE Server
+	// err := c.Servers.Upgrade(ctx, &ServerUpgradeRequest{Name: "gosh", Plan: "XENPRO"})
+
+	// COMMIT CHANGES Server
+	// resp, err := c.Servers.CommitChanges(ctx, "gosh")
 
 	// DELETE Server
-	//resp, err := c.Servers.Delete(ctx, "api10")
+	// resp, err := c.Servers.Delete(ctx, "gosh")
 
 	if err != nil {
 		fmt.Println(err)
 	}
-
-	fmt.Println(resp)
 
 	job, err := c.Jobs.Get(ctx, resp.Return.JobID)
 	if err != nil {
@@ -51,18 +50,4 @@ func TestNewClient(t *testing.T) {
 	}
 
 	fmt.Println(job)
-
-	//err := c.Servers.Upgrade(ctx, &ServerUpgradeRequest{Name: "gosh", Plan: "XENPRO"})
-	//if err != nil {
-	//fmt.Println(err)
-	//} else {
-	//	fmt.Println("Changed to PRO")
-	//}
-
-	//resp, err := c.Servers.CommitChanges(ctx, "gosh")
-	//if err != nil {
-	//	fmt.Println(err)
-	//} else {
-	//	fmt.Println(resp)
-	//}
 }
