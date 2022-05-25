@@ -1,0 +1,79 @@
+[run]
+timeout = "10m"
+
+[issues]
+exclude-use-default = false
+
+# BUG(colin): https://github.com/kunwardeep/paralleltest/issues/8
+[[issues.exclude-rules]]
+linters = [ "paralleltest" ]
+text = "does not use range value in test Run"
+
+[[issues.exclude-rules]]
+path = "_test\\.go"
+linters = [ "funlen", "cyclop" ]
+
+[[issues.exclude-rules]]
+path = "test"
+linters = [ "funlen", "cyclop" ]
+
+[linters]
+disable-all = true
+enable = [
+  "asciicheck",
+  "bodyclose",
+  "cyclop",
+  "deadcode",
+  "dogsled",
+  # "dupl", // disabled because it cannot be nolint-ed
+  "durationcheck",
+  "errcheck",
+  "exhaustive",
+  "exportloopref",
+  "forcetypeassert",
+  "funlen",
+  "gci",
+  "gocognit",
+  "goconst",
+  "gocritic",
+  "godot",
+  "gofmt",
+  "gofumpt",
+  "goimports",
+  "gomoddirectives",
+  "goprintffuncname",
+  "gosimple",
+  "gosec",
+  "govet",
+  "ineffassign",
+  "makezero",
+  "misspell",
+  "nakedret",
+  "nestif",
+  "nilerr",
+  "noctx",
+  "nolintlint",
+  "paralleltest",
+  "prealloc",
+  "predeclared",
+  "revive",
+  "rowserrcheck",
+  "sqlclosecheck",
+  "staticcheck",
+  "structcheck",
+  "stylecheck",
+  "thelper",
+  "unconvert",
+  "unparam",
+  "unused",
+  "varcheck",
+  "wastedassign",
+  "whitespace",
+]
+
+[linters-settings.exhaustive]
+default-signifies-exhaustive = true
+
+[linters-settings.misspell]
+locale = "UK" 
+
