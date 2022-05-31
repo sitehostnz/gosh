@@ -5,9 +5,10 @@ import (
 	"fmt"
 )
 
+// JobsService service to work with API Jobs.
 type JobsService service
 
-// Job represents a SiteHost Job
+// Job represents a SiteHost Job.
 type Job struct {
 	Return struct {
 		Created   string `json:"created"`

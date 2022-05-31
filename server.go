@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strings"
 )
 
+// ServersService service to work with API Servers.
 type ServersService service
 
 // Server represents a Server in the SiteHost.
@@ -189,19 +189,6 @@ type ServerCommitResponse struct {
 	} `json:"return"`
 	Msg    string `json:"msg"`
 	Status bool   `json:"status"`
-}
-
-// encodeSSHKeys encode the list of SSH Keys.
-func (s *ServerCreateRequest) encodeSSHKeys() string {
-	var buf strings.Builder
-
-	if len(s.Params.SSHKeys) > 0 {
-		for _, key := range s.Params.SSHKeys {
-			buf.WriteString(fmt.Sprintf("&params[ssh_keys][]=%s", url.QueryEscape(key)))
-		}
-	}
-
-	return buf.String()
 }
 
 // Get gets the Server with the provided name.

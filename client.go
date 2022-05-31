@@ -1,3 +1,4 @@
+// Package gosh provides the functions to work with SiteHost API.
 package gosh
 
 import (
@@ -89,7 +90,7 @@ func NewClient(apiKey, clientID string) *Client {
 	return c
 }
 
-// SetBaseURL change the default BaseURL
+// SetBaseURL change the default BaseURL.
 func SetBaseURL(bu string) ClientOpt {
 	return func(c *Client) error {
 		u, err := url.Parse(bu)
@@ -101,14 +102,14 @@ func SetBaseURL(bu string) ClientOpt {
 	}
 }
 
-// NewRequest creates an SiteHost API Request
+// NewRequest creates an SiteHost API Request.
 func (c *Client) NewRequest(method, uri string, body string) (*http.Request, error) {
 	u, err := c.BaseURL.Parse(uri)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if APIKey or Client ID are empty
+	// Check if APIKey or Client ID are empty.
 	if c.APIKey == "" || c.ClientID == "" {
 		return nil, fmt.Errorf("API Key and Client ID must be different to empty")
 	}
@@ -119,6 +120,9 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	u.RawQuery = values.Encode()
 
 	req, err := http.NewRequest(method, u.String(), strings.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
 
 	if body != "" {
 		req.Header.Set("Content-Type", "application/json")
@@ -131,7 +135,7 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
-// Do sends an API Request and returns back the response. The API response is checked  to see if it was
+// Do send an API Request and returns the response. The API response is checked  to see if it was
 // a successful call. A successful call is then checked to see if we have a Status true.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
@@ -139,7 +143,11 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		return err
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Println("Error when closing", err)
+		}
+	}()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -161,7 +169,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 }
 
 // CheckResponse checks the API response for errors, and returns them if present. A response is considered an
-// error if it has a status code outside the 200 range or if the the Status is false.
+// error if it has a status code outside the 200 range or if the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
 	errorResponse := &ErrorResponse{Response: r}
 	err := json.Unmarshal(data, errorResponse)

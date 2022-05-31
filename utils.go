@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Encode generate a URL string in order
+// Encode generate a URL string in order.
 func Encode(v url.Values, keys []string) string {
 	if v == nil {
 		return ""
