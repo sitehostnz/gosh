@@ -6,7 +6,7 @@ import (
 	"net/url"
 )
 
-// ServersService service to work with API Servers.
+// ServersService is a service to work with API Servers.
 type ServersService service
 
 // Server represents a Server in the SiteHost.

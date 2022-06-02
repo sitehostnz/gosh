@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// JobsService service to work with API Jobs.
+// JobsService is a service to work with API Jobs.
 type JobsService service
 
 // Job represents a SiteHost Job.

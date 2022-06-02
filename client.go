@@ -19,7 +19,7 @@ const (
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
 
-// An ErrorResponse reports the error caused by an API request.
+// ErrorResponse reports the error caused by an API request.
 type ErrorResponse struct {
 	Response *http.Response `json:"-"`
 	Message  string         `json:"msg"`
@@ -60,7 +60,7 @@ type service struct {
 // ClientOpt function parameters to configure a Client.
 type ClientOpt func(*Client) error
 
-// New returns a new Sitehost API client instance.
+// New returns a new SiteHost API client instance.
 func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
 	c := NewClient(apiKey, clientID)
 	for _, opt := range opts {
@@ -135,8 +135,10 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
-// Do send an API Request and returns the response. The API response is checked  to see if it was
-// a successful call. A successful call is then checked to see if we have a Status true.
+// Do send an API Request and returns the response.
+//
+// The API response is checked  to see if it was a successful call.
+// A successful call is then checked to see if we have a Status true.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
@@ -168,12 +170,12 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	return nil
 }
 
-// CheckResponse checks the API response for errors, and returns them if present. A response is considered an
-// error if it has a status code outside the 200 range or if the Status is false.
+// CheckResponse checks the API response for errors, and returns them if present.
+//
+// A response is considered an error if it has a status code outside the 200 range or if the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
 	errorResponse := &ErrorResponse{Response: r}
-	err := json.Unmarshal(data, errorResponse)
-	if err == nil {
+	if err := json.Unmarshal(data, errorResponse); err == nil {
 		if errorResponse.Status {
 			return nil
 		}
