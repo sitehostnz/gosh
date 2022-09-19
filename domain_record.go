@@ -214,6 +214,13 @@ func (s *DomainRecordService) Update(ctx context.Context, domainRecord *DomainRe
 		return nil, fmt.Errorf("%s", response.Message)
 	}
 
+	// read back the updated record...
+	domainRecord, err = s.GetRecordWithRecord(ctx, domainRecord)
+	if err != nil {
+		return nil, err
+	}
+
+
 	return domainRecord, nil
 
 }
