@@ -5,14 +5,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 const (
-	defaultBaseURL = "https://api.staging.sitehost.nz"
+	// defaultBaseURL = "https://api.staging.sitehost.nz"
+	defaultBaseURL = "https://mysth.safeserver.net.nz"
 	defaultVersion = "1.1"
 	userAgent      = "gosh"
 
@@ -49,8 +50,11 @@ type Client struct {
 	common service
 
 	// Services used for talking to different par of the SiteHost API.
-	Servers *ServersService
-	Jobs    *JobsService
+	Servers      *ServersService
+	Jobs         *JobsService
+	Domain       *DomainService
+	DomainRecord *DomainRecordService
+	ApiInfo      *ApiInfoService
 }
 
 type service struct {
@@ -86,6 +90,9 @@ func NewClient(apiKey, clientID string) *Client {
 	c.common.client = c
 	c.Servers = (*ServersService)(&c.common)
 	c.Jobs = (*JobsService)(&c.common)
+	c.Domain = (*DomainService)(&c.common)
+	c.DomainRecord = (*DomainRecordService)(&c.common)
+	c.ApiInfo = (*ApiInfoService)(&c.common)
 
 	return c
 }
@@ -151,7 +158,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		}
 	}()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
