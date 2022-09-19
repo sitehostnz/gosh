@@ -11,9 +11,9 @@ type DomainRecordService service
 
 type DomainRecord struct {
 	Id         string `json:"id"`
-	ClientID   string `json:client_id`
+	ClientID   string `json:"client_id"`
 	Name       string `json:"name"`
-	Domain     string `json:domain`
+	Domain     string `json:"domain"`
 	Type       string `json:"type"`
 	Content    string `json:"content"`
 	TTL        string `json:"ttl"`
@@ -107,13 +107,14 @@ func (s *DomainRecordService) GetRecordWithRecord(ctx context.Context, record *D
 			// TODO: client id is not returned in list response
 			// is only needed for creation
 			// r.ClientID == record.ClientID &&
+			// no idea what the state flag/field/property is for
+			//r.State == record.State
+			// ttl is not a per record here...
+			// r.TTL == record.TTL &&
 
 			r.Type == record.Type &&
 			r.Content == record.Content &&
-			r.TTL == record.TTL &&
-			r.Priority == record.Priority &&
-			// no idea what the state flag/field/property is for
-			r.State == record.State {
+			r.Priority == record.Priority {
 			return &r, nil
 		}
 	}
