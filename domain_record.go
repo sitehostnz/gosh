@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
+	"strings"
 )
 
 type DomainRecordService service
@@ -139,7 +140,8 @@ func (s *DomainRecordService) Add(ctx context.Context, domainRecord *DomainRecor
 	values.Add("domain", domainRecord.Domain)
 	values.Add("type", domainRecord.Type)
 	values.Add("name", domainRecord.Name)
-	values.Add("content", domainRecord.Content)
+	values.Add("content", adjustContent(domainRecord))
+
 	values.Add("prio", domainRecord.Priority)
 
 	req, err := s.client.NewRequest("POST", u, Encode(values, keys))
@@ -191,7 +193,7 @@ func (s *DomainRecordService) Update(ctx context.Context, domainRecord *DomainRe
 	values.Add("record_id", domainRecord.Id)
 	values.Add("type", domainRecord.Type)
 	values.Add("name", domainRecord.Name)
-	values.Add("content", domainRecord.Content)
+	values.Add("content", adjustContent(domainRecord))
 	values.Add("prio", domainRecord.Priority)
 
 	// it would be really nice if the create record could return us the ID of the newly created domain
@@ -242,4 +244,14 @@ func (s *DomainRecordService) Delete(ctx context.Context, domainRecord *DomainRe
 
 	return nil, nil
 
+}
+
+func adjustContent(domainRecord *DomainRecord) string {
+	switch domainRecord.Type {
+	case "NS", "CNAME":
+		if !strings.HasSuffix(".", domainRecord.Content) {
+			domainRecord.Content = domainRecord.Content + "."
+		}
+	}
+	return domainRecord.Content
 }
