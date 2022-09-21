@@ -49,12 +49,16 @@ type Client struct {
 
 	common service
 
-	// Services used for talking to different par of the SiteHost API.
-	Servers      *ServersService
-	Jobs         *JobsService
-	Domain       *DomainService
-	DomainRecord *DomainRecordService
-	ApiInfo      *ApiInfoService
+	// Services used for talking to different parts of the SiteHost API.
+	Servers       *ServersService
+	Jobs          *JobsService
+	Domain        *DomainService
+	DomainRecord  *DomainRecordService
+	ApiInfo       *ApiInfoService
+	Stack         *StackService
+	StackImage    *StackImageService
+	Database      *DatabaseService
+	DatabaseUsers *DatabaseUserService
 }
 
 type service struct {
@@ -92,7 +96,11 @@ func NewClient(apiKey, clientID string) *Client {
 	c.Jobs = (*JobsService)(&c.common)
 	c.Domain = (*DomainService)(&c.common)
 	c.DomainRecord = (*DomainRecordService)(&c.common)
+	c.Stack = (*StackService)(&c.common)
+	c.StackImage = (*StackImageService)(&c.common)
 	c.ApiInfo = (*ApiInfoService)(&c.common)
+	c.Database = (*DatabaseService)(&c.common)
+	c.DatabaseUsers = (*DatabaseUserService)(&c.common)
 
 	return c
 }
@@ -143,7 +151,6 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 }
 
 // Do send an API Request and returns the response.
-//
 // The API response is checked  to see if it was a successful call.
 // A successful call is then checked to see if we have a Status true.
 func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
