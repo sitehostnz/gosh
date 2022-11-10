@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -119,7 +119,7 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	values.Add("client_id", c.ClientID)
 	u.RawQuery = values.Encode()
 
-	req, err := http.NewRequest(method, u.String(), strings.NewReader(body))
+	req, err := http.NewRequestWithContext(context.Background(), method, u.String(), strings.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +151,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		}
 	}()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
