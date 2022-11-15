@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://api.staging.sitehost.nz"
+	defaultBaseURL = "https://api.sitehost.nz"
 	defaultVersion = "1.1"
 	userAgent      = "gosh"
 
