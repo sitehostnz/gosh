@@ -23,7 +23,6 @@ enable = [
   "asciicheck",
   "bodyclose",
   "cyclop",
-  "deadcode",
   "dogsled",
   # "dupl", // disabled because it cannot be nolint-ed
   "durationcheck",
@@ -60,13 +59,11 @@ enable = [
   "rowserrcheck",
   "sqlclosecheck",
   "staticcheck",
-  "structcheck",
   "stylecheck",
   "thelper",
   "unconvert",
   "unparam",
   "unused",
-  "varcheck",
   "wastedassign",
   "whitespace",
 ]

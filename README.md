@@ -41,3 +41,12 @@ func main() {
 ## Documentation
 
 See our documentation for [detailed information about API v1.1](https://docs.sitehost.nz/api/v1/).
+
+## Contributing
+If you're interested in contributing to our project:
+- Start by reading our [style guide](https://github.com/sitehostnz/go-style-guide/blob/master/style.md).
+- Explore our [issues](https://github.com/sitehostnz/gosh/issues).
+- Or send us feature PRs.
+
+## License
+GoSH is distributed under [MIT](./LICENSE.md).
