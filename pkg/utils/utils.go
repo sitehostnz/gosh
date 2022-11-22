@@ -1,4 +1,4 @@
-package gosh
+package utils
 
 import (
 	"net/url"

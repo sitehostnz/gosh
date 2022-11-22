@@ -1,6 +1,7 @@
 //go:build tools
 // +build tools
 
+// Package gosh provides the functions to work with SiteHost API.
 package gosh
 
 import (

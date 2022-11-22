@@ -1,5 +1,5 @@
-// Package gosh provides the functions to work with SiteHost API.
-package gosh
+// Package api provides the functions to work with SiteHost API.
+package api
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 const (
@@ -36,71 +38,11 @@ func (r *ErrorResponse) Error() string {
 type Client struct {
 	client *http.Client
 
-	// Base URL for API request. Always be specified with a trailing slash.
-	BaseURL *url.URL
-
-	// User agent used when communicating with the SiteHost API.
-	UserAgent string
-
-	// API Credentials
-	APIKey   string
-	ClientID string
-
-	common service
-
-	// Services used for talking to different par of the SiteHost API.
-	Servers *ServersService
-	Jobs    *JobsService
-}
-
-type service struct {
-	client *Client
+	models.ClientBase
 }
 
 // ClientOpt function parameters to configure a Client.
 type ClientOpt func(*Client) error
-
-// New returns a new SiteHost API client instance.
-func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
-	c := NewClient(apiKey, clientID)
-	for _, opt := range opts {
-		if err := opt(c); err != nil {
-			return nil, err
-		}
-	}
-
-	return c, nil
-}
-
-// NewClient factory to create new Client struct.
-func NewClient(apiKey, clientID string) *Client {
-	baseURL, _ := url.Parse(fmt.Sprintf("%s/%s/", defaultBaseURL, defaultVersion))
-
-	c := &Client{
-		client:    &http.Client{},
-		BaseURL:   baseURL,
-		APIKey:    apiKey,
-		ClientID:  clientID,
-		UserAgent: userAgent,
-	}
-	c.common.client = c
-	c.Servers = (*ServersService)(&c.common)
-	c.Jobs = (*JobsService)(&c.common)
-
-	return c
-}
-
-// SetBaseURL change the default BaseURL.
-func SetBaseURL(bu string) ClientOpt {
-	return func(c *Client) error {
-		u, err := url.Parse(bu)
-		if err != nil {
-			return err
-		}
-		c.BaseURL = u
-		return nil
-	}
-}
 
 // NewRequest creates an SiteHost API Request.
 func (c *Client) NewRequest(method, uri string, body string) (*http.Request, error) {
@@ -182,4 +124,45 @@ func CheckResponse(r *http.Response, data []byte) error {
 	}
 
 	return errorResponse
+}
+
+// New returns a new SiteHost API client instance.
+func New(apiKey, clientID string, opts ...ClientOpt) (*Client, error) {
+	c := NewClient(apiKey, clientID)
+	for _, opt := range opts {
+		if err := opt(c); err != nil {
+			return nil, err
+		}
+	}
+
+	return c, nil
+}
+
+// NewClient factory to create new Client struct.
+func NewClient(apiKey, clientID string) *Client {
+	baseURL, _ := url.Parse(fmt.Sprintf("%s/%s/", defaultBaseURL, defaultVersion))
+
+	c := &Client{
+		client: &http.Client{},
+		ClientBase: models.ClientBase{
+			BaseURL:   baseURL,
+			APIKey:    apiKey,
+			ClientID:  clientID,
+			UserAgent: userAgent,
+		},
+	}
+
+	return c
+}
+
+// SetBaseURL change the default BaseURL.
+func SetBaseURL(bu string) ClientOpt {
+	return func(c *Client) error {
+		u, err := url.Parse(bu)
+		if err != nil {
+			return err
+		}
+		c.BaseURL = u
+		return nil
+	}
 }
