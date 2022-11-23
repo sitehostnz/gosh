@@ -8,7 +8,7 @@ import (
 )
 
 // CommitDiskChanges commit changes for upgrade a Server with the provided name.
-func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChangesRequest) (*CommitDiskChangesResponse, error) {
+func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChangesRequest) (response CommitDiskChangesResponse, err error) {
 	u := "server/commit_disk_changes.json"
 
 	keys := []string{
@@ -22,12 +22,11 @@ func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChange
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(CommitDiskChangesResponse)
-	if err := s.client.Do(ctx, req, response); err != nil {
-		return nil, err
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
 	}
 
 	return response, nil

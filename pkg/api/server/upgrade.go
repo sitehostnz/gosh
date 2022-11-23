@@ -8,7 +8,7 @@ import (
 )
 
 // Upgrade upgrades a Server.
-func (s *Client) Upgrade(ctx context.Context, opts *UpgradeRequest) error {
+func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) error {
 	u := "server/upgrade_plan.json"
 
 	keys := []string{

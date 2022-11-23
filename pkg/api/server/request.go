@@ -7,8 +7,7 @@ type GetRequest struct {
 
 // DeleteRequest represents a request to delete a Server.
 type DeleteRequest struct {
-	ClientID string `json:"client_id"`
-	Name     string `json:"name"`
+	Name string `json:"name"`
 }
 
 // UpgradeRequest represents a request to upgrade a Server.

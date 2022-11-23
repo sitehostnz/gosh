@@ -8,7 +8,7 @@ import (
 )
 
 // Create creates a Server.
-func (s *Client) Create(ctx context.Context, opts *CreateRequest) (*CreateResponse, error) {
+func (s *Client) Create(ctx context.Context, opts CreateRequest) (response CreateResponse, err error) {
 	u := "server/provision.json"
 
 	keys := []string{
@@ -37,12 +37,11 @@ func (s *Client) Create(ctx context.Context, opts *CreateRequest) (*CreateRespon
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(CreateResponse)
-	if err := s.client.Do(ctx, req, response); err != nil {
-		return nil, err
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
 	}
 
 	return response, nil

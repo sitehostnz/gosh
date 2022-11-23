@@ -8,7 +8,7 @@ import (
 )
 
 // Update updates a Server with the provided name.
-func (s *Client) Update(ctx context.Context, opts *UpdateRequest) error {
+func (s *Client) Update(ctx context.Context, opts UpdateRequest) error {
 	u := "server/update.json"
 
 	keys := []string{
