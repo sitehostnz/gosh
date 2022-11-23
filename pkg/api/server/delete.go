@@ -4,12 +4,11 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Delete deletes a Server with the provided name.
-func (s *ServersService) Delete(ctx context.Context, serverName string) (*models.ServerDeleteResponse, error) {
+func (s *Client) Delete(ctx context.Context, serverName string) (*DeleteResponse, error) {
 	u := "server/delete.json"
 
 	keys := []string{
@@ -26,7 +25,7 @@ func (s *ServersService) Delete(ctx context.Context, serverName string) (*models
 		return nil, err
 	}
 
-	response := new(models.ServerDeleteResponse)
+	response := new(DeleteResponse)
 	if err := s.client.Do(ctx, req, response); err != nil {
 		return nil, err
 	}

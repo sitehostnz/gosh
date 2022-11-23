@@ -4,12 +4,11 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Upgrade upgrades a Server.
-func (s *ServersService) Upgrade(ctx context.Context, opts *models.ServerUpgradeRequest) error {
+func (s *Client) Upgrade(ctx context.Context, opts *UpgradeRequest) error {
 	u := "server/upgrade_plan.json"
 
 	keys := []string{

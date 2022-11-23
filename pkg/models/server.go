@@ -45,7 +45,7 @@ type Server struct {
 	LocationName     string        `json:"location_name"`
 	LocationCode     string        `json:"location_code"`
 	Mirror           string        `json:"mirror"`
-	LastJob          Job           `json:"last_job"`
+	LastJob          JobDetails    `json:"last_job"`
 	BackupsEnabled   bool          `json:"backups_enabled"`
 	BackupsProduct   interface{}   `json:"backups_product"`
 	LocationNode     string        `json:"location_node"`
@@ -103,81 +103,4 @@ type Subscription struct {
 	Code  string `json:"code"`
 	Name  string `json:"name"`
 	Price string `json:"price"`
-}
-
-// ServersGetResponse represents a result of a get Server call.
-type ServersGetResponse struct {
-	Server  Server `json:"return"`
-	Message string `json:"msg"`
-	Status  bool   `json:"status"`
-}
-
-// ServerCreateResponse represents a request to create a Server.
-type ServerCreateResponse struct {
-	Return struct {
-		JobID    string   `json:"job_id"`
-		Name     string   `json:"name"`
-		Password string   `json:"password"`
-		Ips      []string `json:"ips"`
-		ServerID string   `json:"server_id"`
-	} `json:"return"`
-	Msg    string `json:"msg"`
-	Status bool   `json:"status"`
-}
-
-// ServerCreateRequest represents a request to create a Server.
-type ServerCreateRequest struct {
-	ClientID    string        `json:"client_id"`
-	Label       string        `json:"label"`
-	Location    string        `json:"location"`
-	ProductCode string        `json:"product_code"`
-	Image       string        `json:"image"`
-	Params      ParamsOptions `json:"params"`
-}
-
-// ParamsOptions represents the additionals parameters in the request to create a Server.
-type ParamsOptions struct {
-	Name      string   `json:"name,omitempty"`
-	IPv4      []string `json:"ipv4"`
-	IPv6      []string `json:"ipv6,omitempty"`
-	SSHKeys   []string `json:"ssh_keys,omitempty"`
-	ContactID string   `json:"contact_id,omitempty"`
-	Backup    string   `json:"backup,omitempty"`
-	SendEmail string   `json:"send_email,omitempty"`
-}
-
-// ServerDeleteRequest represents a request to delete a Server.
-type ServerDeleteRequest struct {
-	ClientID string `json:"client_id"`
-	Name     string `json:"name"`
-}
-
-// ServerUpgradeRequest represents a request to upgrade a Server.
-type ServerUpgradeRequest struct {
-	Name string `json:"name"`
-	Plan string `json:"plan"`
-}
-
-// ServerUpdateRequest represents a request to update a Server.
-type ServerUpdateRequest struct {
-	Name  string `json:"name"`
-	Label string `json:"label"`
-}
-
-// ServerDeleteResponse represents a result of a delete Server call.
-type ServerDeleteResponse struct {
-	Return struct {
-		JobID string `json:"job_id"`
-	} `json:"return"`
-	Msg    string `json:"msg"`
-	Status bool   `json:"status"`
-}
-
-// ServerCommitResponse represents a result of a commit changes Server call.
-type ServerCommitResponse struct {
-	Return struct {
-		JobID string `json:"job_id"`
-	} `json:"return"`
-	Msg    string `json:"msg"`
-	Status bool   `json:"status"`
 }

@@ -4,12 +4,11 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// CommitChanges commit changes for upgrade a Server with the provided name.
-func (s *ServersService) CommitChanges(ctx context.Context, serverName string) (*models.ServerCommitResponse, error) {
+// CommitDiskChanges commit changes for upgrade a Server with the provided name.
+func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChangesRequest) (*CommitDiskChangesResponse, error) {
 	u := "server/commit_disk_changes.json"
 
 	keys := []string{
@@ -19,14 +18,14 @@ func (s *ServersService) CommitChanges(ctx context.Context, serverName string) (
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("name", serverName)
+	values.Add("name", request.ServerName)
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
 		return nil, err
 	}
 
-	response := new(models.ServerCommitResponse)
+	response := new(CommitDiskChangesResponse)
 	if err := s.client.Do(ctx, req, response); err != nil {
 		return nil, err
 	}

@@ -4,12 +4,11 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Create creates a Server.
-func (s *ServersService) Create(ctx context.Context, opts *models.ServerCreateRequest) (*models.ServerCreateResponse, error) {
+func (s *Client) Create(ctx context.Context, opts *CreateRequest) (*CreateResponse, error) {
 	u := "server/provision.json"
 
 	keys := []string{
@@ -41,7 +40,7 @@ func (s *ServersService) Create(ctx context.Context, opts *models.ServerCreateRe
 		return nil, err
 	}
 
-	response := new(models.ServerCreateResponse)
+	response := new(CreateResponse)
 	if err := s.client.Do(ctx, req, response); err != nil {
 		return nil, err
 	}

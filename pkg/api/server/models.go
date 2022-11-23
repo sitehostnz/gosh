@@ -1,15 +1,17 @@
 package server
 
-import "github.com/sitehostnz/gosh/pkg/api"
+import (
+	"github.com/sitehostnz/gosh/pkg/api"
+)
 
-// ServersService is a Service to work with API Server.
-type ServersService struct {
+// Client is a Service to work with API Jobs.
+type Client struct {
 	client *api.Client
 }
 
-// SetClient set SiteHost API client.
-func (s *ServersService) SetClient(c *api.Client) *ServersService {
-	s.client = c
-
-	return s
+// New is used to instantiate the Client struct.
+func New(c *api.Client) *Client {
+	return &Client{
+		client: c,
+	}
 }

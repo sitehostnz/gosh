@@ -4,12 +4,11 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Update updates a Server with the provided name.
-func (s *ServersService) Update(ctx context.Context, opts *models.ServerUpdateRequest) error {
+func (s *Client) Update(ctx context.Context, opts *UpdateRequest) error {
 	u := "server/update.json"
 
 	keys := []string{

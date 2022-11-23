@@ -21,19 +21,6 @@ const (
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
 
-// ErrorResponse reports the error caused by an API request.
-type ErrorResponse struct {
-	Response *http.Response `json:"-"`
-	Message  string         `json:"msg"`
-	Status   bool           `json:"status"`
-}
-
-// Error returns a ErrorResponse message.
-func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("%v %v: %d %v",
-		r.Response.Request.Method, r.Response.Request.URL, r.Response.StatusCode, r.Message)
-}
-
 // Client is a wrapper around the http client to manages communication with SiteHost API V1.1.
 type Client struct {
 	client *http.Client
@@ -77,7 +64,7 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	return req, nil
 }
 
-// Do send an API Request and returns the response.
+// Do sends an API Request and returns the response.
 //
 // The API response is checked  to see if it was a successful call.
 // A successful call is then checked to see if we have a Status true.
@@ -99,7 +86,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	}
 
 	// Check if the Status message is true.
-	if err = CheckResponse(resp, body); err != nil {
+	if err := CheckResponse(resp, body); err != nil {
 		return err
 	}
 
@@ -116,7 +103,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 //
 // A response is considered an error if it has a status code outside the 200 range or if the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
-	errorResponse := &ErrorResponse{Response: r}
+	errorResponse := &models.ErrorResponse{Response: r}
 	if err := json.Unmarshal(data, errorResponse); err == nil {
 		if errorResponse.Status {
 			return nil
