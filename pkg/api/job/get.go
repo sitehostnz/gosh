@@ -2,14 +2,25 @@ package job
 
 import (
 	"context"
-	"fmt"
+	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Get gets the GetResponse with the provided ID.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
-	u := fmt.Sprintf("job/get.json?job_id=%s&type=%s", request.JobID, request.Type)
+	u := "job/get.json"
 
-	req, err := s.client.NewRequest("GET", u, "")
+	keys := []string{
+		"job_id",
+		"type",
+	}
+
+	values := url.Values{}
+	values.Add("job_id", request.JobID)
+	values.Add("type", request.Type)
+
+	req, err := s.client.NewRequest("GET", u, utils.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}
