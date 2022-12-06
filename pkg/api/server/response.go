@@ -35,3 +35,13 @@ type GetResponse struct {
 	Server models.Server `json:"return"`
 	models.APIResponse
 }
+
+// UpdateResponse represents a result of a update Server call.
+type UpdateResponse struct {
+	models.APIResponse
+}
+
+// UpgradeResponse represents a result of a upgrade Server call.
+type UpgradeResponse struct {
+	models.APIResponse
+}

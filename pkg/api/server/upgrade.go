@@ -8,7 +8,7 @@ import (
 )
 
 // Upgrade upgrades a Server.
-func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) error {
+func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) (response UpdateResponse, err error) {
 	u := "server/upgrade_plan.json"
 
 	keys := []string{
@@ -24,8 +24,12 @@ func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) error {
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
+	}
+
+	return response, nil
 }

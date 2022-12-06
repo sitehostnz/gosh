@@ -8,7 +8,7 @@ import (
 )
 
 // Update updates a Server with the provided name.
-func (s *Client) Update(ctx context.Context, opts UpdateRequest) error {
+func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response UpdateResponse, err error) {
 	u := "server/update.json"
 
 	keys := []string{
@@ -24,8 +24,12 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) error {
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	return s.client.Do(ctx, req, nil)
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
