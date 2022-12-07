@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Upgrade upgrades a Server.
+// Upgrade a server's plan .
 func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) (response UpdateResponse, err error) {
 	u := "server/upgrade_plan.json"
 

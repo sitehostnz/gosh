@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Create creates a Server.
+// Create a server.
 func (s *Client) Create(ctx context.Context, opts CreateRequest) (response CreateResponse, err error) {
 	u := "server/provision.json"
 

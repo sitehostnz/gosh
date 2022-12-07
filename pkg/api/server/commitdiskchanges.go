@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// CommitDiskChanges commit changes for upgrade a Server with the provided name.
+// CommitDiskChanges function commits changes to upgrade a server.
 func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChangesRequest) (response CommitDiskChangesResponse, err error) {
 	u := "server/commit_disk_changes.json"
 

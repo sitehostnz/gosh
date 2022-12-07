@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Get gets the GetResponse with the provided ID.
+// Get information about a job.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
 	u := "job/get.json"
 

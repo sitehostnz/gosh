@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Update updates a Server with the provided name.
+// Update a Server.
 func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response UpdateResponse, err error) {
 	u := "server/update.json"
 
