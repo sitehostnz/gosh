@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v0.3.0] - 2022-12-07
+## [v0.3.0] - 2022-12-08
 ### Added
 - GitHub PR actions to run go vet, go lint and go mod tidy.
 
