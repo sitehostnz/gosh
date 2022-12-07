@@ -14,22 +14,22 @@ import (
 )
 
 const (
-	defaultBaseURL = "https://api.sitehost.nz"
-	defaultVersion = "1.1"
-	userAgent      = "gosh"
-
+	defaultBaseURL   = "https://api.sitehost.nz"
+	defaultVersion   = "1.2"
+	userAgent        = "gosh"
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
 
-// Client is a wrapper around the http client to manages communication with SiteHost API V1.1.
-type Client struct {
-	client *http.Client
+type (
+	// Client is a wrapper around the http client to manages communication with SiteHost API V1.1.
+	Client struct {
+		client *http.Client
+		models.ClientBase
+	}
 
-	models.ClientBase
-}
-
-// ClientOpt function parameters to configure a Client.
-type ClientOpt func(*Client) error
+	// ClientOpt function parameters to configure a Client.
+	ClientOpt func(*Client) error
+)
 
 // NewRequest creates an SiteHost API Request.
 func (c *Client) NewRequest(method, uri string, body string) (*http.Request, error) {

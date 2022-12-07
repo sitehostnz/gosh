@@ -5,26 +5,28 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-// Client is a Service to work with API Jobs.
-type Client struct {
-	client *api.Client
-}
+type (
+	// Client is a Service to work with API Jobs.
+	Client struct {
+		client *api.Client
+	}
+
+	// GetRequest represents a SiteHost request for GET job api endpoint.
+	GetRequest struct {
+		JobID string `json:"job_id"`
+		Type  string `json:"type"`
+	}
+
+	// GetResponse represents a SiteHost response for GET job api endpoint.
+	GetResponse struct {
+		Return models.JobDetails `json:"return"`
+		models.APIResponse
+	}
+)
 
 // New is an initialisation function.
 func New(c *api.Client) *Client {
 	return &Client{
 		client: c,
 	}
-}
-
-// GetRequest represents a SiteHost request for GET job api endpoint.
-type GetRequest struct {
-	JobID string `json:"job_id"`
-	Type  string `json:"type"`
-}
-
-// GetResponse represents a SiteHost response for GET job api endpoint.
-type GetResponse struct {
-	Return models.JobDetails `json:"return"`
-	models.APIResponse
 }

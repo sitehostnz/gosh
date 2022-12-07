@@ -5,18 +5,20 @@ import (
 	"net/http"
 )
 
-// APIResponse represents mutual API response values.
-type APIResponse struct {
-	Msg    string `json:"msg"`
-	Status bool   `json:"status"`
-}
+type (
+	// APIResponse represents mutual API response values.
+	APIResponse struct {
+		Msg    string `json:"msg"`
+		Status bool   `json:"status"`
+	}
 
-// ErrorResponse reports the error caused by an API request.
-type ErrorResponse struct {
-	Response *http.Response `json:"-"`
-	Message  string         `json:"msg"`
-	Status   bool           `json:"status"`
-}
+	// ErrorResponse reports the error caused by an API request.
+	ErrorResponse struct {
+		Response *http.Response `json:"-"`
+		Message  string         `json:"msg"`
+		Status   bool           `json:"status"`
+	}
+)
 
 // Error returns a ErrorResponse message.
 func (r *ErrorResponse) Error() string {
