@@ -21,7 +21,7 @@ const (
 )
 
 type (
-	// Client is a wrapper around the http client to manages communication with SiteHost API V1.1.
+	// Client is a wrapper around the http client to manages communication with SiteHost API.
 	Client struct {
 		client *http.Client
 		models.ClientBase
