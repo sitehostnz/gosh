@@ -2,11 +2,41 @@ package domain_record
 
 import (
 	"context"
+	"fmt"
 	"github.com/sitehostnz/gosh/pkg/models"
+	"sort"
 )
 
-func (s *Client) Get(ctx context.Context, request GetRequest) (*models.DomainRecord, error) {
-	records, err := s.List(ctx, ListRequest{DomainName: request.DomainName})
+func (s *Client) GetZone(ctx context.Context, request ZoneRequest) (*[]models.DomainRecord, error) {
+
+	u := fmt.Sprintf("dns/list_records.json?client_id=%v&domain=%v", s.client.ClientID, request.DomainName)
+
+	req, err := s.client.NewRequest("GET", u, "")
+	if err != nil {
+		return nil, err
+	}
+
+	response := new(ZoneResponse)
+	err = s.client.Do(ctx, req, response)
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Slice(*response.DomainRecords, func(i, j int) bool {
+		return (*response.DomainRecords)[i].ChangeDate > (*response.DomainRecords)[j].ChangeDate
+	})
+
+	// Add these back in for the sake of some sort of consistency
+	for i := range *response.DomainRecords {
+		(*response.DomainRecords)[i].Domain = request.DomainName
+		(*response.DomainRecords)[i].ClientID = s.client.ClientID
+	}
+
+	return response.DomainRecords, err
+}
+
+func (s *Client) Get(ctx context.Context, request RecordRequest) (*models.DomainRecord, error) {
+	records, err := s.GetZone(ctx, ZoneRequest{DomainName: request.DomainName})
 	if err != nil {
 		return nil, err
 	}
@@ -21,8 +51,8 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (*models.DomainRec
 
 // get the record and filter based on type, as we often want to deal with the records of a specific type
 // from external contexts, ie: terrorform
-func (s *Client) GetWithType(ctx context.Context, request GetRequest) (*[]models.DomainRecord, error) {
-	records, err := s.List(ctx, ListRequest{DomainName: request.DomainName})
+func (s *Client) GetWithType(ctx context.Context, request RecordRequest) (*[]models.DomainRecord, error) {
+	records, err := s.GetZone(ctx, ZoneRequest{DomainName: request.DomainName})
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +69,7 @@ func (s *Client) GetWithType(ctx context.Context, request GetRequest) (*[]models
 
 // This is a special case, for mainly when we are creating records and we want to get back what we just created
 func (s *Client) GetWithRecord(ctx context.Context, record models.DomainRecord) (*models.DomainRecord, error) {
-	records, err := s.List(ctx, ListRequest{DomainName: record.Domain})
+	records, err := s.GetZone(ctx, ZoneRequest{DomainName: record.Domain})
 	if err != nil {
 		return nil, err
 	}

@@ -1,13 +1,13 @@
 package domain_record
 
 type (
-	GetRequest struct {
+	RecordRequest struct {
 		Id         string `json:"id"`
 		RRType     string `json:"rr_type"`
 		DomainName string `json:"name"`
 	}
 
-	ListRequest struct {
+	ZoneRequest struct {
 		DomainName string `json:"name"`
 	}
 )
