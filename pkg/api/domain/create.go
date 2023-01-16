@@ -32,7 +32,7 @@ func (s *Client) Create(ctx context.Context, domain *models.Domain) (*models.Dom
 
 	domain = &models.Domain{
 		Name:       domain.Name,
-		ClientID:   domain.ClientID,
+		ClientID:   s.client.ClientID,
 		TemplateID: "0",
 	}
 

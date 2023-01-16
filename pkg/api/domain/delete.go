@@ -17,7 +17,7 @@ func (s *Client) Delete(ctx context.Context, domain *models.Domain) (*models.Dom
 	}
 
 	values := url.Values{}
-	values.Add("client_id", domain.ClientID)
+	values.Add("client_id", s.client.ClientID)
 	values.Add("domain", domain.Name)
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
