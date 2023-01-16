@@ -1,4 +1,4 @@
-package api
+package api_info
 
 import "github.com/sitehostnz/gosh/pkg/models"
 
