@@ -2,11 +2,10 @@ package stack
 
 import (
 	"context"
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-func (s *Client) Start(ctx context.Context, request *StopStartRequest) (*models.Stack, error) {
+func (s *Client) Start(ctx context.Context, request *StopStartRequest) (*StartStopResponse, error) {
 
 	u := "cloud/stack/start.json"
 	req, err := s.client.NewRequest("GET", u, "")
@@ -27,11 +26,11 @@ func (s *Client) Start(ctx context.Context, request *StopStartRequest) (*models.
 
 	req.URL.RawQuery = utils.Encode(v, keys)
 
-	response := new(GetResponse)
+	response := new(StartStopResponse)
 	err = s.client.Do(ctx, req, response)
 	if err != nil {
 		return nil, err
 	}
 
-	return response.Stack, nil
+	return response, nil
 }

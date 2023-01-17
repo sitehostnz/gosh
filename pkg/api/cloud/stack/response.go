@@ -14,4 +14,11 @@ type (
 		}
 		models.APIResponse
 	}
+
+	StartStopResponse struct {
+		Return struct {
+			JobID string `json:"job_id"`
+		} `json:"return"`
+		models.APIResponse
+	}
 )
