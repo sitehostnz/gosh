@@ -42,15 +42,14 @@ func (s *Client) Get(ctx context.Context, request RecordRequest) (*models.Domain
 	}
 
 	for _, record := range *records {
-		if record.Id == request.Id {
+		if record.ID == request.Id {
 			return &record, nil
 		}
 	}
 	return nil, nil
 }
 
-// get the record and filter based on type, as we often want to deal with the records of a specific type
-// from external contexts, ie: terrorform
+// GetWithType get the record and filter based on type, as we often want to deal with the records of a specific type, mainly for use in external contexts, ie: terrorform.
 func (s *Client) GetWithType(ctx context.Context, request RecordRequest) (*[]models.DomainRecord, error) {
 	records, err := s.GetZone(ctx, ZoneRequest{DomainName: request.DomainName})
 	if err != nil {
@@ -67,7 +66,7 @@ func (s *Client) GetWithType(ctx context.Context, request RecordRequest) (*[]mod
 	return &filteredRecords, nil
 }
 
-// This is a special case, for mainly when we are creating records and we want to get back what we just created
+// GetWithRecord This is a special case, for mainly when we are creating records and we want to get back what we just created.
 func (s *Client) GetWithRecord(ctx context.Context, record models.DomainRecord) (*models.DomainRecord, error) {
 	records, err := s.GetZone(ctx, ZoneRequest{DomainName: record.Domain})
 	if err != nil {
@@ -85,7 +84,7 @@ func (s *Client) GetWithRecord(ctx context.Context, record models.DomainRecord) 
 			// is only needed for creation
 			// r.ClientID == record.ClientID &&
 			// no idea what the state flag/field/property is for
-			//r.State == record.State
+			// r.State == record.State
 			// ttl is not a per record here...
 			// r.TTL == record.TTL &&
 

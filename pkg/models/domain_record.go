@@ -1,8 +1,9 @@
 package models
 
 type (
+	// DomainRecord A dns record from a zone.
 	DomainRecord struct {
-		Id         string `json:"id"`
+		ID         string `json:"id"`
 		ClientID   string `json:"client_id"`
 		Name       string `json:"name"`
 		Domain     string `json:"domain"`

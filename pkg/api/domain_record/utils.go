@@ -11,7 +11,7 @@ func adjustContent(domainRecord *models.DomainRecord) string {
 	// not sure what other types do or don't need them
 	case "NS", "CNAME":
 		if !strings.HasSuffix(".", domainRecord.Content) {
-			domainRecord.Content = domainRecord.Content + "."
+			domainRecord.Content += "."
 		}
 	}
 	return domainRecord.Content

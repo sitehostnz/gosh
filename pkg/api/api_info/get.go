@@ -5,7 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-func (s *Client) Get(ctx context.Context) (*models.ApiInfo, error) {
+func (s *Client) Get(ctx context.Context) (*models.APIInfo, error) {
 
 	req, err := s.client.NewRequest("GET", "api/get_info.json", "")
 
