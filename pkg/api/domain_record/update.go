@@ -26,7 +26,7 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DomainRecord) 
 	// lets just use the one specified in the config for now...
 	values.Add("client_id", s.client.ClientID)
 	values.Add("domain", domainRecord.Domain)
-	values.Add("record_id", domainRecord.Id)
+	values.Add("record_id", domainRecord.ID)
 	values.Add("type", domainRecord.Type)
 	values.Add("name", domainRecord.Name)
 	values.Add("content", adjustContent(domainRecord))
