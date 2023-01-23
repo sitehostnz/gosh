@@ -31,3 +31,8 @@ type Stack struct {
 	Pending   interface{} `json:"pending"`
 	IsMissing interface{} `json:"is_missing"`
 }
+
+type EnvironmentVariable struct {
+	Name    string `json:"name"`
+	Content string `json:"content"`
+}
