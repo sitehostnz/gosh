@@ -1,13 +1,14 @@
-package domain
+package zone
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-func (s *Client) List(ctx context.Context) (*[]models.Domain, error) {
-	u := fmt.Sprintf("dns/list_domains.json")
+// Get information about the all DNSZone in the account.
+func (s *Client) List(ctx context.Context) (*[]models.DNSZone, error) {
+	u := "dns/list_domains.json"
 	req, err := s.client.NewRequest("GET", u, "")
 	if err != nil {
 		return nil, err

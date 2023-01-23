@@ -1,11 +1,12 @@
-package domain_record
+package record
 
 import (
-	"github.com/sitehostnz/gosh/pkg/models"
 	"strings"
+
+	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-func adjustContent(domainRecord *models.DomainRecord) string {
+func adjustContent(domainRecord *models.DNSRecord) string {
 	switch domainRecord.Type {
 	// these need to have trailing spots... so lets fiddle them
 	// not sure what other types do or don't need them

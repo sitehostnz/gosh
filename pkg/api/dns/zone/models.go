@@ -1,4 +1,4 @@
-package domain
+package zone
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"
@@ -9,7 +9,6 @@ type (
 	Client struct {
 		client *api.Client
 	}
-
 )
 
 // New is an initialisation function.

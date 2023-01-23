@@ -1,13 +1,14 @@
-package domain_record
+package record
 
 import (
 	"context"
+	"net/url"
+
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
-	"net/url"
 )
 
-func (s *Client) Update(ctx context.Context, domainRecord *models.DomainRecord) (*models.DomainRecord, error) {
+func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*models.DNSRecord, error) {
 
 	u := "dns/update_record.json"
 
