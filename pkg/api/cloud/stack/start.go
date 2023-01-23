@@ -5,7 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-func (s *Client) Start(ctx context.Context, request *StopStartRequest) (*StartStopResponse, error) {
+func (s *Client) Start(ctx context.Context, request StopStartRequest) (*StartStopResponse, error) {
 
 	u := "cloud/stack/start.json"
 	req, err := s.client.NewRequest("GET", u, "")

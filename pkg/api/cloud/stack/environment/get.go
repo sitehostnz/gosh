@@ -6,7 +6,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-func (s *Client) Get(ctx context.Context, request *GetRequest) (*[]models.EnvironmentVariable, error) {
+func (s *Client) Get(ctx context.Context, request GetRequest) (*[]models.EnvironmentVariable, error) {
 
 	u := "cloud/stack/environment/get.json"
 	req, err := s.client.NewRequest("GET", u, "")
