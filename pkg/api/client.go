@@ -142,7 +142,7 @@ func NewClient(apiKey, clientID string) *Client {
 	return c
 }
 
-// SetBaseURL change the default BaseURL. (Include the API version)
+// SetBaseURL change the default BaseURL (Include the API version).
 func SetBaseURL(bu string) ClientOpt {
 	return func(c *Client) error {
 		u, err := url.Parse(fmt.Sprintf("%s/", bu))

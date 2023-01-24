@@ -1,4 +1,4 @@
-package api_info
+package info
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"

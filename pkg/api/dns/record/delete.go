@@ -33,5 +33,4 @@ func (s *Client) Delete(ctx context.Context, opts DeleteRequest) (response model
 	}
 
 	return response, nil
-
 }

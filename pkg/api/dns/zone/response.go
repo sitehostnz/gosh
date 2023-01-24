@@ -3,6 +3,7 @@ package zone
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
+	// ListResponse represents a request to list all DNSZones (domains).
 	ListResponse struct {
 		Return struct {
 			Domains *[]models.DNSZone `json:"data"`

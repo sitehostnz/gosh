@@ -8,8 +8,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
+// GetZone returns all records for a given domain.
 func (s *Client) GetZone(ctx context.Context, request ZoneRequest) (*[]models.DNSRecord, error) {
-
 	u := fmt.Sprintf("dns/list_records.json?client_id=%v&domain=%v", s.client.ClientID, request.DomainName)
 
 	req, err := s.client.NewRequest("GET", u, "")
@@ -36,6 +36,7 @@ func (s *Client) GetZone(ctx context.Context, request ZoneRequest) (*[]models.DN
 	return response.DomainRecords, err
 }
 
+// Get returns record for a given domain.
 func (s *Client) Get(ctx context.Context, request RecordRequest) (*models.DNSRecord, error) {
 	records, err := s.GetZone(ctx, ZoneRequest{DomainName: request.DomainName})
 	if err != nil {
@@ -43,10 +44,11 @@ func (s *Client) Get(ctx context.Context, request RecordRequest) (*models.DNSRec
 	}
 
 	for _, record := range *records {
-		if record.ID == request.Id {
+		if record.ID == request.ID {
 			return &record, nil
 		}
 	}
+
 	return nil, nil
 }
 
@@ -64,6 +66,7 @@ func (s *Client) GetWithType(ctx context.Context, request RecordRequest) (*[]mod
 			filteredRecords = append(filteredRecords, record)
 		}
 	}
+
 	return &filteredRecords, nil
 }
 
@@ -75,26 +78,10 @@ func (s *Client) GetWithRecord(ctx context.Context, record models.DNSRecord) (*m
 	}
 
 	for _, r := range *records {
-
-		if r.Name == record.Name &&
-			//TODO:  domain is not returned in the list
-			// r.Domain == record.Domain &&
-			// is only needed for creation
-
-			// TODO: client id is not returned in list response
-			// is only needed for creation
-			// r.ClientID == record.ClientID &&
-			// no idea what the state flag/field/property is for
-			// r.State == record.State
-			// ttl is not a per record here...
-			// r.TTL == record.TTL &&
-
-			r.Type == record.Type &&
-			r.Content == record.Content &&
-			r.Priority == record.Priority {
+		if r.Name == record.Name && r.Type == record.Type && r.Content == record.Content && r.Priority == record.Priority {
 			return &r, nil
 		}
 	}
-	return nil, nil
 
+	return nil, nil
 }

@@ -6,6 +6,7 @@ import (
 )
 
 func TestEncode(t *testing.T) {
+	t.Parallel()
 	v := url.Values{}
 	v.Add("key1", "value1")
 	v.Add("key2", "value2")

@@ -1,6 +1,7 @@
 package zone
 
 type (
+	// GetRequest represents a request to get a DNSZone.
 	GetRequest struct {
 		DomainName string `json:"name"`
 	}

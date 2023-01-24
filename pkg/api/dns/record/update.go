@@ -8,8 +8,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
+// Update a record for a given domain.
 func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*models.DNSRecord, error) {
-
 	u := "dns/update_record.json"
 
 	keys := []string{
@@ -30,7 +30,7 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*m
 	values.Add("record_id", domainRecord.ID)
 	values.Add("type", domainRecord.Type)
 	values.Add("name", domainRecord.Name)
-	values.Add("content", adjustContent(domainRecord))
+	// values.Add("content", domainRecord)
 	values.Add("prio", domainRecord.Priority)
 
 	// it would be really nice if the create record could return us the ID of the newly created domain
@@ -54,5 +54,4 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*m
 	}
 
 	return domainRecord, nil
-
 }

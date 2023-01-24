@@ -10,7 +10,6 @@ import (
 
 // Delete a DNSZone with the provided domain name.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response *models.APIResponse, err error) {
-
 	u := "dns/delete_domain.json"
 
 	keys := []string{

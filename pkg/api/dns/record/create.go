@@ -10,7 +10,6 @@ import (
 
 // Create a DNSRecord.
 func (s *Client) Create(ctx context.Context, opts CreateRequest) (response models.APIResponse, err error) {
-
 	u := "dns/add_record.json"
 
 	keys := []string{
