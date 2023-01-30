@@ -28,8 +28,8 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DomainRecord) 
 	values.Add("domain", domainRecord.Domain)
 	values.Add("record_id", domainRecord.ID)
 	values.Add("type", domainRecord.Type)
-	values.Add("name", domainRecord.Name)
-	values.Add("content", adjustContent(domainRecord))
+	values.Add("name", ConstructFqdn(domainRecord.Name, domainRecord.Domain))
+	values.Add("content", NormaliseContent(*domainRecord))
 	values.Add("prio", domainRecord.Priority)
 
 	// it would be really nice if the create record could return us the ID of the newly created domain

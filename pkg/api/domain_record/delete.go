@@ -17,7 +17,7 @@ func (s *Client) Delete(ctx context.Context, domainRecord *models.DomainRecord) 
 	}
 
 	values := url.Values{}
-	values.Add("client_id", domainRecord.ClientID)
+	values.Add("client_id", s.client.ClientID)
 	values.Add("domain", domainRecord.Domain)
 	values.Add("record_id", domainRecord.ID)
 

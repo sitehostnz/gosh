@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/sitehostnz/gosh/pkg/models"
+	"log"
 	"sort"
 )
 
@@ -27,9 +28,13 @@ func (s *Client) GetZone(ctx context.Context, request ZoneRequest) (*[]models.Do
 	})
 
 	// Add these back in for the sake of some sort of consistency
-	for i := range *response.DomainRecords {
-		(*response.DomainRecords)[i].Domain = request.DomainName
-		(*response.DomainRecords)[i].ClientID = s.client.ClientID
+	for i, record := range *response.DomainRecords {
+		record.Domain = request.DomainName
+		record.ClientID = s.client.ClientID
+		record.Content = NormaliseContent(record)
+		record.Name = DeconstructFqdn(record.Name, request.DomainName)
+		(*response.DomainRecords)[i] = record
+
 	}
 
 	return response.DomainRecords, err
@@ -74,8 +79,10 @@ func (s *Client) GetWithRecord(ctx context.Context, record models.DomainRecord) 
 	}
 
 	for _, r := range *records {
+		log.Printf("[INFO] Domain Record: %s %s", ConstructFqdn(r.Name, record.Domain), ConstructFqdn(record.Name, record.Domain))
+		log.Printf("[INFO] Domain Record: %s %s", ConstructFqdn(r.Name, record.Domain), ConstructFqdn(record.Name, record.Domain))
 
-		if r.Name == record.Name &&
+		if ConstructFqdn(r.Name, record.Domain) == ConstructFqdn(record.Name, record.Domain) &&
 			//TODO:  domain is not returned in the list
 			// r.Domain == record.Domain &&
 			// is only needed for creation
@@ -89,7 +96,7 @@ func (s *Client) GetWithRecord(ctx context.Context, record models.DomainRecord) 
 			// r.TTL == record.TTL &&
 
 			r.Type == record.Type &&
-			r.Content == record.Content &&
+			NormaliseContent(r) == NormaliseContent(record) &&
 			r.Priority == record.Priority {
 			return &r, nil
 		}
