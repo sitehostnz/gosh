@@ -1,4 +1,4 @@
-package zone
+package dns
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Create a DNSZone.
-func (s *Client) Create(ctx context.Context, opts CreateRequest) (response CreateResponse, err error) {
+// CreateZone a DNSZone.
+func (s *Client) CreateZone(ctx context.Context, opts CreateZoneRequest) (response CreateZoneResponse, err error) {
 	u := "dns/create_domain.json"
 
 	keys := []string{

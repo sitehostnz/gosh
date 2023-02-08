@@ -1,4 +1,4 @@
-package zone
+package dns
 
 import (
 	"context"
@@ -6,15 +6,15 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-// Get information about the all DNSZone in the account.
-func (s *Client) List(ctx context.Context) (*[]models.DNSZone, error) {
+// ListZones information about the all DNSZone in the account.
+func (s *Client) ListZones(ctx context.Context) (*[]models.DNSZone, error) {
 	u := "dns/list_domains.json"
 	req, err := s.client.NewRequest("GET", u, "")
 	if err != nil {
 		return nil, err
 	}
 
-	response := new(ListResponse)
+	response := new(ListZoneResponse)
 	err = s.client.Do(ctx, req, response)
 	if err != nil {
 		return nil, err

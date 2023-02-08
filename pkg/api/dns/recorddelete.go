@@ -1,4 +1,4 @@
-package zone
+package dns
 
 import (
 	"context"
@@ -8,18 +8,20 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete a DNSZone with the provided domain name.
-func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response *models.APIResponse, err error) {
-	u := "dns/delete_domain.json"
+// Delete a DNSRecord with the provided domain name.
+func (s *Client) Delete(ctx context.Context, opts DeleteRecordRequest) (response models.APIResponse, err error) {
+	u := "dns/delete_record.json"
 
 	keys := []string{
 		"client_id",
 		"domain",
+		"record_id",
 	}
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("domain", request.DomainName)
+	values.Add("domain", opts.Domain)
+	values.Add("record_id", opts.RecordID)
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {

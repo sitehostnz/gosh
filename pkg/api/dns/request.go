@@ -1,4 +1,4 @@
-package record
+package dns
 
 type (
 	// RecordRequest represents a request to get a DNSRecord.
@@ -8,13 +8,23 @@ type (
 		DomainName string `json:"name"`
 	}
 
-	// ZoneRequest represents a request to get a DNSZone.
-	ZoneRequest struct {
+	// GetZoneRequest represents a request to get a DNSZone.
+	GetZoneRequest struct {
 		DomainName string `json:"name"`
 	}
 
-	// CreateRequest represents a request to create a DNSRecord.
-	CreateRequest struct {
+	// CreateZoneRequest represents a request to create a DNSZone (domain).
+	CreateZoneRequest struct {
+		DomainName string `json:"name"`
+	}
+
+	// DeleteZoneRequest represents a request to delete a DNSZone.
+	DeleteZoneRequest struct {
+		DomainName string `json:"name"`
+	}
+
+	// AddRecordRequest represents a request to create a DNSRecord.
+	AddRecordRequest struct {
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		Type     string `json:"type"`
@@ -23,8 +33,8 @@ type (
 		Priority string `json:"prio"`
 	}
 
-	// DeleteRequest represents a request to delete a DNSRecord.
-	DeleteRequest struct {
+	// DeleteRecordRequest represents a request to delete a DNSRecord.
+	DeleteRecordRequest struct {
 		ClientID string `json:"client_id"`
 		Domain   string `json:"domain"`
 		RecordID string `json:"record_id"`

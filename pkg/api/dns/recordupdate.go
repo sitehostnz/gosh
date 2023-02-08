@@ -1,4 +1,4 @@
-package record
+package dns
 
 import (
 	"context"
@@ -48,10 +48,10 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*m
 	}
 
 	// read back the updated record...
-	domainRecord, err = s.GetWithRecord(ctx, *domainRecord)
-	if err != nil {
-		return nil, err
-	}
+	// domainRecord, err = s.GetWithRecord(ctx, *domainRecord)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return domainRecord, nil
 }
