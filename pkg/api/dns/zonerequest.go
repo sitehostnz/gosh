@@ -15,4 +15,13 @@ type (
 	DeleteZoneRequest struct {
 		DomainName string `json:"name"`
 	}
+
+	// ListZoneRequest represents a request to list DNSZones.
+	ListZoneOptions struct {
+		Domain     string `url:"filters[domain],omitempty"`
+		SortBy     string `url:"filters[sort_by],omitempty"`
+		SortDir    string `url:"filters[sort_dir],omitempty"`
+		PageSize   int    `url:"filters[page_size],omitempty"`
+		PageNumber int    `url:"filters[page_number],omitempty"`
+	}
 )

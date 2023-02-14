@@ -31,6 +31,5 @@ func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response 
 
 	// TODO add control for empty response
 
-	// we're assuming that when we ask for a domain, the list here should be unique and we get one or none
 	return response, nil
 }
