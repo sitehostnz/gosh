@@ -15,8 +15,7 @@ func (s *Client) ListZones(ctx context.Context) (*[]models.DNSZone, error) {
 	}
 
 	response := new(ListZoneResponse)
-	err = s.client.Do(ctx, req, response)
-	if err != nil {
+	if err := s.client.Do(ctx, req, response); err != nil {
 		return nil, err
 	}
 

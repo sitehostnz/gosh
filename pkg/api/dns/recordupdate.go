@@ -42,8 +42,7 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*m
 	}
 
 	response := new(models.APIResponse)
-	err = s.client.Do(ctx, req, response)
-	if err != nil {
+	if err := s.client.Do(ctx, req, &response); err != nil {
 		return nil, err
 	}
 
