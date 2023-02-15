@@ -31,7 +31,7 @@ func Encode(v url.Values, keys []string) string {
 }
 
 // AddOptions adds the options to the URL.
-func addOptions(s string, opt interface{}) (string, error) {
+func AddOptions(s string, opt interface{}) (string, error) {
 	v := reflect.ValueOf(opt)
 
 	if v.Kind() == reflect.Ptr && v.IsNil() {

@@ -9,7 +9,7 @@ import (
 )
 
 // Update a record for a given domain.
-func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*models.DNSRecord, error) {
+func (s *Client) UpdateRecord(ctx context.Context, opts UpdateRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/update_record.json"
 
 	keys := []string{
@@ -24,21 +24,21 @@ func (s *Client) Update(ctx context.Context, domainRecord *models.DNSRecord) (*m
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("domain", domainRecord.Domain)
-	values.Add("record_id", domainRecord.ID)
-	values.Add("type", domainRecord.Type)
-	values.Add("name", domainRecord.Name)
-	values.Add("prio", domainRecord.Priority)
+	values.Add("domain", opts.Domain)
+	values.Add("record_id", opts.RecordID)
+	values.Add("type", opts.Type)
+	values.Add("name", opts.Name)
+	values.Add("content", opts.Content)
+	values.Add("prio", opts.Priority)
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(models.APIResponse)
 	if err := s.client.Do(ctx, req, &response); err != nil {
-		return nil, err
+		return response, err
 	}
 
-	return domainRecord, nil
+	return response, nil
 }

@@ -24,4 +24,20 @@ type (
 		Domain   string `json:"domain"`
 		RecordID string `json:"record_id"`
 	}
+
+	// UpdateRecordRequest represents a request to update a DNSRecord.
+	UpdateRecordRequest struct {
+		ClientID string `json:"client_id"`
+		Domain   string `json:"domain"`
+		RecordID string `json:"record_id"`
+		Type     string `json:"type"`
+		Name     string `json:"name"`
+		Content  string `json:"content"`
+		Priority string `json:"prio"`
+	}
+
+	// GetRequest represents request params for get server endpoint.
+	ListRecordsRequest struct {
+		Domain string `json:"domain"`
+	}
 )

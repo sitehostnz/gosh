@@ -8,8 +8,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete a DNSRecord with the provided domain name.
-func (s *Client) Delete(ctx context.Context, opts DeleteRecordRequest) (response models.APIResponse, err error) {
+// DeleteRecord a DNSRecord with the provided domain name.
+func (s *Client) DeleteRecord(ctx context.Context, opts DeleteRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/delete_record.json"
 
 	keys := []string{

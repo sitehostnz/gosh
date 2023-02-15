@@ -14,8 +14,7 @@ type (
 	// CreateZoneResponse represents a request to create a DNSZone (domain).
 	CreateZoneResponse struct {
 		Return struct {
-			IsMigration bool   `json:"is_migration"`
-			DomainName  string // add domain name in response
+			IsMigration bool `json:"is_migration"`
 		} `json:"return"`
 		models.APIResponse
 	}

@@ -29,8 +29,5 @@ func (s *Client) CreateZone(ctx context.Context, opts CreateZoneRequest) (respon
 		return response, err
 	}
 
-	// add domain name in response
-	response.Return.DomainName = opts.DomainName
-
 	return response, nil
 }
