@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// Get returns record for a given domain.
+// ListRecords returns the records for a given domain.
 func (s *Client) ListRecords(ctx context.Context, request ListRecordsRequest) (response ListRecordsResponse, err error) {
 	u := fmt.Sprintf("dns/list_records.json?domain=%v", request.Domain)
 

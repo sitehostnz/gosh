@@ -36,7 +36,7 @@ type (
 		Priority string `json:"prio"`
 	}
 
-	// GetRequest represents request params for get server endpoint.
+	// ListRecordsRequest represents a request to list DNSRecords.
 	ListRecordsRequest struct {
 		Domain string `json:"domain"`
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Update a record for a given domain.
+// UpdateRecord a record for a given domain.
 func (s *Client) UpdateRecord(ctx context.Context, opts UpdateRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/update_record.json"
 

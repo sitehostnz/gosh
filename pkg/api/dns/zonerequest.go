@@ -16,7 +16,7 @@ type (
 		DomainName string `json:"name"`
 	}
 
-	// ListZoneRequest represents a request to list DNSZones.
+	// ListZoneOptions represents a request to list DNSZones.
 	ListZoneOptions struct {
 		Domain     string `url:"filters[domain],omitempty"`
 		SortBy     string `url:"filters[sort_by],omitempty"`
