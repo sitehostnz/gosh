@@ -8,7 +8,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// DeleteRecord a DNSRecord with the provided domain name.
+// DeleteRecord deletes a record from the DNS for a domain.
+// This function takes a context.Context and a DeleteRecordRequest struct as input parameters.
+// It returns an APIResponse struct and an error.
 func (s *Client) DeleteRecord(ctx context.Context, opts DeleteRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/delete_record.json"
 

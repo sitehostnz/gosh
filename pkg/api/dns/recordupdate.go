@@ -8,7 +8,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// UpdateRecord a record for a given domain.
+// UpdateRecord updates an existing DNS record for a domain.
+// This function takes a context.Context and an UpdateRecordRequest struct as input parameters.
+// It returns an APIResponse struct and an error.
 func (s *Client) UpdateRecord(ctx context.Context, opts UpdateRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/update_record.json"
 

@@ -8,7 +8,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// DeleteZone a DNSZone with the provided domain name.
+// DeleteZone deletes an existing DNS zone with the specified domain name.
+// It takes a context.Context and a DeleteZoneRequest struct as input parameters.
+// It returns a models.APIResponse pointer and an error.
 func (s *Client) DeleteZone(ctx context.Context, request DeleteZoneRequest) (response *models.APIResponse, err error) {
 	u := "dns/delete_domain.json"
 

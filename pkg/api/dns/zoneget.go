@@ -7,7 +7,10 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// GetZone information about the DNSZone.
+// GetZone searches for a domain in the DNS made easy service
+// by sending a request with a query containing the domain name.
+// If the response contains any matching domain, it returns it as part of the GetZoneResponse.
+// If the response is empty, a control to handle this case is missing and should be added.
 func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response GetZoneResponse, err error) {
 	u := "dns/search_domains.json"
 

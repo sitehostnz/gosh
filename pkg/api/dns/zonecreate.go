@@ -7,7 +7,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// CreateZone a DNSZone.
+// CreateZone creates a new DNS zone with the specified domain name.
+// This function takes a context.Context and a CreateZoneRequest struct as input parameters.
+// It returns a CreateZoneResponse struct and an error.
 func (s *Client) CreateZone(ctx context.Context, opts CreateZoneRequest) (response CreateZoneResponse, err error) {
 	u := "dns/create_domain.json"
 

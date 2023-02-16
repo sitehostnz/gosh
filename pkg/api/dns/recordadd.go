@@ -8,7 +8,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// AddRecord a DNSRecord.
+// AddRecord adds a new record to the DNS for a domain.
+// This function takes a context.Context and an AddRecordRequest struct as input parameters.
+// It returns an APIResponse struct and an error.
 func (s *Client) AddRecord(ctx context.Context, opts AddRecordRequest) (response models.APIResponse, err error) {
 	u := "dns/add_record.json"
 
