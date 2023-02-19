@@ -8,6 +8,13 @@ type (
 		models.APIResponse
 	}
 
+	CreateResponse struct {
+		Return struct {
+			JobID string `json:"job_id"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	ListResponse struct {
 		Return struct {
 			Stacks *[]models.Stack `json:"data"`
