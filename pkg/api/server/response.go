@@ -19,7 +19,7 @@ type (
 		models.APIResponse
 	}
 
-	// CreateResponse represents a request to create a Server.
+	// CreateResponse represents a result of the create a Server call.
 	CreateResponse struct {
 		Return struct {
 			JobID    string   `json:"job_id"`

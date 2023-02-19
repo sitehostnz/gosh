@@ -24,17 +24,17 @@ import (
 )
 
 func main() {
-  apiKey := os.Getenv("SH_APIKEY")
-  clientId := os.Getenv("SH_CLIENTID")
+    apiKey := os.Getenv("SH_APIKEY")
+    clientId := os.Getenv("SH_CLIENTID")
 
-  sh := gosh.NewClient(apiKey, clientId)
-  ctx = context.Background()
-
-  server, err := sh.Servers.Get(ctx, "ch-server1")
-  if err != nil {
-    log.Fatal(err)
-  }
-  fmt.Printf("%v", server)
+    sh := gosh.NewClient(apiKey, clientId)
+    ctx = context.Background()
+    
+    server, err := sh.Servers.Get(ctx, "ch-server1")
+    if err != nil {
+        log.Fatal(err)
+    }
+    fmt.Printf("%v", server)
 }
 ```
 
@@ -44,7 +44,7 @@ See our documentation for [detailed information about API v1.1](https://docs.sit
 
 ## Contributing
 If you're interested in contributing to our project:
-- Start by reading our [style guide](https://github.com/sitehostnz/go-style-guide/blob/master/style.md).
+- Start by reading our [style guide](https://github.com/sitehostnz/go-style-guide/blob/master/style.md) and [contributing guide](/docs/CONTRIBUTING.md).
 - Explore our [issues](https://github.com/sitehostnz/gosh/issues).
 - Or send us feature PRs.
 

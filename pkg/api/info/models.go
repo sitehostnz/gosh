@@ -1,4 +1,4 @@
-package domain_record
+package info
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"
