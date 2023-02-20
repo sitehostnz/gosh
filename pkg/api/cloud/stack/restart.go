@@ -2,14 +2,13 @@ package stack
 
 import (
 	"context"
+
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Restart restarts a stack on the given server.
 func (s *Client) Restart(ctx context.Context, request StopStartRequest) (*StartStopResponse, error) {
-
-	u := "cloud/stack/restart.json"
-	req, err := s.client.NewRequest("GET", u, "")
+	req, err := s.client.NewRequest("GET", "cloud/stack/restart.json", "")
 	if err != nil {
 		return nil, err
 	}

@@ -2,15 +2,13 @@ package stack
 
 import (
 	"context"
-	"github.com/sitehostnz/gosh/pkg/utils"
 	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Create creates a new cloud stack.
 func (s *Client) Create(ctx context.Context, request CreateRequest) (*CreateResponse, error) {
-
-	u := "cloud/stack/add.json"
-
 	keys := []string{
 		"client_id",
 		"server",
@@ -39,7 +37,7 @@ func (s *Client) Create(ctx context.Context, request CreateRequest) (*CreateResp
 	// 	i += 2
 	// }
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, append(keys, args...)))
+	req, err := s.client.NewRequest("POST", "cloud/stack/add.json", utils.Encode(values, append(keys, args...)))
 	if err != nil {
 		return nil, err
 	}

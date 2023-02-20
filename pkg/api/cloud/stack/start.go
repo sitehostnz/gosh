@@ -2,14 +2,13 @@ package stack
 
 import (
 	"context"
+
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Start starts a cloud stack on a given server.
 func (s *Client) Start(ctx context.Context, request StopStartRequest) (*StartStopResponse, error) {
-
-	u := "cloud/stack/start.json"
-	req, err := s.client.NewRequest("GET", u, "")
+	req, err := s.client.NewRequest("GET", "cloud/stack/start.json", "")
 	if err != nil {
 		return nil, err
 	}

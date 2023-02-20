@@ -3,15 +3,13 @@ package environment
 import (
 	"context"
 	"fmt"
-	"github.com/sitehostnz/gosh/pkg/utils"
 	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Update applies updates to the stacks environment.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResponse, error) {
-
-	u := "cloud/stack/environment/update.json"
-
 	keys := []string{
 		"client_id",
 		"server",
@@ -38,7 +36,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResp
 		i += 2
 	}
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, append(keys, args...)))
+	req, err := s.client.NewRequest("POST", "cloud/stack/environment/update.json", utils.Encode(values, append(keys, args...)))
 	if err != nil {
 		return nil, err
 	}

@@ -2,15 +2,14 @@ package environment
 
 import (
 	"context"
+
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Get returns the stack's environment variables.
 func (s *Client) Get(ctx context.Context, request GetRequest) (*[]models.EnvironmentVariable, error) {
-
-	u := "cloud/stack/environment/get.json"
-	req, err := s.client.NewRequest("GET", u, "")
+	req, err := s.client.NewRequest("GET", "cloud/stack/environment/get.json", "")
 	if err != nil {
 		return nil, err
 	}

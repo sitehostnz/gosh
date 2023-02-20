@@ -11,7 +11,7 @@ type (
 		Type    string `json:"type"`
 		RAM     string `json:"ram"`
 		Root    string `json:"root"`
-		// this returns inconsistenly... between vds/vps and cloud containers
+		// this returns inconsistently... between vds/vps and cloud containers
 		//		Disk             int64  `json:"disk,string"`
 
 		// this returns inconsistently

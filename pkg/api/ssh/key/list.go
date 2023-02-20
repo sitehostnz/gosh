@@ -2,14 +2,13 @@ package sshkey
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // List returns a list of all ssh keys.
 func (s *Client) List(ctx context.Context) (*[]models.SSHKey, error) {
-	u := fmt.Sprintf("ssh/key/list_all.json")
-	req, err := s.client.NewRequest("GET", u, "")
+	req, err := s.client.NewRequest("GET", "ssh/key/list_all.json", "")
 	if err != nil {
 		return nil, err
 	}
@@ -20,6 +19,6 @@ func (s *Client) List(ctx context.Context) (*[]models.SSHKey, error) {
 		return nil, err
 	}
 
-	// if the request works, don't care about pagination right now...
+	// if the request works, don't care about pagination right now.
 	return response.Return.SSHKeys, err
 }

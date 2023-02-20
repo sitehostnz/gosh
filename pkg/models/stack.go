@@ -1,6 +1,7 @@
 package models
 
 type (
+	// Container represents a container inside a stack.
 	Container struct {
 		Name        string `json:"name"`
 		ContainerID string `json:"container_id"`
@@ -14,6 +15,7 @@ type (
 		Pending   interface{} `json:"pending"`
 	}
 
+	// Stack represents a cloud stack and it's configuration.
 	Stack struct {
 		ClientID string `json:"client_id"`
 
@@ -26,7 +28,7 @@ type (
 
 		DockerFile string `json:"docker_file"`
 
-		IpAddress string `json:"ip_addr_server"`
+		IPAddress string `json:"ip_addr_server"`
 
 		DateAdded   string `json:"date_added"`
 		DateUpdated string `json:"date_updated"`
@@ -38,6 +40,7 @@ type (
 		IsMissing   interface{} `json:"is_missing"`
 	}
 
+	// EnvironmentVariable is a stack environment variable key-pair.
 	EnvironmentVariable struct {
 		Name    string `json:"name"`
 		Content string `json:"content"`
