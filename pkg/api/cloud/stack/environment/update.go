@@ -7,7 +7,7 @@ import (
 	"net/url"
 )
 
-// Update applies updates to the stacks environment
+// Update applies updates to the stacks environment.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResponse, error) {
 
 	u := "cloud/stack/environment/update.json"

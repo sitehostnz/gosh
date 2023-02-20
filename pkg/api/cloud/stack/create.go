@@ -6,6 +6,7 @@ import (
 	"net/url"
 )
 
+// Create creates a new cloud stack.
 func (s *Client) Create(ctx context.Context, request CreateRequest) (*CreateResponse, error) {
 
 	u := "cloud/stack/add.json"

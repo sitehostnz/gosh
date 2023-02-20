@@ -5,7 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Restart restarts a stack on the given server
+// Restart restarts a stack on the given server.
 func (s *Client) Restart(ctx context.Context, request StopStartRequest) (*StartStopResponse, error) {
 
 	u := "cloud/stack/restart.json"
