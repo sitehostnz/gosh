@@ -6,6 +6,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
+// Get fetches a cloud stack
 func (s *Client) Get(ctx context.Context, request GetRequest) (*models.Stack, error) {
 
 	u := "cloud/stack/get.json"

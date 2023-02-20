@@ -24,19 +24,19 @@ func (s *Client) Create(ctx context.Context, request CreateRequest) (*CreateResp
 	// let's just use the one specified in the config for now...
 	values.Add("client_id", s.client.ClientID)
 	values.Add("server", request.ServerName)
-	//values.Add("project", request.Project)
-	//values.Add("service", request.Service)
+	// values.Add("project", request.Project)
+	// values.Add("service", request.Service)
 
 	args := make([]string, len(*request.Environments))
-	//i := 0
-	//for x, v := range *request.EnvironmentVariables {
-	//	args[i] = fmt.Sprintf("variables[%d][name]", x)
-	//	values.Add(args[i], v.Name)
+	// i := 0
+	// for x, v := range *request.EnvironmentVariables {
+	// 	args[i] = fmt.Sprintf("variables[%d][name]", x)
+	// 	values.Add(args[i], v.Name)
 	//
-	//	args[i+1] = fmt.Sprintf("variables[%d][content]", x)
-	//	values.Add(args[i+1], v.Content)
-	//	i += 2
-	//}
+	// 	args[i+1] = fmt.Sprintf("variables[%d][content]", x)
+	// 	values.Add(args[i+1], v.Content)
+	// 	i += 2
+	// }
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, append(keys, args...)))
 	if err != nil {

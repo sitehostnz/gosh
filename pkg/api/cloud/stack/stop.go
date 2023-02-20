@@ -5,6 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
+// Stop is for stopping a cloud stack on a given server
 func (s *Client) Stop(ctx context.Context, request *StopStartRequest) (*StartStopResponse, error) {
 
 	u := "cloud/stack/stop.json"

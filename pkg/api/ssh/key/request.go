@@ -1,4 +1,4 @@
-package key
+package sshkey
 
 type (
 	GetRequest struct {

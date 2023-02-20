@@ -5,6 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
+// List returns a list of stack servers
 func (s *Client) List(ctx context.Context) (*[]models.StackServer, error) {
 
 	req, err := s.client.NewRequest("GET", "cloud/server/list_all.json", "")

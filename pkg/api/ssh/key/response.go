@@ -1,4 +1,4 @@
-package key
+package sshkey
 
 import "github.com/sitehostnz/gosh/pkg/models"
 

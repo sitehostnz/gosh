@@ -5,6 +5,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
+// Start starts a cloud stack on a given server
 func (s *Client) Start(ctx context.Context, request StopStartRequest) (*StartStopResponse, error) {
 
 	u := "cloud/stack/start.json"
