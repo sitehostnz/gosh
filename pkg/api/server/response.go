@@ -37,6 +37,15 @@ type (
 		models.APIResponse
 	}
 
+	// ListResponse lists all servers.
+	ListResponse struct {
+		Return struct {
+			models.Pagination
+			Servers []models.Server `json:"data"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	// UpdateResponse represents a result of a update Server call.
 	UpdateResponse struct {
 		models.APIResponse

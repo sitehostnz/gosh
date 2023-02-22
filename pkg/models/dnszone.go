@@ -1,7 +1,7 @@
 package models
 
 type (
-	// DNSZone base representation of a domain.
+	// DNSZone represent a DNS domain.
 	DNSZone struct {
 		Name       string `json:"name"`
 		ClientID   string `json:"client_id"`

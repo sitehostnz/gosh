@@ -5,13 +5,13 @@ type (
 	Server struct {
 		Name             string `json:"name"`
 		Label            string `json:"label"`
-		ClientID         int    `json:"client_id"`
+		ClientID         string `json:"client_id,string"`
 		Created          string `json:"created"`
 		Type             string `json:"type"`
 		RAM              string `json:"ram"`
 		Root             string `json:"root"`
-		Disk             int    `json:"disk"`
-		Cores            string `json:"cores"`
+		Disk             int64  `json:"disk,string"`
+		Cores            int    `json:"cores,string"`
 		Core             string `json:"core"`
 		Arch             string `json:"arch"`
 		Kernel           string `json:"kernel"`
