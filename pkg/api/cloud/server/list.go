@@ -1,23 +1,21 @@
-package stackserver
+package cloudserver
 
 import (
 	"context"
-
-	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // List returns a list of stack servers.
-func (s *Client) List(ctx context.Context) (*[]models.StackServer, error) {
-	req, err := s.client.NewRequest("GET", "cloud/server/list_all.json", "")
+func (s *Client) List(ctx context.Context) (response ListResponse, err error) {
+	uri := "cloud/server/list_all.json"
+
+	req, err := s.client.NewRequest("GET", uri, "")
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(ListResponse)
-	err = s.client.Do(ctx, req, response)
-	if err != nil {
-		return nil, err
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
 	}
 
-	return response.StackServers, nil
+	return response, nil
 }

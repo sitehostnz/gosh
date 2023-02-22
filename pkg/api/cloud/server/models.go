@@ -1,4 +1,4 @@
-package stackserver
+package cloudserver
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"

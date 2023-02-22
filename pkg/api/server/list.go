@@ -2,23 +2,19 @@ package server
 
 import (
 	"context"
-
-	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // List information about the server.
-func (s *Client) List(ctx context.Context) (*[]models.Server, error) {
-	// u := fmt.Sprintf("server/get_server.json?name=%v", request.ServerName)
+func (s *Client) List(ctx context.Context) (response ListResponse, err error) {
 	u := "server/list_servers.json"
 	req, err := s.client.NewRequest("GET", u, "")
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(ListResponse)
 	if err := s.client.Do(ctx, req, &response); err != nil {
-		return nil, err
+		return response, err
 	}
 
-	return response.Return.Servers, nil
+	return response, nil
 }

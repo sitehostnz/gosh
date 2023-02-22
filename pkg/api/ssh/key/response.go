@@ -6,7 +6,7 @@ type (
 	// ListResponse represents the listing of SSHKeys.
 	ListResponse struct {
 		Return struct {
-			SSHKeys *[]models.SSHKey `json:"data"`
+			SSHKeys []models.SSHKey `json:"data"`
 		}
 		models.APIResponse
 	}

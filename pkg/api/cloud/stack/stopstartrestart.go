@@ -6,14 +6,14 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Get fetches a cloud stack.
-func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
-	uri := "cloud/stack/get.json"
+// StopStartRestart is the common function for stop, start and restart actions.
+func (s *Client) StopStartRestart(ctx context.Context, request StopStartRestartRequest, uri string) (response StartStopRestartResponse, err error) {
 	keys := []string{
 		"apikey",
 		"client_id",
 		"server",
 		"name",
+		"containers[]",
 	}
 
 	req, err := s.client.NewRequest("GET", uri, "")
@@ -24,6 +24,9 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	v := req.URL.Query()
 	v.Add("server", request.ServerName)
 	v.Add("name", request.Name)
+	for _, container := range request.Containers {
+		v.Add("containers[]", container)
+	}
 
 	req.URL.RawQuery = utils.Encode(v, keys)
 

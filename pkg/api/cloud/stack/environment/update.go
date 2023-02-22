@@ -9,7 +9,8 @@ import (
 )
 
 // Update applies updates to the stacks environment.
-func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResponse, error) {
+func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
+	uri := "cloud/stack/environment/update.json"
 	keys := []string{
 		"client_id",
 		"server",
@@ -18,16 +19,14 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResp
 	}
 
 	values := url.Values{}
-	// not sure as to the best way to do this, we are we likely to move records between clients?
-	// let's just use the one specified in the config for now...
 	values.Add("client_id", s.client.ClientID)
 	values.Add("server", request.ServerName)
 	values.Add("project", request.Project)
 	values.Add("service", request.Service)
 
-	args := make([]string, len(*request.EnvironmentVariables)*2)
+	args := make([]string, len(request.EnvironmentVariables)*2)
 	i := 0
-	for x, v := range *request.EnvironmentVariables {
+	for x, v := range request.EnvironmentVariables {
 		args[i] = fmt.Sprintf("variables[%d][name]", x)
 		values.Add(args[i], v.Name)
 
@@ -36,15 +35,13 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (*UpdateResp
 		i += 2
 	}
 
-	req, err := s.client.NewRequest("POST", "cloud/stack/environment/update.json", utils.Encode(values, append(keys, args...)))
+	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, append(keys, args...)))
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	response := new(UpdateResponse)
-	err = s.client.Do(ctx, req, response)
-	if err != nil {
-		return nil, err
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
 	}
 
 	return response, nil
