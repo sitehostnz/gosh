@@ -3,20 +3,15 @@ package models
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
-		Name  string `json:"name"`
-		Label string `json:"label"`
-		// This returns inconsistently
-		//		ClientID int    `json:"client_id,string"`
-		Created string `json:"created"`
-		Type    string `json:"type"`
-		RAM     string `json:"ram"`
-		Root    string `json:"root"`
-		// this returns inconsistently... between vds/vps and cloud containers
-		//		Disk             int64  `json:"disk,string"`
-
-		// this returns inconsistently
-		// Cores            int    `json:"cores"`
-
+		Name             string `json:"name"`
+		Label            string `json:"label"`
+		ClientID         string `json:"client_id,string"`
+		Created          string `json:"created"`
+		Type             string `json:"type"`
+		RAM              string `json:"ram"`
+		Root             string `json:"root"`
+		Disk             int64  `json:"disk,string"`
+		Cores            int    `json:"cores,string"`
 		Core             string `json:"core"`
 		Arch             string `json:"arch"`
 		Kernel           string `json:"kernel"`

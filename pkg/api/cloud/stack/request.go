@@ -14,19 +14,20 @@ type (
 		Name       string `json:"name"`
 	}
 
-	// CreateRequest represents the construction / setup of a new cloud stack.
-	CreateRequest struct {
+	// AddRequest represents the construction / setup of a new cloud stack.
+	AddRequest struct {
 		ServerName    string `json:"server_name"`
 		Name          string `json:"name"`
 		Label         string `json:"label"`
 		EnableSSL     int    `json:"enable_ssl"`
 		DockerCompose string `json:"docker_compose"`
-		Environments  *map[string]models.EnvironmentVariable
+		Environments  []models.EnvironmentVariable
 	}
 
-	// StopStartRequest is a request to start or stop a server.
-	StopStartRequest struct {
-		ServerName string `json:"server_name"`
-		Name       string `json:"name"`
+	// StopStartRestartRequest is a request to start, restart or stop a cloud stack/container.
+	StopStartRestartRequest struct {
+		ServerName string   `json:"server_name"`
+		Name       string   `json:"name"`
+		Containers []string `json:"containers"`
 	}
 )

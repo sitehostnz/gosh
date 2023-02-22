@@ -15,6 +15,6 @@ type (
 		ServerName           string `json:"server"`
 		Project              string `json:"project"`
 		Service              string `json:"service"`
-		EnvironmentVariables *[]models.EnvironmentVariable
+		EnvironmentVariables []models.EnvironmentVariable
 	}
 )

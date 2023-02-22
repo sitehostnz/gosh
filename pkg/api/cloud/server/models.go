@@ -1,4 +1,4 @@
-package stackserver
+package server
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"

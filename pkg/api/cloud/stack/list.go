@@ -3,24 +3,24 @@ package stack
 import (
 	"context"
 	"fmt"
-
-	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // List fetches all cloud stacks on a specific server.
-func (s *Client) List(ctx context.Context, request ListRequest) (*[]models.Stack, error) {
-	u := fmt.Sprintf("cloud/stack/list_all.json?filters[server_name]=%v", request.ServerName)
+func (s *Client) List(ctx context.Context, request ListRequest) (response ListResponse, err error) {
+	uri := "cloud/stack/list_all.json"
 
-	req, err := s.client.NewRequest("GET", u, "")
-	if err != nil {
-		return nil, err
+	if request.ServerName != "" {
+		uri += fmt.Sprintf("?filters[server_name]=%s", request.ServerName)
 	}
 
-	response := new(ListResponse)
-	err = s.client.Do(ctx, req, response)
+	req, err := s.client.NewRequest("GET", uri, "")
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
-	return response.Return.Stacks, nil
+	if err := s.client.Do(ctx, req, &response); err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
