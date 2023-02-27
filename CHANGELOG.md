@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.1] - 2023-02-28
+### Added
+- Added `/cloud/server`, `/cloud/stack`, `/cloud/stack/environment` endpoints.
+- Added `/dns` endpoint.
+- Added `/ssh` endpoint.
+- Added `/api/get_info` endpoint.
+
 ## [v0.3.0] - 2022-12-08
 ### Added
 - GitHub PR actions to run go vet, go lint and go mod tidy.
