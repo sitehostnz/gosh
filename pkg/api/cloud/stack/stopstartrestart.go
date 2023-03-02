@@ -6,8 +6,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// StopStartRestart is the common function for stop, start and restart actions.
-func (s *Client) StopStartRestart(ctx context.Context, request StopStartRestartRequest, uri string) (response StartStopRestartResponse, err error) {
+// stopStartRestart is the common function for stop, start and restart actions.
+func (s *Client) stopStartRestart(ctx context.Context, request StopStartRestartRequest, uri string) (response StartStopRestartResponse, err error) {
 	keys := []string{
 		"apikey",
 		"client_id",

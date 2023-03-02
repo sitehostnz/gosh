@@ -1,4 +1,4 @@
-package cloudserver
+package server
 
 import "github.com/sitehostnz/gosh/pkg/models"
 

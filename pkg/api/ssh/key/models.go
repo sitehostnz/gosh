@@ -1,4 +1,4 @@
-package sshkey
+package key
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"

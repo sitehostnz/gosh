@@ -1,2 +1,2 @@
-// Package cloudserver provides access to the `/cloud/stack/server` API endpoint.
-package cloudserver
+// Package server provides access to the `/cloud/stack/server` API endpoint.
+package server

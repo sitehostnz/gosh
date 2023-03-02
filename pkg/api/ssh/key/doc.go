@@ -1,2 +1,2 @@
-// Package sshkey represents our SiteHost `/ssh/key` API endpoint.
-package sshkey
+// Package key represents our SiteHost `/ssh/key` API endpoint.
+package key

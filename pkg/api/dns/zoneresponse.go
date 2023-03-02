@@ -6,11 +6,8 @@ type (
 	// ListZoneResponse represents a request to list all DNSZones (domains).
 	ListZoneResponse struct {
 		Return struct {
-			TotalItems   int              `json:"total_items"`
-			CurrentItems int              `json:"current_items"`
-			CurrentPage  int              `json:"current_page"`
-			TotalPages   int              `json:"total_pages"`
-			Data         []models.DNSZone `json:"data"`
+			models.Pagination
+			Data []models.DNSZone `json:"data"`
 		} `json:"return"`
 		models.APIResponse
 	}

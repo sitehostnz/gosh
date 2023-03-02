@@ -1,4 +1,4 @@
-package sshkey
+package key
 
 type (
 	// GetRequest represents a request to get a specific SSH key.

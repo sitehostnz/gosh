@@ -22,6 +22,7 @@ type (
 	// ListResponse is the response for listing stacks.
 	ListResponse struct {
 		Return struct {
+			models.Pagination
 			Stacks []models.Stack `json:"data"`
 		}
 		models.APIResponse
