@@ -1,17 +1,26 @@
 package models
 
+import "github.com/sitehostnz/gosh/pkg/utils"
+
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
-		Name             string `json:"name"`
-		Label            string `json:"label"`
-		ClientID         string `json:"client_id,string"`
-		Created          string `json:"created"`
-		Type             string `json:"type"`
-		RAM              string `json:"ram"`
-		Root             string `json:"root"`
-		Disk             int64  `json:"disk,string"`
-		Cores            int    `json:"cores,string"`
+		Name     string `json:"name"`
+		Label    string `json:"label"`
+		ClientID string `json:"client_id"`
+		Created  string `json:"created"`
+		Type     string `json:"type"`
+		RAM      string `json:"ram"`
+		Root     string `json:"root"`
+
+		// this returns differently on the site host api, depending on the server being either a cloud or a vds/vps
+		// so needs to be unmarshalled some way, either as raw bytes, and figure it out later
+		// or via an interface of some kind, lets go for an interface to handle the unmarshalling so we don't need to litter
+		// stuff to handle all over the place
+		// Disk  interface{} `json:"disk"`
+		Disk  utils.MaybeBigInt `json:"disk"`
+		Cores int               `json:"cores"`
+
 		Core             string `json:"core"`
 		Arch             string `json:"arch"`
 		Kernel           string `json:"kernel"`
