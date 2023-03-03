@@ -5,13 +5,14 @@ import "github.com/sitehostnz/gosh/pkg/utils"
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
-		Name     string `json:"name"`
-		Label    string `json:"label"`
-		ClientID string `json:"client_id"`
-		Created  string `json:"created"`
-		Type     string `json:"type"`
-		RAM      string `json:"ram"`
-		Root     string `json:"root"`
+		Name  string `json:"name"`
+		Label string `json:"label"`
+		// this differs between the get api and the list api... so we also want to boondongle it here, see the notes below
+		ClientID utils.MaybeString `json:"client_id"`
+		Created  string            `json:"created"`
+		Type     string            `json:"type"`
+		RAM      string            `json:"ram"`
+		Root     string            `json:"root"`
 
 		// this returns differently on the site host api, depending on the server being either a cloud or a vds/vps
 		// so needs to be unmarshalled some way, either as raw bytes, and figure it out later
@@ -19,7 +20,7 @@ type (
 		// stuff to handle all over the place
 		// Disk  interface{} `json:"disk"`
 		Disk  utils.MaybeBigInt `json:"disk"`
-		Cores int               `json:"cores"`
+		Cores utils.MaybeBigInt `json:"cores"`
 
 		Core             string `json:"core"`
 		Arch             string `json:"arch"`
