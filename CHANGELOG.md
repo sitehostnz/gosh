@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2032-03-03
+### Fixes
+- Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.  
 ## [v0.3.1] - 2023-02-28
 ### Added
 - Added `/cloud/server`, `/cloud/stack`, `/cloud/stack/environment` endpoints.
