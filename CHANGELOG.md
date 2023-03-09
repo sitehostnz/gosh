@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2032-03-07
+### Added
+- helper for handling boolish results
+- image list and get endpoints
+
 ## [v0.3.x] - 2032-03-03
 ### Fixes
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
