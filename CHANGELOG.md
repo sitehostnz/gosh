@@ -1,6 +1,20 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2032-03-03
+### Fixes
+- Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
+
+### Added
+- Add some helpers for filtering the DNS list and getting new records since there is no get record end point, and the add api does not add the new record id 
+
+## [v0.3.1] - 2023-02-28
+### Added
+- Added `/cloud/server`, `/cloud/stack`, `/cloud/stack/environment` endpoints.
+- Added `/dns` endpoint.
+- Added `/ssh` endpoint.
+- Added `/api/get_info` endpoint.
+
 ## [v0.3.0] - 2022-12-08
 ### Added
 - GitHub PR actions to run go vet, go lint and go mod tidy.
