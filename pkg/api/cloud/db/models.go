@@ -1,4 +1,4 @@
-package image
+package db
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"

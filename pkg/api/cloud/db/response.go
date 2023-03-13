@@ -1,20 +1,16 @@
-package image
+package db
 
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
-	// ListResponse represents the return from the /cloud/images/list_all.json endpoint.
+	GetResponse struct {
+		//models.APIResponse
+	}
 	ListResponse struct {
 		Return struct {
+			Databases []models.Database `json:"data"`
 			models.Pagination
-			Images []models.CloudImage `json:"data"`
-		}
-		models.APIResponse
-	}
-
-	// GetResponse represents the return from the /cloud/images/get.json endpoint.
-	GetResponse struct {
-		Image models.CloudImage `json:"return"`
+		} `json:"return"`
 		models.APIResponse
 	}
 )
