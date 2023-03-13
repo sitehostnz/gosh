@@ -1,16 +1,18 @@
 package models
 
+import "encoding/json"
+
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
 		Name             string        `json:"name"`
 		Label            string        `json:"label"`
-		ClientID         int           `json:"client_id"`
+		ClientID         json.Number   `json:"client_id"`
 		Created          string        `json:"created"`
 		Type             string        `json:"type"`
 		RAM              string        `json:"ram"`
 		Root             string        `json:"root"`
-		Disk             int           `json:"disk"`
+		Disk             json.Number   `json:"disk"`
 		Cores            string        `json:"cores"`
 		Core             string        `json:"core"`
 		Arch             string        `json:"arch"`
