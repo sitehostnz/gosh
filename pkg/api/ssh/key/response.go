@@ -13,14 +13,7 @@ type (
 	}
 	// GetResponse is the return from a GetRequest.
 	GetResponse struct {
-		Return struct {
-			ID          string `json:"id"`
-			ClientID    string `json:"client_id"`
-			Label       string `json:"label"`
-			Content     string `json:"content"`
-			DateAdded   string `json:"date_added"`
-			DateUpdated string `json:"date_updated"`
-		} `json:"return"`
+		Return models.SSHKey `json:"return"`
 		models.APIResponse
 	}
 	// AddResponse is the return from an AddRequest.
