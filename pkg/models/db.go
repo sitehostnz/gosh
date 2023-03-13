@@ -1,6 +1,7 @@
 package models
 
 type (
+	// Grant represents database grants.
 	Grant struct {
 		DBName      string      `json:"db_name"`
 		Username    string      `json:"username"`
@@ -13,6 +14,7 @@ type (
 		DateUpdated string      `json:"date_updated"`
 	}
 
+	// Database represents a database on a cloud server, some properties may or may not be populated depending on how we call.
 	Database struct {
 		ID          string      `json:"id"`
 		DBName      string      `json:"db_name"`
@@ -30,20 +32,5 @@ type (
 		ServerOwner bool        `json:"server_owner"`
 		Container   string      `json:"container"`
 		Grants      []Grant     `json:"grants"`
-	}
-
-	DatabaseGet struct {
-		DbName      string      `json:"db_name"`
-		MysqlHost   string      `json:"mysql_host"`
-		Size        interface{} `json:"size"`
-		ClientId    string      `json:"client_id"`
-		ServerId    string      `json:"server_id"`
-		Pending     interface{} `json:"pending"`
-		IsMissing   string      `json:"is_missing"`
-		DateAdded   string      `json:"date_added"`
-		DateUpdated string      `json:"date_updated"`
-		Container   string      `json:"container"`
-		ServerName  string      `json:"server_name"`
-		ServerLabel string      `json:"server_label"`
 	}
 )

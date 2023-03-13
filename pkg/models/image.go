@@ -4,7 +4,7 @@ import "github.com/sitehostnz/gosh/pkg/utils"
 
 type (
 
-	// CloudImage represents an image in the /cloud/images
+	// CloudImage represents an image in the /cloud/images.
 	CloudImage struct {
 		ID       string `json:"id"`
 		ClientID string `json:"client_id"`
@@ -30,7 +30,7 @@ type (
 		ContainerCount int             `json:"container_count"`
 		BuildStatus    string          `json:"build_status"`
 	}
-	// StackImage represents an image in the /cloud/stack/images
+	// StackImage represents an image in the /cloud/stack/images.
 	StackImage struct {
 		ID             string                 `json:"id"`
 		ClientID       string                 `json:"client_id"`

@@ -2,10 +2,11 @@ package db
 
 import (
 	"context"
+
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// List returns a list of stack databases, specific to the customer.
+// List returns a list of cloud databases, specific to the customer.
 func (s *Client) List(ctx context.Context, opt ListOptions) (response ListResponse, err error) {
 	uri := "cloud/db/list_all.json"
 
