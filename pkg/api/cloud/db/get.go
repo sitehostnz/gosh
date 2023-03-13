@@ -6,10 +6,11 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Get fetches a cloud image.
+// Get fetches a cloud db.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
 	uri := "cloud/db/get.json"
 	keys := []string{
+		"apikey",
 		"client_id",
 		"server_name",
 		"mysql_host",
@@ -22,6 +23,7 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	}
 
 	v := req.URL.Query()
+	v.Add("api_key", s.client.APIKey)
 	v.Add("client_id", s.client.ClientID)
 	v.Add("server_name", request.ServerName)
 	v.Add("mysql_host", request.MySQLHost)
