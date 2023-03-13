@@ -1,10 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2032-03-13
+### Added
+- database list/get/update/remove for `/cloud/stack/image`
+- cloud stack image list_all `/cloud/image`
+- `/ssh/key/` add/update 
+
 ## [v0.3.x] - 2032-03-07
 ### Added
 - helper for handling boolish results
-- image list and get endpoints
+- image list and get endpoints for `/cloud/image` endpoint
 
 ## [v0.3.x] - 2032-03-03
 ### Fixes
