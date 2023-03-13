@@ -1,2 +1,2 @@
-// Package image provides access to the `/cloud/image` API endpoint.
-package image
+// Package db provides access to the `/cloud/db` API endpoint.
+package db
