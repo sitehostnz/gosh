@@ -7,7 +7,7 @@ import (
 
 const (
 	SchedulerType string = "scheduler"
-	DammonType           = "daemon"
+	DaemonType           = "daemon"
 )
 
 type (
