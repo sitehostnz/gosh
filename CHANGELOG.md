@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file. The format 
 - database list/get/update/remove for `/cloud/stack/image`
 - cloud stack image list_all `/cloud/image`
 
+## [v0.3.x] - 2032-03-15
+### Fixes
+- correct the ssh key update params
+
 ## [v0.3.4] - 2024-03-12
 ### Added
 - Add ability to update SSH Keys.
@@ -13,11 +17,6 @@ All notable changes to this project will be documented in this file. The format 
 ## [v0.3.3] - 2024-03-12
 ### Added
 - Add ability to create, get and delete SSH Keys.
-
-## [v0.3.x] - 2032-03-07
-### Added
-- helper for handling boolish results
-- image list and get endpoints for `/cloud/image` endpoint
 
 ## [v0.3.2] - 2023-03-22
 ### Fixes
