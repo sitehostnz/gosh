@@ -13,15 +13,15 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	keys := []string{
 		"client_id",
 		"key_id",
-		"label",
-		"content",
+		"params[label]",
+		"params[content]",
 	}
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
 	values.Add("key_id", request.ID)
-	values.Add("label", request.Label)
-	values.Add("content", request.Content)
+	values.Add("params[label]", request.Label)
+	values.Add("params[content]", request.Content)
 
 	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
 	if err != nil {
