@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2032-03-15
+### Fixes
+- correct the ssh key update params
+
+
 ## [v0.3.x] - 2032-03-13
 ### Added
 - database list/get/update/remove for `/cloud/stack/image`
