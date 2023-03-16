@@ -30,7 +30,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response AddRespo
 	values.Add("name", request.Name)
 
 	var vars string
-	for _, envVar := range request.Environments {
+	for _, envVar := range request.EnvironmentVariables {
 		vars += fmt.Sprintf("  %s: %s\n", envVar.Name, envVar.Content)
 	}
 
