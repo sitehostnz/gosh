@@ -15,26 +15,40 @@ package main
 import (
 	"context"
 	"fmt"
-
-	"github.com/sitehostnz/gosh"
-
 	"log"
-	"net/http"
-	"os"
+
+	"github.com/sitehostnz/gosh/pkg/api"
+	"github.com/sitehostnz/gosh/pkg/api/server"
 )
 
 func main() {
-    apiKey := os.Getenv("SH_APIKEY")
-    clientId := os.Getenv("SH_CLIENTID")
+	apiKey := os.Getenv("SH_APIKEY")
+  clientId := os.Getenv("SH_CLIENTID")
 
-    sh := gosh.NewClient(apiKey, clientId)
-    ctx = context.Background()
-    
-    server, err := sh.Servers.Get(ctx, "ch-server1")
-    if err != nil {
-        log.Fatal(err)
-    }
-    fmt.Printf("%v", server)
+	client, err := api.NewClient(apiKey, clientId)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := context.Background()
+
+	instance := server.New(client)
+
+	opts := server.CreateRequest{
+		Label:       "goshserver",
+		Location:    "AKLCITY",
+		ProductCode: "XENLIT",
+		Image:       "ubuntu-jammy-pvh.amd64",
+		Params: server.ParamsOptions{
+			SSHKeys: []string{"ssh-rsa ..."},
+		},
+	}
+
+	server, err := instance.Create(ctx, opts)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%v", server)
 }
 ```
 

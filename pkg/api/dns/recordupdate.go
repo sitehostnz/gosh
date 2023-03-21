@@ -21,7 +21,7 @@ func (s *Client) UpdateRecord(ctx context.Context, opts UpdateRecordRequest) (re
 		"type",
 		"name",
 		"content",
-		"priority",
+		"prio",
 	}
 
 	values := url.Values{}

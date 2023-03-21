@@ -7,25 +7,25 @@ import (
 )
 
 // GetRecord returns a record by id.
-func (s *Client) GetRecord(ctx context.Context, request RecordRequest) (*models.DNSRecord, error) {
+func (s *Client) GetRecord(ctx context.Context, request RecordRequest) (response models.DNSRecord, err error) {
 	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: request.DomainName})
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
 	for _, record := range records.Return {
 		if record.ID == request.ID {
-			return &record, nil
+			return record, nil
 		}
 	}
-	return nil, nil
+	return response, nil
 }
 
 // GetRecordWithType get the record and filter based on type, as we often want to deal with the records of a specific type, mainly for use in external contexts, ie: terrorform.
-func (s *Client) GetRecordWithType(ctx context.Context, request RecordRequest) (*[]models.DNSRecord, error) {
+func (s *Client) GetRecordWithType(ctx context.Context, request RecordRequest) (response []models.DNSRecord, err error) {
 	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: request.DomainName})
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
 	var filteredRecords []models.DNSRecord
@@ -35,35 +35,35 @@ func (s *Client) GetRecordWithType(ctx context.Context, request RecordRequest) (
 			filteredRecords = append(filteredRecords, record)
 		}
 	}
-	return &filteredRecords, nil
+	return filteredRecords, nil
 }
 
 // GetRecordWithRecord This is a special case, for mainly when we are creating records where we need to get back what we just created.
-func (s *Client) GetRecordWithRecord(ctx context.Context, record models.DNSRecord) (*models.DNSRecord, error) {
-	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: record.Domain})
+func (s *Client) GetRecordWithRecord(ctx context.Context, request models.DNSRecord) (response models.DNSRecord, err error) {
+	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: request.Domain})
 	if err != nil {
-		return nil, err
+		return response, err
 	}
 
 	for _, r := range records.Return {
-		if r.Name == record.Name &&
+		if r.Name == request.Name &&
 			// TODO:  domain is not returned in the list
-			// r.Domain == record.Domain &&
+			// r.Domain == request.Domain &&
 			// is only needed for creation
 
 			// TODO: client id is not returned in list response
 			// is only needed for creation
-			// r.ClientID == record.ClientID &&
+			// r.ClientID == request.ClientID &&
 			// no idea what the state flag/field/property is for
-			// r.State == record.State
-			// ttl is not a per record here...
-			// r.TTL == record.TTL &&
+			// r.State == request.State
+			// ttl is not a per request here...
+			// r.TTL == request.TTL &&
 
-			r.Type == record.Type &&
-			r.Content == record.Content &&
-			r.Priority == record.Priority {
-			return &r, nil
+			r.Type == request.Type &&
+			r.Content == request.Content &&
+			(r.Priority == request.Priority || r.Priority == "0") {
+			return r, nil
 		}
 	}
-	return nil, nil
+	return response, nil
 }
