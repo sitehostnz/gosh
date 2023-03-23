@@ -4,14 +4,14 @@ All notable changes to this project will be documented in this file. The format 
 ## [v0.3.2] - 2023-03-22
 ### Fixes
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
-- helper for handling boolish results.
-- image list and get endpoints.
 - Fix GetRecordWithRecord with default priority.
 - Fix ListRecords to remove the final dot in the content value.
 - Fix the priority value in the UpdateRecord function.
 
 ### Added
 - Add some helpers for filtering the DNS list and getting new records since there is no get record end point, and the add api does not add the new record id.
+- Add helper for handling boolish results.
+- Add image list and get endpoints.
 
 ## [v0.3.1] - 2023-02-28
 ### Added
