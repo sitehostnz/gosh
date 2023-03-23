@@ -3,6 +3,7 @@ package dns
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // ListRecords returns a list of DNS records for the specified domain.
@@ -18,6 +19,15 @@ func (s *Client) ListRecords(ctx context.Context, request ListRecordsRequest) (r
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err
+	}
+
+	// add back the domain name, since we have it in the model, but not in the response
+	// or at least according to the api docs
+	if response.Status {
+		for k := range response.Return {
+			response.Return[k].Domain = request.Domain
+			response.Return[k].Content = strings.TrimRight(response.Return[k].Content, ".")
+		}
 	}
 
 	return response, nil
