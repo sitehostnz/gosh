@@ -1,5 +1,7 @@
 package db
 
+import "github.com/sitehostnz/gosh/pkg/models"
+
 type (
 	// AddRequest adds/creates a new database on the given cloud server.
 	AddRequest struct {
@@ -27,10 +29,7 @@ type (
 		MySQLHost  string `url:"filters[mysql_host],omitempty"`
 		Database   string `url:"filters[db_name],omitempty"`
 
-		SortBy     string `url:"filters[sort_by],omitempty"`
-		SortDir    string `url:"filters[sort_dir],omitempty"`
-		PageSize   int    `url:"filters[page_size],omitempty"`
-		PageNumber int    `url:"filters[page_number],omitempty"`
+		models.Filtering
 	}
 	// GetRequest is for getting a single database.
 	GetRequest struct {

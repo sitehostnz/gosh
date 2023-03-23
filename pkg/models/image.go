@@ -30,6 +30,7 @@ type (
 		ContainerCount int             `json:"container_count"`
 		BuildStatus    string          `json:"build_status"`
 	}
+
 	// StackImage represents an image in the /cloud/stack/images.
 	StackImage struct {
 		ID             string                 `json:"id"`
@@ -46,12 +47,52 @@ type (
 		ProjectID      string                 `json:"project_id"`
 		RegistryID     string                 `json:"registry_id"`
 		ForkedFrom     string                 `json:"forked_from"`
-		Pending        string                 `json:"pending"`
+		Pending        interface{}            `json:"pending"`
 		ClientName     string                 `json:"client_name"`
 		ImageType      string                 `json:"image_type"`
 		RegistryURL    string                 `json:"registry_url"`
 		VersionCount   int                    `json:"version_count"`
 		ContainerCount int                    `json:"container_count"`
 		BuildStatus    string                 `json:"build_status"`
+		Versions       []StackImageVersion    `json:"versions"`
+	}
+
+	StackImageVersion struct {
+		ID          string      `json:"id"`
+		ClientID    string      `json:"client_id"`
+		ImageIDs    string      `json:"image_id"`
+		Version     string      `json:"version"`
+		Labels      string      `json:"labels"`
+		DateAdded   string      `json:"date_added"`
+		DateUpdated string      `json:"date_updated"`
+		IsMissing   string      `json:"is_missing"`
+		ForceConfig string      `json:"force_config"`
+		BuildId     string      `json:"build_id"`
+		BuildStatus string      `json:"build_status"`
+		Pending     interface{} `json:"pending"`
+	}
+
+	Port struct {
+		Exposed  bool
+		Publish  bool
+		Protocol string
+	}
+
+	Volume struct {
+		Hash   string `json:"hash"`
+		Source struct {
+			Filename string `json:"filename"`
+			Url      string `json:"url"`
+		} `json:"source"`
+		Type string `json:"type"`
+
+		Volumes struct {
+			Application struct {
+				Dest string `json:"dest"`
+				Gid  int    `json:"gid"`
+				Mode string `json:"mode"`
+				Uid  int    `json:"uid"`
+			} `json:"application"`
+		} `json:"volumes"`
 	}
 )
