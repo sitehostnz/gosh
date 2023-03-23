@@ -2,7 +2,7 @@ package utils
 
 import "strings"
 
-// MaybeString for things that may or may not be strings, but should be represented as a string.
+// MaybeString is for things that may or may not be strings, but should be represented as a string.
 type MaybeString string
 
 // UnmarshalJSON is a helper interface for dealing with numbers that should be strings, but sometimes come through as number.

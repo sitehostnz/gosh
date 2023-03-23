@@ -58,7 +58,7 @@ func AddOptions(s string, opt interface{}) (string, error) {
 	return origURL.String(), nil
 }
 
-// ConstructFqdn This is a simple helper to handle mapping of partial names and shortcuts to full names.
+// ConstructFqdn is a simple helper to handle mapping of partial names and shortcuts to full names.
 func ConstructFqdn(name, domain string) string {
 	domain = strings.ToLower(domain)
 	name = strings.ToLower(name)

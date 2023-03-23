@@ -23,7 +23,7 @@ import (
 
 func main() {
 	apiKey := os.Getenv("SH_APIKEY")
-  clientId := os.Getenv("SH_CLIENTID")
+	clientId := os.Getenv("SH_CLIENTID")
 
 	client, err := api.NewClient(apiKey, clientId)
 	if err != nil {

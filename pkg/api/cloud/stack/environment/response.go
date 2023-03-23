@@ -8,6 +8,7 @@ type (
 		EnvironmentVariables []models.EnvironmentVariable `json:"return"`
 		models.APIResponse
 	}
+
 	// UpdateResponse is the result of updating an environment on a stack.
 	UpdateResponse struct {
 		Return struct {
