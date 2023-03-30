@@ -7,14 +7,14 @@ type (
 	ListResponse struct {
 		Return struct {
 			models.Pagination
-			Images []models.Image `json:"data"`
+			Images []models.CloudImage `json:"data"`
 		}
 		models.APIResponse
 	}
 
 	// GetResponse represents the return from the /cloud/images/get.json endpoint.
 	GetResponse struct {
-		Image models.Image `json:"return"`
+		Image models.CloudImage `json:"return"`
 		models.APIResponse
 	}
 )

@@ -1,6 +1,7 @@
 package models
 
 type (
+
 	// JobDetails represents the job information.
 	JobDetails struct {
 		Created   string `json:"created"`
