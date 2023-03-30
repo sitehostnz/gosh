@@ -3,6 +3,7 @@ package dns
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // ListRecords returns a list of DNS records for the specified domain.
@@ -25,6 +26,7 @@ func (s *Client) ListRecords(ctx context.Context, request ListRecordsRequest) (r
 	if response.Status {
 		for k := range response.Return {
 			response.Return[k].Domain = request.Domain
+			response.Return[k].Content = strings.TrimRight(response.Return[k].Content, ".")
 		}
 	}
 

@@ -5,44 +5,36 @@ import "github.com/sitehostnz/gosh/pkg/utils"
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
-		Name  string `json:"name"`
-		Label string `json:"label"`
-		// this differs between the get api and the list api... so we also want to boondongle it here, see the notes below
-		ClientID utils.MaybeString `json:"client_id"`
-		Created  string            `json:"created"`
-		Type     string            `json:"type"`
-		RAM      string            `json:"ram"`
-		Root     string            `json:"root"`
-
-		// this returns differently on the site host api, depending on the server being either a cloud or a vds/vps
-		// so needs to be unmarshalled some way, either as raw bytes, and figure it out later
-		// or via an interface of some kind, lets go for an interface to handle the unmarshalling so we don't need to litter
-		// stuff to handle all over the place
-		// Disk  interface{} `json:"disk"`
-		Disk  utils.MaybeBigInt `json:"disk"`
-		Cores utils.MaybeBigInt `json:"cores"`
-
-		Core             string `json:"core"`
-		Arch             string `json:"arch"`
-		Kernel           string `json:"kernel"`
-		Initrd           string `json:"initrd"`
-		Modules          string `json:"modules"`
-		Distro           string `json:"distro"`
-		Os               string `json:"os"`
-		Rescue           string `json:"rescue"`
-		Managed          string `json:"managed"`
-		Locked           string `json:"locked"`
-		LockedFrom       string `json:"locked_from"`
-		LockedUntil      string `json:"locked_until"`
-		LockedComment    string `json:"locked_comment"`
-		State            string `json:"state"`
-		MaintDate        string `json:"maint_date"`
-		MaintDateEnd     string `json:"maint_date_end"`
-		EmailLogs        string `json:"email_logs"`
-		VncPort          string `json:"vnc_port"`
-		VncScreen        string `json:"vnc_screen"`
-		IPAddrLimit      string `json:"ip_addr_limit"`
-		Notes            string `json:"notes"`
+		Name             string            `json:"name"`
+		Label            string            `json:"label"`
+		ClientID         utils.MaybeString `json:"client_id"`
+		Created          string            `json:"created"`
+		Type             string            `json:"type"`
+		RAM              string            `json:"ram"`
+		Root             string            `json:"root"`
+		Disk             utils.MaybeBigInt `json:"disk"`
+		Cores            utils.MaybeBigInt `json:"cores"`
+		Core             string            `json:"core"`
+		Arch             string            `json:"arch"`
+		Kernel           string            `json:"kernel"`
+		Initrd           string            `json:"initrd"`
+		Modules          string            `json:"modules"`
+		Distro           string            `json:"distro"`
+		Os               string            `json:"os"`
+		Rescue           string            `json:"rescue"`
+		Managed          string            `json:"managed"`
+		Locked           string            `json:"locked"`
+		LockedFrom       string            `json:"locked_from"`
+		LockedUntil      string            `json:"locked_until"`
+		LockedComment    string            `json:"locked_comment"`
+		State            string            `json:"state"`
+		MaintDate        string            `json:"maint_date"`
+		MaintDateEnd     string            `json:"maint_date_end"`
+		EmailLogs        string            `json:"email_logs"`
+		VncPort          string            `json:"vnc_port"`
+		VncScreen        string            `json:"vnc_screen"`
+		IPAddrLimit      string            `json:"ip_addr_limit"`
+		Notes            string            `json:"notes"`
 		Ips              []IP
 		Interfaces       []string      `json:"interfaces"`
 		GroupID          string        `json:"group_id"`
