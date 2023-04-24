@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	// Client is a Service to work with API Jobs.
+	// Client is a Service to work with API.
 	Client struct {
 		client *api.Client
 	}
