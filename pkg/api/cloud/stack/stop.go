@@ -5,7 +5,7 @@ import (
 )
 
 // Stop is for stopping a cloud stack on a given server.
-func (s *Client) Stop(ctx context.Context, request StopStartRestartRequest) (response StartStopRestartResponse, err error) {
+func (s *Client) Stop(ctx context.Context, request StopStartRestartRequest) (response ActionResponse, err error) {
 	uri := "cloud/stack/stop.json"
 	return s.stopStartRestart(ctx, request, uri)
 }

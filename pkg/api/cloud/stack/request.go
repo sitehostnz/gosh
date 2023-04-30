@@ -14,6 +14,12 @@ type (
 		Name       string `json:"name"`
 	}
 
+	// DeleteRequest represents a request to delete a specific stack.
+	DeleteRequest struct {
+		Server string `json:"server"`
+		Name   string `json:"name"`
+	}
+
 	// AddRequest represents the construction / setup of a new cloud stack.
 	AddRequest struct {
 		ServerName           string `json:"server_name"`

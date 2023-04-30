@@ -7,7 +7,7 @@ import (
 )
 
 // stopStartRestart is the common function for stop, start and restart actions.
-func (s *Client) stopStartRestart(ctx context.Context, request StopStartRestartRequest, uri string) (response StartStopRestartResponse, err error) {
+func (s *Client) stopStartRestart(ctx context.Context, request StopStartRestartRequest, uri string) (response ActionResponse, err error) {
 	keys := []string{
 		"apikey",
 		"client_id",

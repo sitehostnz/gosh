@@ -28,8 +28,8 @@ type (
 		models.APIResponse
 	}
 
-	// StartStopRestartResponse represents the response from start/stop/restart actions.
-	StartStopRestartResponse struct {
+	// ActionResponse represents the response from start/stop/restart/delete actions.
+	ActionResponse struct {
 		Return struct {
 			JobID string `json:"job_id"`
 		} `json:"return"`
