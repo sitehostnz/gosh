@@ -34,23 +34,6 @@ type (
 		EnvironmentVariables []models.EnvironmentVariable
 	}
 
-	// GenerateDockerComposeRequest represents the construction / setup of a docker compose.
-	GenerateDockerComposeRequest struct {
-		Name      string `json:"name"`
-		Label     string `json:"label"`
-		ImageCode string `json:"image_code"`
-	}
-
-	// BuildDockerCompose represents the construction / setup of a docker compose.
-	BuildDockerCompose struct {
-		Name    string   `json:"name"`
-		Label   string   `json:"label"`
-		Image   string   `json:"image"`
-		Type    string   `json:"type"`
-		Ports   []string `yaml:"ports"`
-		Volumes []string `yaml:"volumes"`
-	}
-
 	// StopStartRestartRequest is a request to start, restart or stop a cloud stack/container.
 	StopStartRestartRequest struct {
 		ServerName string   `json:"server_name"`
