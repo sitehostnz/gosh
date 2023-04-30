@@ -5,7 +5,7 @@ import (
 )
 
 // Restart restarts a stack on the given server.
-func (s *Client) Restart(ctx context.Context, request StopStartRestartRequest) (response StartStopRestartResponse, err error) {
+func (s *Client) Restart(ctx context.Context, request StopStartRestartRequest) (response ActionResponse, err error) {
 	uri := "cloud/stack/restart.json"
 	return s.stopStartRestart(ctx, request, uri)
 }
