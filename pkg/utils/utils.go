@@ -63,6 +63,10 @@ func ConstructFqdn(name, domain string) string {
 	domain = strings.ToLower(domain)
 	name = strings.ToLower(name)
 
+	if domain == "" {
+		return domain
+	}
+	
 	// let's put a dot at the end if we don't have one
 	if !strings.HasSuffix(domain, ".") {
 		domain += "."
@@ -70,7 +74,7 @@ func ConstructFqdn(name, domain string) string {
 
 	// if we have an @ or a ., we can return the domain, as it's the apex
 	// this is probably catering to something that only wizards would care about
-	if name == "@" || name == "." {
+	if name == "@" || name == "." || name == "" {
 		return domain
 	}
 
