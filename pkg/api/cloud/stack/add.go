@@ -8,6 +8,7 @@ import (
 
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/utils/dockercompose"
 )
 
 // Add creates a new cloud stack.
@@ -72,7 +73,7 @@ func (s *Client) AddWithImage(ctx context.Context, request AddRequestWithImage) 
 	values.Add("enable_ssl", strconv.Itoa(request.EnableSSL))
 
 	// Generate Docker Compose file
-	dockerCompose, err := utils.GenerateDockerCompose(ctx, s.client, models.GenerateDockerComposeRequest{
+	dockerCompose, err := dockercompose.GenerateDockerCompose(ctx, s.client, models.GenerateDockerComposeRequest{
 		Name:      request.Name,
 		Label:     request.Label,
 		ImageCode: request.ImageCode,

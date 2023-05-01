@@ -1,10 +1,10 @@
-package utils
+package dockercompose
 
 import (
 	"context"
 
 	"github.com/sitehostnz/gosh/pkg/api"
-	"github.com/sitehostnz/gosh/pkg/api/cloud/image"
+	"github.com/sitehostnz/gosh/pkg/api/cloud/stack/image"
 	"github.com/sitehostnz/gosh/pkg/models"
 	"gopkg.in/yaml.v2"
 )
