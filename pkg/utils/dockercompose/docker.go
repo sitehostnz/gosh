@@ -18,8 +18,7 @@ func GenerateDockerCompose(ctx context.Context, client *api.Client, request mode
 		return dockerCompose, err
 	}
 
-	// registry url (staging)
-	registryPath := "registry-staging.sitehost.co.nz"
+	// Latest version
 	imageLastVersion := image.Versions[len(image.Versions)-1].Version
 
 	// create volumes and ports
@@ -39,7 +38,7 @@ func GenerateDockerCompose(ctx context.Context, client *api.Client, request mode
 	compose, err := buildDockerCompose(models.BuildDockerCompose{
 		Name:    request.Name,
 		Label:   request.Label,
-		Image:   registryPath + "/" + image.Code + ":" + imageLastVersion,
+		Image:   request.RegistryPath + "/" + image.Code + ":" + imageLastVersion,
 		Type:    image.Labels.NzSitehostImageType,
 		Ports:   ports,
 		Volumes: volumes,

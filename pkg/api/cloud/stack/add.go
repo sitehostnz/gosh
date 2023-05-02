@@ -72,11 +72,18 @@ func (s *Client) AddWithImage(ctx context.Context, request AddRequestWithImage) 
 	values.Add("label", request.Label)
 	values.Add("enable_ssl", strconv.Itoa(request.EnableSSL))
 
+	// Set the registry path
+	registryPath := "registry-staging.sitehost.co.nz"
+	if request.ImageProvider == ImageProviderCustom {
+		registryPath = "registry-clients.sitehost.co.nz"
+	}
+
 	// Generate Docker Compose file
 	dockerCompose, err := dockercompose.GenerateDockerCompose(ctx, s.client, models.GenerateDockerComposeRequest{
-		Name:      request.Name,
-		Label:     request.Label,
-		ImageCode: request.ImageCode,
+		Name:         request.Name,
+		Label:        request.Label,
+		RegistryPath: registryPath,
+		ImageCode:    request.ImageCode,
 	})
 	if err != nil {
 		return response, err

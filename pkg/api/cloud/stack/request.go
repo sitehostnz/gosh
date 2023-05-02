@@ -2,6 +2,11 @@ package stack
 
 import "github.com/sitehostnz/gosh/pkg/models"
 
+const (
+	ImageProviderSiteHost ImageProviderName = "sitehost"
+	ImageProviderCustom   ImageProviderName = "custom"
+)
+
 type (
 	// ListRequest represents a listing request for stacks on a server.
 	ListRequest struct {
@@ -24,12 +29,15 @@ type (
 		EnvironmentVariables []models.EnvironmentVariable
 	}
 
+	ImageProviderName string
+
 	// AddRequestWithImage represents the construction / setup of a new cloud stack.
 	AddRequestWithImage struct {
 		ServerName           string `json:"server_name"`
 		Name                 string `json:"name"`
 		Label                string `json:"label"`
 		EnableSSL            int    `json:"enable_ssl"`
+		ImageProvider        ImageProviderName
 		ImageCode            string `json:"image_code"`
 		EnvironmentVariables []models.EnvironmentVariable
 	}
