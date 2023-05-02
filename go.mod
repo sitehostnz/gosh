@@ -6,6 +6,7 @@ require (
 	github.com/golangci/golangci-lint v1.51.2
 	github.com/google/go-querystring v1.1.0
 	github.com/ory/go-acc v0.2.8
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -178,7 +179,6 @@ require (
 	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.4.2 // indirect
 	mvdan.cc/gofumpt v0.4.0 // indirect
