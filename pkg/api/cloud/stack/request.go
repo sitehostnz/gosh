@@ -3,8 +3,10 @@ package stack
 import "github.com/sitehostnz/gosh/pkg/models"
 
 const (
+	// ImageProviderSiteHost is the default image provider.
 	ImageProviderSiteHost ImageProviderName = "sitehost"
-	ImageProviderCustom   ImageProviderName = "custom"
+	// ImageProviderCustom is a custom image provider (client image).
+	ImageProviderCustom ImageProviderName = "custom"
 )
 
 type (
@@ -29,6 +31,7 @@ type (
 		EnvironmentVariables []models.EnvironmentVariable
 	}
 
+	// ImageProviderName is a type for image providers.
 	ImageProviderName string
 
 	// AddRequestWithImage represents the construction / setup of a new cloud stack.
