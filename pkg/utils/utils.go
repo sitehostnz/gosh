@@ -27,7 +27,9 @@ func Encode(v url.Values, keys []string) string {
 			buf.WriteString(url.QueryEscape(v))
 		}
 	}
-	return buf.String()
+	s := buf.String()
+
+	return s
 }
 
 // AddOptions adds the options to the URL.
@@ -66,7 +68,7 @@ func ConstructFqdn(name, domain string) string {
 	if domain == "" {
 		return domain
 	}
-	
+
 	// let's put a dot at the end if we don't have one
 	if !strings.HasSuffix(domain, ".") {
 		domain += "."

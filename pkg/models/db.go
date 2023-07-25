@@ -33,4 +33,19 @@ type (
 		Container   string      `json:"container"`
 		Grants      []Grant     `json:"grants"`
 	}
+
+	DatabaseUser struct {
+		Username    string      `json:"username"`
+		Password    string      `json:"password"`
+		MysqlHost   string      `json:"mysql_host"`
+		ServerId    string      `json:"server_id"`
+		ClientId    string      `json:"client_id"`
+		Pending     interface{} `json:"pending"`
+		IsMissing   string      `json:"is_missing"`
+		DateAdded   string      `json:"date_added"`
+		DateUpdated string      `json:"date_updated"`
+		ServerName  string      `json:"server_name"`
+		ServerLabel string      `json:"server_label"`
+		Grants      []Grant     `json:"grants"`
+	}
 )
