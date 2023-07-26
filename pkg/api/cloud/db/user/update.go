@@ -2,11 +2,12 @@ package user
 
 import (
 	"context"
-	"github.com/sitehostnz/gosh/pkg/utils"
 	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Update updates the database's backup location.
+// Update sets the password for the specified cloud database user.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
 	uri := "cloud/db/user/update.json"
 	keys := []string{

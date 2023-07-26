@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Add creates a new grant for the given database/host/user
+// Add creates a new grant for the given database/host/user.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
 	uri := "cloud/db/grant/add.json"
 	keys := []string{

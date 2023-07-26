@@ -1,12 +1,7 @@
 package models
 
 type (
-	//Subnet struct {
-	//	IpAddr  bool   `json:"ip_addr"`
-	//	Netmask string `json:"netmask"`
-	//	Prefix  int    `json:"prefix"`
-	//}
-
+	// IPAddress does what it says on the can. It's an IP address.
 	IPAddress struct {
 		IP            string `json:"ip_addr"`
 		Netmask       string `json:"netmask"`

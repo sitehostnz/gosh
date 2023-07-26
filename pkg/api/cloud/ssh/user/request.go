@@ -13,17 +13,20 @@ type (
 		SSHKeys        []string `url:"ssh_keys[],omitempty"`
 		ReadOnlyConfig int      `url:"read_only_config,omitempty"`
 	}
+
 	// DeleteRequest a request to delete the database.
 	DeleteRequest struct {
 		ServerName string `url:"server_name"`
 		Username   string `url:"username"`
 	}
+
 	// GetRequest a request to delete the database.
 	GetRequest struct {
 		ServerName string `url:"server_name"`
 		Username   string `url:"username"`
 	}
-	// UpdateRequest is a request to the update endpoint
+
+	// UpdateRequest is a request to the update endpoint.
 	UpdateRequest struct {
 		ServerName     string   `url:"server_name"`
 		Username       string   `url:"username"`
@@ -32,6 +35,7 @@ type (
 		SSHKeys        []string `url:"params[ssh_keys][],omitempty"`
 		ReadOnlyConfig int      `url:"params[read_only_config],omitempty"`
 	}
+
 	// ListOptions are options for filtering/listing users.
 	ListOptions struct {
 		ServerName string `url:"filters[server_name],omitempty"`

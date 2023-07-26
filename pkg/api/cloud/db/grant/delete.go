@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete deletes the grant from the specific database/host/user
+// Delete deletes the grant from the specific database/host/user.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/db/grant/delete.json"
 	keys := []string{
