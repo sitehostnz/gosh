@@ -6,8 +6,11 @@ import (
 )
 
 const (
+	// SchedulerType is a job that runs on a scheduler,  I am sure someone can fill this out more.
 	SchedulerType string = "scheduler"
-	DaemonType           = "daemon"
+
+	// DaemonType is a job that runs on a daemon, I am sure someone can fill this out more.
+	DaemonType = "daemon"
 )
 
 type (

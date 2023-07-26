@@ -1,6 +1,7 @@
 package models
 
 type (
+	// User represents a SSH/SFTP user.
 	User struct {
 		Username       string      `json:"username"`
 		ServerID       string      `json:"server_id"`
@@ -17,6 +18,6 @@ type (
 		Image          string      `json:"image"`
 		Containers     []string    `json:"containers"`
 		ReadOnlyConfig bool        `json:"read_only_config"`
-		IpAddr         string      `json:"ip_addr"`
+		IPAddr         string      `json:"ip_addr"`
 	}
 )

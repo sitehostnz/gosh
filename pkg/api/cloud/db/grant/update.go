@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Update updates the grants for a specific db/user/host
+// Update updates the grants for a specific db/user/host.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
 	uri := "cloud/db/grant/update.json"
 	keys := []string{

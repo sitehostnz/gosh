@@ -9,12 +9,10 @@ import (
 
 // Delete deletes a cloud database.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
-	uri := "cloud/db/delete.json"
+	uri := "cloud/ssh/user/delete.json"
 	keys := []string{
 		"client_id",
 		"server_name",
-		"mysql_host",
-		"database",
 	}
 
 	values := url.Values{}

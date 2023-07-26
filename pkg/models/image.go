@@ -57,6 +57,7 @@ type (
 		Versions       []StackImageVersion    `json:"versions"`
 	}
 
+	// StackImageVersion stores the version information for a StackImage.
 	StackImageVersion struct {
 		ID          string      `json:"id"`
 		ClientID    string      `json:"client_id"`
@@ -67,31 +68,33 @@ type (
 		DateUpdated string      `json:"date_updated"`
 		IsMissing   string      `json:"is_missing"`
 		ForceConfig string      `json:"force_config"`
-		BuildId     string      `json:"build_id"`
+		BuildID     string      `json:"build_id"`
 		BuildStatus string      `json:"build_status"`
 		Pending     interface{} `json:"pending"`
 	}
 
+	// Port is for storing the exposed port information for a container.
 	Port struct {
 		Exposed  bool
 		Publish  bool
 		Protocol string
 	}
 
+	// Volume is for storing the volume information for a container.
 	Volume struct {
 		Hash   string `json:"hash"`
 		Source struct {
 			Filename string `json:"filename"`
-			Url      string `json:"url"`
+			URL      string `json:"url"`
 		} `json:"source"`
 		Type string `json:"type"`
 
 		Volumes struct {
 			Application struct {
 				Dest string `json:"dest"`
-				Gid  int    `json:"gid"`
+				GID  int    `json:"gid"`
 				Mode string `json:"mode"`
-				Uid  int    `json:"uid"`
+				UID  int    `json:"uid"`
 			} `json:"application"`
 		} `json:"volumes"`
 	}

@@ -14,11 +14,13 @@ type (
 		models.APIResponse
 	}
 
+	// GetResponse gets the specified database user.
 	GetResponse struct {
 		User models.DatabaseUser `json:"return"`
 		models.APIResponse
 	}
 
+	// UpdateResponse updates the specified database user.
 	UpdateResponse struct {
 		Return struct {
 			JobID string `json:"job_id"`
@@ -26,6 +28,7 @@ type (
 		models.APIResponse
 	}
 
+	// AddResponse adds a new database user.
 	AddResponse struct {
 		Return struct {
 			JobID string `json:"job_id"`
@@ -33,6 +36,7 @@ type (
 		models.APIResponse
 	}
 
+	// DeleteResponse deletes the specified database user.
 	DeleteResponse struct {
 		Return struct {
 			JobID string `json:"job_id"`

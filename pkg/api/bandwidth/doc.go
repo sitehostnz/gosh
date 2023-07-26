@@ -1,2 +1,2 @@
-// Package info represents our SiteHost `/bandwidth` API endpoint.
+// Package bandwidth represents the SiteHost `/bandwidth` API endpoint.
 package bandwidth

@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete removes the cloud database user
+// Delete removes the specified cloud database user.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/db/user/delete.json"
 	keys := []string{

@@ -3,12 +3,9 @@ package bandwidth
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
-	ListIpAddressesResponse struct {
+	// ListIPAddressesResponse represents a response from listing IP addresses with the `/bandwidth/get_ip_list.json` endpoint.
+	ListIPAddressesResponse struct {
 		models.APIResponse
-		//Return struct {
-		//	IPAddresses map[string]models.IPAddress `json:"subnets"`
-		//	Subnet      map[string]models.IPAddress `json:"addresses"`
-		//}
 		Return map[string]models.IPAddress `json:"return"`
 	}
 )

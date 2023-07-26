@@ -11,12 +11,14 @@ type (
 		models.Filtering
 	}
 
+	// GetRequest represents a request to get the specified database user on the given server/host.
 	GetRequest struct {
 		MySQLHost  string `json:"mysql_host"`
 		ServerName string `json:"server_name"`
 		Username   string `json:"username"`
 	}
 
+	// UpdateRequest represents a request to update a database user. It sets the password.
 	UpdateRequest struct {
 		ServerName string `json:"server_name"`
 		MySQLHost  string `json:"mysql_host"`
@@ -24,6 +26,7 @@ type (
 		Password   string `json:"password"`
 	}
 
+	// AddRequest represents a request to add a database user, with an initial set of grants.
 	AddRequest struct {
 		ServerName string   `json:"server_name"`
 		MySQLHost  string   `json:"mysql_host"`
@@ -33,6 +36,7 @@ type (
 		Grants     []string `json:"grants"`
 	}
 
+	// DeleteRequest represents a request to delete a database user.
 	DeleteRequest struct {
 		MySQLHost  string `json:"mysql_host"`
 		ServerName string `json:"server_name"`

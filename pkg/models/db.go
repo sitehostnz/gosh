@@ -14,7 +14,7 @@ type (
 		DateUpdated string      `json:"date_updated"`
 	}
 
-	// Database represents a database on a cloud server, some properties may or may not be populated depending on how we call.
+	// Database represents a database on a cloud server. Some properties may or may not be populated depending on how we call.
 	Database struct {
 		ID          string      `json:"id"`
 		DBName      string      `json:"db_name"`
@@ -34,12 +34,13 @@ type (
 		Grants      []Grant     `json:"grants"`
 	}
 
+	// DatabaseUser represents a database user on a cloud server.
 	DatabaseUser struct {
 		Username    string      `json:"username"`
 		Password    string      `json:"password"`
 		MysqlHost   string      `json:"mysql_host"`
-		ServerId    string      `json:"server_id"`
-		ClientId    string      `json:"client_id"`
+		ServerID    string      `json:"server_id"`
+		ClientID    string      `json:"client_id"`
 		Pending     interface{} `json:"pending"`
 		IsMissing   string      `json:"is_missing"`
 		DateAdded   string      `json:"date_added"`

@@ -6,7 +6,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Get fetches a cloud db.
+// Get fetches a cloud db user.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
 	uri := "cloud/db/user/get.json"
 	keys := []string{
