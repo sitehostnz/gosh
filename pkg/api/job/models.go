@@ -5,6 +5,14 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
+const (
+	// SchedulerType is a job that runs on a scheduler,  I am sure someone can fill this out more.
+	SchedulerType string = "scheduler"
+
+	// DaemonType is a job that runs on a daemon, I am sure someone can fill this out more.
+	DaemonType = "daemon"
+)
+
 type (
 	// Client is a Service to work with API Jobs.
 	Client struct {
