@@ -2,6 +2,7 @@ package dns
 
 import (
 	"context"
+	"strings"
 
 	"github.com/sitehostnz/gosh/pkg/models"
 )
@@ -18,6 +19,7 @@ func (s *Client) GetRecord(ctx context.Context, request RecordRequest) (response
 			return record, nil
 		}
 	}
+
 	return response, nil
 }
 
@@ -44,6 +46,9 @@ func (s *Client) GetRecordWithRecord(ctx context.Context, request models.DNSReco
 	if err != nil {
 		return response, err
 	}
+
+	// this should really exist elsewhere but somethings go in/out with . and comback without
+	recordContent := strings.TrimSuffix(record.Content, ".")
 
 	for _, r := range records.Return {
 		if r.Name == request.Name &&
