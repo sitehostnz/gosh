@@ -2,6 +2,7 @@ package dns
 
 import (
 	"context"
+	"strings"
 
 	"github.com/sitehostnz/gosh/pkg/models"
 )
@@ -18,6 +19,7 @@ func (s *Client) GetRecord(ctx context.Context, request RecordRequest) (*models.
 			return &record, nil
 		}
 	}
+
 	return nil, nil
 }
 
@@ -45,24 +47,28 @@ func (s *Client) GetRecordWithRecord(ctx context.Context, record models.DNSRecor
 		return nil, err
 	}
 
+	// this should really exist elsewhere but somethings go in/out with . and comback without
+	recordContent := strings.TrimSuffix(record.Content, ".")
+
 	for _, r := range records.Return {
 		if r.Name == record.Name &&
 			// TODO:  domain is not returned in the list
-			// r.Domain == record.Domain &&
+			r.Domain == record.Domain &&
 			// is only needed for creation
 
 			// TODO: client id is not returned in list response
 			// is only needed for creation
 			// r.ClientID == record.ClientID &&
-			// no idea what the state flag/field/property is for
-			// r.State == record.State
+
 			// ttl is not a per record here...
 			// r.TTL == record.TTL &&
 
 			r.Type == record.Type &&
-			r.Content == record.Content &&
+			strings.TrimSuffix(r.Content, ".") == recordContent &&
 			r.Priority == record.Priority {
 			return &r, nil
+		} else {
+			continue
 		}
 	}
 	return nil, nil
