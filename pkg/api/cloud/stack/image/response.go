@@ -8,4 +8,7 @@ type (
 		Return []models.StackImage `json:"return"`
 		models.APIResponse
 	}
+
+	GetResponse struct {
+	}
 )

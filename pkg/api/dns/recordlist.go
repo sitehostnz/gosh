@@ -25,6 +25,7 @@ func (s *Client) ListRecords(ctx context.Context, request ListRecordsRequest) (r
 	if response.Status {
 		for k := range response.Return {
 			response.Return[k].Domain = request.Domain
+			response.Return[k].ClientID = s.client.ClientID
 		}
 	}
 
