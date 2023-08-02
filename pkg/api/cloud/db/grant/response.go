@@ -10,6 +10,7 @@ type (
 		} `json:"return"`
 		models.APIResponse
 	}
+
 	// UpdateResponse represents a response from updating a database grant with the `/cloud/db/grant/update.json` endpoint.
 	UpdateResponse struct {
 		Return struct {
