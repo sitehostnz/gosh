@@ -17,4 +17,12 @@ type (
 	DeleteRequest struct {
 		ID string `json:"key_id"`
 	}
+
+	// UpdateRequest represents a request to update a specific SSH Key.
+	UpdateRequest struct {
+		ID                string `json:"key_id"`
+		Label             string `json:"label"`
+		Content           string `json:"content"`
+		CustomImageAccess string `json:"custom_image_access"`
+	}
 )
