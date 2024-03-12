@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.3] - 2024-03-12
+### Added
+- Add ability to create, get and delete SSH Keys.
+
 ## [v0.3.2] - 2023-03-22
 ### Fixes
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
