@@ -37,4 +37,9 @@ type (
 	DeleteResponse struct {
 		models.APIResponse
 	}
+
+	// UpdateResponse represents a result of the update an SSH Key call.
+	UpdateResponse struct {
+		models.APIResponse
+	}
 )
