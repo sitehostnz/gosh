@@ -3,6 +3,14 @@ package dns
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
+	// AddRecordResponse is the return for adding a cloud database.
+	AddRecordResponse struct {
+		Return struct {
+			ID string `json:"id"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	// ListZoneResponse represents a request to list all DNSZones (domains).
 	ListZoneResponse struct {
 		Return struct {
