@@ -12,6 +12,7 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	u := "ssh/key/update.json"
 
 	keys := []string{
+//		"client_id",
 		"key_id",
 		"params[label]",
 		"params[content]",
@@ -23,6 +24,11 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	values.Add("params[label]", opts.Label)
 	values.Add("params[content]", opts.Content)
 	values.Add("params[custom_image_access]", opts.CustomImageAccess)
+
+//	values.Add("client_id", s.client.ClientID)
+//	values.Add("key_id", request.ID)
+//	values.Add("label", request.Label)
+//	values.Add("content", request.Content)
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {

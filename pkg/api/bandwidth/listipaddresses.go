@@ -1,16 +1,13 @@
-package key
+package bandwidth
 
 import (
 	"context"
-	"fmt"
 )
 
-// Get information about the SSH Key.
-func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
-	u := fmt.Sprintf("ssh/key/get.json?key_id=%v", request.ID)
-
+// ListIPAddresses fetchs a list of IP addresses and subnets.
+func (s *Client) ListIPAddresses(ctx context.Context) (response ListIPAddressesResponse, err error) {
+	u := "bandwidth/get_ip_list.json"
 	req, err := s.client.NewRequest("GET", u, "")
-
 	if err != nil {
 		return response, err
 	}
