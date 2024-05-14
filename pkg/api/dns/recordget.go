@@ -2,8 +2,6 @@ package dns
 
 import (
 	"context"
-	"strings"
-
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
@@ -38,25 +36,4 @@ func (s *Client) GetRecordWithType(ctx context.Context, request RecordRequest) (
 		}
 	}
 	return filteredRecords, nil
-}
-
-// GetRecordWithRecord is a special case, for mainly when we are creating records where we need to get back what we just created.
-func (s *Client) GetRecordWithRecord(ctx context.Context, request models.DNSRecord) (response models.DNSRecord, err error) {
-	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: request.Domain})
-	if err != nil {
-		return response, err
-	}
-
-	// this should really exist elsewhere but somethings go in/out with . and comback without
-	recordContent := strings.TrimSuffix(record.Content, ".")
-
-	for _, r := range records.Return {
-		if r.Name == request.Name &&
-			r.Type == request.Type &&
-			r.Content == request.Content &&
-			(r.Priority == request.Priority || r.Priority == "0") {
-			return r, nil
-		}
-	}
-	return response, nil
 }
