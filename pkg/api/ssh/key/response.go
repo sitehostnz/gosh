@@ -26,7 +26,7 @@ type (
 		models.APIResponse
 	}
 
-	// DeleteResponse represents a result of the delete an SSH Key call.
+	// DeleteResponse represents a result of a delete an SSH Key call.
 	DeleteResponse struct {
 		models.APIResponse
 	}

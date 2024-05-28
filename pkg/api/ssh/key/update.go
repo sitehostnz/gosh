@@ -2,9 +2,9 @@ package key
 
 import (
 	"context"
-	"net/url"
-
+	"fmt"
 	"github.com/sitehostnz/gosh/pkg/utils"
+	"net/url"
 )
 
 // Update an SSH Key.
@@ -12,7 +12,6 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	u := "ssh/key/update.json"
 
 	keys := []string{
-//		"client_id",
 		"key_id",
 		"params[label]",
 		"params[content]",
@@ -23,12 +22,7 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	values.Add("key_id", opts.ID)
 	values.Add("params[label]", opts.Label)
 	values.Add("params[content]", opts.Content)
-	values.Add("params[custom_image_access]", opts.CustomImageAccess)
-
-//	values.Add("client_id", s.client.ClientID)
-//	values.Add("key_id", request.ID)
-//	values.Add("label", request.Label)
-//	values.Add("content", request.Content)
+	values.Add("params[custom_image_access]", fmt.Sprint(utils.BoolToInt(opts.CustomImageAccess)))
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {
