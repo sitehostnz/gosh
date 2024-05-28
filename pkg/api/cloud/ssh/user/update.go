@@ -16,9 +16,10 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		"server_name",
 		"username",
 		"params[password]",
-		"params[containers]",
-		"params[ssh_keys]",
-		"params[read_only_config]",
+		"params[containers][]",
+		"params[ssh_keys][]",
+		"params[volumes][]",
+		"params[read_only_config][]",
 	}
 
 	values := url.Values{}
@@ -26,14 +27,18 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	values.Add("server_name", request.ServerName)
 	values.Add("username", request.Username)
 	values.Add("params[password]", request.Password)
-	values.Add("params[read_only_config]", strconv.Itoa(request.ReadOnlyConfig))
+	values.Add("params[read_only_config]", strconv.Itoa(utils.BoolToInt(request.ReadOnlyConfig)))
 
 	for _, c := range request.Containers {
-		values.Add("params[containers]", c)
+		values.Add("params[containers][]", c)
 	}
 
 	for _, k := range request.SSHKeys {
-		values.Add("params[ssh_keys]", k)
+		values.Add("params[ssh_keys][]", k)
+	}
+
+	for _, k := range request.Volumes {
+		values.Add("params[volumes][]", k)
 	}
 
 	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))

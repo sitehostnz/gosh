@@ -1,6 +1,8 @@
 package user
 
-import "github.com/sitehostnz/gosh/pkg/models"
+import (
+	"github.com/sitehostnz/gosh/pkg/models"
+)
 
 type (
 
@@ -8,10 +10,11 @@ type (
 	AddRequest struct {
 		ServerName     string   `url:"server_name"`
 		Username       string   `url:"username"`
-		Password       string   `url:"password"`
-		Containers     []string `url:"containers[]"`
+		Password       string   `url:"password,omitempty"`
+		Containers     []string `url:"containers[],omitempty"`
 		SSHKeys        []string `url:"ssh_keys[],omitempty"`
-		ReadOnlyConfig int      `url:"read_only_config,omitempty"`
+		ReadOnlyConfig bool     `url:"read_only_config,omitempty"`
+		Volumes        []string `url:"read_only_config,omitempty"`
 	}
 
 	// DeleteRequest a request to delete the database.
@@ -32,8 +35,9 @@ type (
 		Username       string   `url:"username"`
 		Password       string   `url:"params[password],omitempty"`
 		Containers     []string `url:"params[containers][],omitempty"`
+		Volumes        []string `url:"params[volumes][],omitempty"`
 		SSHKeys        []string `url:"params[ssh_keys][],omitempty"`
-		ReadOnlyConfig int      `url:"params[read_only_config],omitempty"`
+		ReadOnlyConfig bool     `url:"params[read_only_config],omitempty"`
 	}
 
 	// ListOptions are options for filtering/listing users.

@@ -108,3 +108,10 @@ func DeconstructFqdn(name, domain string) string {
 
 	return strings.TrimSuffix(name, "."+domain)
 }
+
+func BoolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}

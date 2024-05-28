@@ -13,6 +13,7 @@ func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response De
 	keys := []string{
 		"client_id",
 		"server_name",
+		"username",
 	}
 
 	values := url.Values{}
