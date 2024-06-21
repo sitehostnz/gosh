@@ -5,10 +5,10 @@ All notable changes to this project will be documented in this file. The format 
 ### Added
 - database list/get/update/remove for `/cloud/stack/image`
 - cloud stack image list_all `/cloud/image`
-
-## [v0.3.x] - 2032-03-15
 ### Fixes
+- version updates
 - correct the ssh key update params
+- add wrappers around api return types to get bools, not ints.
 
 ## [v0.3.4] - 2024-03-12
 ### Added
