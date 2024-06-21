@@ -29,14 +29,13 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	for x, v := range request.EnvironmentVariables {
 		args[i] = fmt.Sprintf("variables[%d][name]", x)
 		values.Add(args[i], v.Name)
-		i += 1
+		i++
 
 		if v.Content != "" {
 			args[i] = fmt.Sprintf("variables[%d][content]", x)
 			values.Add(args[i], v.Content)
-			i += 1
+			i++
 		}
-
 	}
 
 	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, append(keys, args...)))

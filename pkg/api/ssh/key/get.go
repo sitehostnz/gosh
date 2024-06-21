@@ -10,7 +10,6 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	u := fmt.Sprintf("ssh/key/get.json?key_id=%v", request.ID)
 
 	req, err := s.client.NewRequest("GET", u, "")
-
 	if err != nil {
 		return response, err
 	}

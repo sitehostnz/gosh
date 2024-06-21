@@ -9,6 +9,6 @@ type (
 		models.APIResponse
 	}
 
-	GetResponse struct {
-	}
+	// GetResponse returns a single image from the /cloud/stack/images/get.json endpoint.
+	GetResponse struct{}
 )

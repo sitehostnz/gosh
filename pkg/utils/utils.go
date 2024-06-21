@@ -109,6 +109,7 @@ func DeconstructFqdn(name, domain string) string {
 	return strings.TrimSuffix(name, "."+domain)
 }
 
+// BoolToInt simple formatter for mapping a bool to a 1 or a zero.
 func BoolToInt(b bool) int {
 	if b {
 		return 1

@@ -3,8 +3,9 @@ package key
 import (
 	"context"
 	"fmt"
-	"github.com/sitehostnz/gosh/pkg/utils"
 	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Create an SSH Key.
