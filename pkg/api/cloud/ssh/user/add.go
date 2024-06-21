@@ -3,8 +3,9 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/sitehostnz/gosh/pkg/utils"
 	"net/url"
+
+	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Add creates a new SSH user.
