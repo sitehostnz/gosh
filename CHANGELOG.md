@@ -3,8 +3,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [v0.3.x] - 2024-05-14
 ### Added
-- database list/get/update/remove for `/cloud/stack/image`
+- list/get/update/remove for `/cloud/db`
+- list/get/update/remove for `/cloud/db/user`
+- list/get/update/remove for `/cloud/db/grants`
 - cloud stack image list_all `/cloud/image`
+- add user/add/edit/update and ssh key 
+
 ### Fixes
 - version updates
 - correct the ssh key update params
