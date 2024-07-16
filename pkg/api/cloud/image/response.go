@@ -3,7 +3,7 @@ package image
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
-	// ListResponse represents the return from the /cloud/images/list_all.json endpoint.
+	// ListResponse represents the return from the /cloud/stack/image/list_all.json endpoint.
 	ListResponse struct {
 		Return struct {
 			models.Pagination

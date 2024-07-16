@@ -6,7 +6,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// List returns a list of stack images, specific to the customer.
+// List a list of all SSH users.
 func (s *Client) List(ctx context.Context, options ListOptions) (response ListResponse, err error) {
 	uri := "cloud/ssh/user/list_all.json"
 

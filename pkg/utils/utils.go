@@ -27,9 +27,7 @@ func Encode(v url.Values, keys []string) string {
 			buf.WriteString(url.QueryEscape(v))
 		}
 	}
-	s := buf.String()
-
-	return s
+	return buf.String()
 }
 
 // AddOptions adds the options to the URL.

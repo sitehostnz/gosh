@@ -7,7 +7,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete deletes a cloud database.
+// Delete an existing SSH user.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/ssh/user/delete.json"
 	keys := []string{
