@@ -8,7 +8,4 @@ type (
 		Return []models.StackImage `json:"return"`
 		models.APIResponse
 	}
-
-	// GetResponse returns a single image from the /cloud/stack/images/get.json endpoint.
-	GetResponse struct{}
 )
