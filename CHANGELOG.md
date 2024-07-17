@@ -1,18 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v0.3.x] - 2024-05-14
+## [v0.4.0] - 2024-07-17
 ### Added
-- list/get/update/remove for `/cloud/db`
-- list/get/update/remove for `/cloud/db/user`
-- list/get/update/remove for `/cloud/db/grants`
-- cloud stack image list_all `/cloud/image`
-- add user/add/edit/update and ssh key 
+- Added support for all endpoints under `/cloud/db/`.
+- Added support for all endpoints under `/cloud/db/grant/`.
+- Added support for all endpoints under `/cloud/db/user/`.
+- Added support for all endpoints under `/cloud/ssh/user/`.
+- Added support for the `/bandwith/get_ip_list.json` endpoint.
+- Added support for the `/cloud/stack/image/list_all.json` endpoint.
 
-### Fixes
-- version updates
-- correct the ssh key update params
-- add wrappers around api return types to get bools, not ints.
+### Fixed
+- Corrected the SSH key update parameters.
+
+### Changed
+- Updated Go from 1.19 to 1.22.
+- Updated dependencies.
+- Moved from v1.2 of the SiteHost API to v1.3.
+- Changed the type of the `CustomImageAccess` API request struct fields from
+  `string` to `bool`.
 
 ## [v0.3.4] - 2024-03-12
 ### Added
@@ -23,7 +29,7 @@ All notable changes to this project will be documented in this file. The format 
 - Add ability to create, get and delete SSH Keys.
 
 ## [v0.3.2] - 2023-03-22
-### Fixes
+### Fixed
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
 - Fix GetRecordWithRecord with default priority.
 - Fix ListRecords to remove the final dot in the content value.
