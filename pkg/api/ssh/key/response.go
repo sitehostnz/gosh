@@ -3,7 +3,7 @@ package key
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
-	// ListResponse represents the listing of SSHKeys.
+	// ListResponse represents the listing of SSH keys.
 	ListResponse struct {
 		Return struct {
 			models.Pagination
@@ -12,7 +12,7 @@ type (
 		models.APIResponse
 	}
 
-	// CreateResponse represents a result of the create an SSH Key call.
+	// CreateResponse represents a result of creating an SSH key.
 	CreateResponse struct {
 		Return struct {
 			KeyID string `json:"key_id"`
@@ -22,23 +22,16 @@ type (
 
 	// GetResponse represents a SSH Keys information.
 	GetResponse struct {
-		Return struct {
-			ID          string `json:"id"`
-			ClientID    string `json:"client_id"`
-			Label       string `json:"label"`
-			Content     string `json:"content"`
-			DateAdded   string `json:"date_added"`
-			DateUpdated string `json:"date_updated"`
-		} `json:"return"`
+		Return models.SSHKey `json:"return"`
 		models.APIResponse
 	}
 
-	// DeleteResponse represents a result of the delete an SSH Key call.
+	// DeleteResponse represents the result of deleting an SSH key.
 	DeleteResponse struct {
 		models.APIResponse
 	}
 
-	// UpdateResponse represents a result of the update an SSH Key call.
+	// UpdateResponse represents a result of updating an SSH key.
 	UpdateResponse struct {
 		models.APIResponse
 	}

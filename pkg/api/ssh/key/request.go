@@ -10,7 +10,7 @@ type (
 	CreateRequest struct {
 		Label             string `json:"label"`
 		Content           string `json:"content"`
-		CustomImageAccess string `json:"custom_image_access"`
+		CustomImageAccess bool   `json:"custom_image_access"`
 	}
 
 	// DeleteRequest represents a request to delete a specific SSH Key.
@@ -23,6 +23,6 @@ type (
 		ID                string `json:"key_id"`
 		Label             string `json:"label"`
 		Content           string `json:"content"`
-		CustomImageAccess string `json:"custom_image_access"`
+		CustomImageAccess bool   `json:"custom_image_access"`
 	}
 )

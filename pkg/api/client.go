@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultBaseURL   = "https://api.sitehost.nz"
-	defaultVersion   = "1.2"
+	defaultVersion   = "1.3"
 	userAgent        = "gosh"
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
@@ -68,7 +68,7 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 //
 // The API response is checked  to see if it was a successful call.
 // A successful call is then checked to see if we have a Status true.
-func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
+func (c *Client) Do(_ context.Context, req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return err

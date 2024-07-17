@@ -2,6 +2,7 @@ package key
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
@@ -22,7 +23,7 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	values.Add("key_id", opts.ID)
 	values.Add("params[label]", opts.Label)
 	values.Add("params[content]", opts.Content)
-	values.Add("params[custom_image_access]", opts.CustomImageAccess)
+	values.Add("params[custom_image_access]", fmt.Sprint(utils.BoolToInt(opts.CustomImageAccess)))
 
 	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
 	if err != nil {

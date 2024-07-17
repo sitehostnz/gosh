@@ -18,6 +18,7 @@ func (s *Client) GetRecord(ctx context.Context, request RecordRequest) (response
 			return record, nil
 		}
 	}
+
 	return response, nil
 }
 
@@ -39,6 +40,8 @@ func (s *Client) GetRecordWithType(ctx context.Context, request RecordRequest) (
 }
 
 // GetRecordWithRecord is a special case, for mainly when we are creating records where we need to get back what we just created.
+//
+// Deprecated: This is only needed for older versions of the Terraform provider as we now get a record ID back.
 func (s *Client) GetRecordWithRecord(ctx context.Context, request models.DNSRecord) (response models.DNSRecord, err error) {
 	records, err := s.ListRecords(ctx, ListRecordsRequest{Domain: request.Domain})
 	if err != nil {
