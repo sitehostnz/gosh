@@ -1,12 +1,13 @@
-# gosh
+# Gosh
 
-Gosh is a Go client library for accessing the [SiteHost V1.1 API](https://docs.sitehost.nz/api/v1/)
+Gosh is a Go client library for accessing the [SiteHost v1.3 API](https://docs.sitehost.nz/api/v1.3/).
 
 ## Installation
 
 ```sh
 go get -u https://github.com/sitehostnz/gosh
 ```
+
 ## Example
 
 ```go
@@ -16,20 +17,17 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/api/server"
 )
 
 func main() {
-	apiKey := os.Getenv("SH_APIKEY")
-	clientId := os.Getenv("SH_CLIENTID")
+	apiKey := os.Getenv("SH_API_KEY")
+	clientId := os.Getenv("SH_CLIENT_ID")
 
-	client, err := api.NewClient(apiKey, clientId)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	client := api.NewClient(apiKey, clientId)
 	ctx := context.Background()
 
 	instance := server.New(client)
@@ -54,13 +52,17 @@ func main() {
 
 ## Documentation
 
-See our documentation for [detailed information about API v1.1](https://docs.sitehost.nz/api/v1/).
+The structure of this library closely mirrors that of our API, so the
+[API documentation](https://docs.sitehost.nz/api/v1.3/) should be your first
+point of reference.
 
 ## Contributing
+
 If you're interested in contributing to our project:
 - Start by reading our [style guide](https://github.com/sitehostnz/go-style-guide/blob/master/style.md) and [contributing guide](/docs/CONTRIBUTING.md).
 - Explore our [issues](https://github.com/sitehostnz/gosh/issues).
 - Or send us feature PRs.
 
-## License
-GoSH is distributed under [MIT](./LICENSE.md).
+## Licence
+
+Gosh is distributed under the terms of the [MIT](./LICENSE.md) licence.
