@@ -3,15 +3,21 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [v0.3.x] - 2024-05-14
 ### Added
+- Added support for all endpoints under `/cloud/db/`.
 - list/get/update/remove for `/cloud/db`
 - list/get/update/remove for `/cloud/db/user`
 - list/get/update/remove for `/cloud/db/grants`
 - cloud stack image list_all `/cloud/image`
-- add user/add/edit/update and ssh key 
+- Added support for the `/cloud/stack/image/list_all.json` endpoint.
+
+### Fixed
+- Corrected the SSH key update parameters.
 
 ### Fixes
+- Updated Go from 1.19 to 1.22.
 - version updates
 - correct the ssh key update params
+- Changed the type of the `CustomImageAccess` API request struct fields from
 - add wrappers around api return types to get bools, not ints.
 
 ## [v0.3.4] - 2024-03-12
@@ -23,7 +29,7 @@ All notable changes to this project will be documented in this file. The format 
 - Add ability to create, get and delete SSH Keys.
 
 ## [v0.3.2] - 2023-03-22
-### Fixes
+### Fixed
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
 - Fix GetRecordWithRecord with default priority.
 - Fix ListRecords to remove the final dot in the content value.
