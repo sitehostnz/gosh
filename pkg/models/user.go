@@ -11,7 +11,7 @@ type (
 		HomeDir        string          `json:"home_dir"`
 		SSHKeys        []SSHKey        `json:"ssh_keys"`
 		Pending        interface{}     `json:"pending"`
-		IsMissing      string          `json:"is_missing"`
+		IsMissing      utils.MaybeBool `json:"is_missing"`
 		DateAdded      string          `json:"date_added"`
 		DateUpdated    string          `json:"date_updated"`
 		ServerName     string          `json:"server_name"`
