@@ -38,6 +38,12 @@ type (
 		Params      ParamsOptions `json:"params"`
 	}
 
+	// UpdateFirewallRequest represents a request to update the server's firewall.
+	UpdateFirewallRequest struct {
+		ServerName     string   `json:"server"`
+		SecurityGroups []string `json:"groups"`
+	}
+
 	// ParamsOptions represents the additional parameters in the request to create a Server.
 	ParamsOptions struct {
 		Name      string   `json:"name,omitempty"`

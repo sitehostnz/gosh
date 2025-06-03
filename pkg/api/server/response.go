@@ -19,6 +19,14 @@ type (
 		models.APIResponse
 	}
 
+	// UpdateFirewallResponse represents a result of a update firewall Server call.
+	UpdateFirewallResponse struct {
+		Return struct {
+			JobID string `json:"job_id"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	// CreateResponse represents a result of the create a Server call.
 	CreateResponse struct {
 		Return struct {
