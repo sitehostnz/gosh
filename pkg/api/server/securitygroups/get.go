@@ -4,13 +4,12 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// Delete removes a security group.
-func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response models.APIResponse, err error) {
-	uri := "server/firewall/security_groups/delete.json"
+// Get retrieves details of a security group including its rules and attached servers.
+func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
+	uri := "server/firewall/security_groups/get.json"
 
 	keys := []string{
 		"client_id",
@@ -21,7 +20,7 @@ func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response mo
 	values.Add("client_id", s.client.ClientID)
 	values.Add("name", request.Name)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("GET", uri, utils.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

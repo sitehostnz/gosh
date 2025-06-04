@@ -17,6 +17,14 @@ type (
 )
 
 type (
+	// GetRequest represents a request to get details of a security group.
+	GetRequest struct {
+		ClientID string `json:"client_id"`
+		Name     string `json:"name"`
+	}
+)
+
+type (
 	// UpdateRequest represents a request to update a security group.
 	UpdateRequest struct {
 		ClientID string        `json:"client_id"`
