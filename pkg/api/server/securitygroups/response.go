@@ -48,6 +48,14 @@ type (
 		models.APIResponse
 	}
 
+	// AddResponse represents a result of creating a security group.
+	AddResponse struct {
+		Return struct {
+			Name string `json:"name"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	// ListResponse represents a result of listing all security groups.
 	ListResponse struct {
 		Return struct {
