@@ -1,5 +1,7 @@
 package securitygroups
 
+import "github.com/sitehostnz/gosh/pkg/models"
+
 type (
 	// AddRequest represents a request to create a security group.
 	AddRequest struct {
@@ -21,6 +23,14 @@ type (
 	GetRequest struct {
 		ClientID string `json:"client_id"`
 		Name     string `json:"name"`
+	}
+)
+
+type (
+	// ListAllRequest represents options for filtering security groups.
+	ListAllRequest struct {
+		Label string `url:"filters[label],omitempty"`
+		models.Filtering
 	}
 )
 

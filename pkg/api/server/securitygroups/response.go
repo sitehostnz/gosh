@@ -48,6 +48,23 @@ type (
 		models.APIResponse
 	}
 
+	// ListResponse represents a result of listing all security groups.
+	ListResponse struct {
+		Return struct {
+			models.Pagination
+			Data []struct {
+				Name        string   `json:"name"`
+				Label       string   `json:"label"`
+				Version     int      `json:"version"`
+				Servers     []string `json:"servers"`
+				DateUpdated string   `json:"date_updated"`
+				Pending     string   `json:"pending"`
+				IsMissing   bool     `json:"is_missing"`
+			} `json:"data"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
 	// UpdateResponse represents a result of an update security group call.
 	UpdateResponse struct {
 		Return struct {
