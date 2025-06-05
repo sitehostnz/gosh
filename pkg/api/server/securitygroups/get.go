@@ -2,25 +2,14 @@ package securitygroups
 
 import (
 	"context"
-	"net/url"
-
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"fmt"
 )
 
 // Get retrieves details of a security group including its rules and attached servers.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
-	uri := "server/firewall/security_groups/get.json"
+	uri := fmt.Sprintf("server/firewall/security_groups/get.json?name=%v", request.Name)
 
-	keys := []string{
-		"client_id",
-		"name",
-	}
-
-	values := url.Values{}
-	values.Add("client_id", s.client.ClientID)
-	values.Add("name", request.Name)
-
-	req, err := s.client.NewRequest("GET", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("GET", uri, "")
 	if err != nil {
 		return response, err
 	}
