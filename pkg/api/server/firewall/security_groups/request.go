@@ -1,4 +1,4 @@
-package securitygroups
+package security_groups
 
 import "github.com/sitehostnz/gosh/pkg/models"
 

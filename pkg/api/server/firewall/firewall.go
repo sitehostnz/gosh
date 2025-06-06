@@ -1,4 +1,4 @@
-package server
+package firewall
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
-// UpdateFirewall function updates the server firewall.
-func (s *Client) UpdateFirewall(ctx context.Context, request UpdateFirewallRequest) (response UpdateFirewallResponse, err error) {
+// Update function updates the server firewall.
+func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
 	uri := "server/firewall/update.json"
 
 	keys := []string{
