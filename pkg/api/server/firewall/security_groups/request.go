@@ -8,33 +8,25 @@ type (
 		ClientID string `json:"client_id"`
 		Label    string `json:"label"`
 	}
-)
 
-type (
 	// DeleteRequest represents a request to remove a security group.
 	DeleteRequest struct {
 		ClientID string `json:"client_id"`
 		Name     string `json:"name"`
 	}
-)
 
-type (
 	// GetRequest represents a request to get details of a security group.
 	GetRequest struct {
 		ClientID string `json:"client_id"`
 		Name     string `json:"name"`
 	}
-)
 
-type (
 	// ListAllRequest represents options for filtering security groups.
 	ListAllRequest struct {
 		Label string `url:"filters[label],omitempty"`
 		models.Filtering
 	}
-)
 
-type (
 	// UpdateRequest represents a request to update a security group.
 	UpdateRequest struct {
 		ClientID string        `json:"client_id"`
@@ -42,12 +34,14 @@ type (
 		Params   ParamsOptions `json:"params"`
 	}
 
+	// ParamsOptions represents options for updating a security group.
 	ParamsOptions struct {
 		Label    string    `json:"label"`
 		RulesIn  []RuleIn  `json:"rules_in"`
 		RulesOut []RuleOut `json:"rules_out"`
 	}
 
+	// RuleIn represents a request to update an inbound rule for a security group.
 	RuleIn struct {
 		Enabled         bool   `json:"enabled"`
 		Action          string `json:"action"`
@@ -56,6 +50,7 @@ type (
 		DestinationPort string `json:"dest_port"`
 	}
 
+	// RuleOut represents a request to update an outbound rule for a security group.
 	RuleOut struct {
 		Enabled         bool   `json:"enabled"`
 		Action          string `json:"action"`

@@ -8,7 +8,7 @@ import (
 
 // List retrieves all security groups with optional filtering.
 func (s *Client) List(ctx context.Context, request ListAllRequest) (response ListResponse, err error) {
-	uri := "server/firewall/security_groups/list_all.json"
+	uri := apiPrefix + "/list_all.json"
 
 	path, err := utils.AddOptions(uri, request)
 	if err != nil {

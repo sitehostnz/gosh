@@ -17,35 +17,26 @@ type (
 				Label string `json:"label"`
 			} `json:"servers"`
 			Rules struct {
-				In []struct {
-					Pos        int    `json:"pos"`
-					Dir        string `json:"dir"`
-					Enabled    bool   `json:"enabled"`
-					Action     string `json:"action"`
-					Protocol   string `json:"protocol"`
-					SrcIP      string `json:"src_ip"`
-					SrcIPType  string `json:"src_ip_type"`
-					SrcPort    string `json:"src_port"`
-					DestIP     string `json:"dest_ip"`
-					DestIPType string `json:"dest_ip_type"`
-					DestPort   int    `json:"dest_port"`
-				} `json:"in"`
-				Out []struct {
-					Pos        int    `json:"pos"`
-					Dir        string `json:"dir"`
-					Enabled    bool   `json:"enabled"`
-					Action     string `json:"action"`
-					Protocol   string `json:"protocol"`
-					SrcIP      string `json:"src_ip"`
-					SrcIPType  string `json:"src_ip_type"`
-					SrcPort    string `json:"src_port"`
-					DestIP     string `json:"dest_ip"`
-					DestIPType string `json:"dest_ip_type"`
-					DestPort   int    `json:"dest_port"`
-				} `json:"out"`
+				In  []Rule `json:"in"`
+				Out []Rule `json:"out"`
 			} `json:"rules"`
 		} `json:"return"`
 		models.APIResponse
+	}
+
+	// Rule represents a security group firewall rule.
+	Rule struct {
+		Pos        int    `json:"pos"`
+		Dir        string `json:"dir"`
+		Enabled    bool   `json:"enabled"`
+		Action     string `json:"action"`
+		Protocol   string `json:"protocol"`
+		SrcIP      string `json:"src_ip"`
+		SrcIPType  string `json:"src_ip_type"`
+		SrcPort    string `json:"src_port"`
+		DestIP     string `json:"dest_ip"`
+		DestIPType string `json:"dest_ip_type"`
+		DestPort   int    `json:"dest_port"`
 	}
 
 	// AddResponse represents a result of creating a security group.

@@ -9,7 +9,7 @@ import (
 
 // Add creates a new security group.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
-	uri := "server/firewall/security_groups/add.json"
+	uri := apiPrefix + "/add.json"
 
 	keys := []string{
 		"client_id",

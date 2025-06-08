@@ -11,7 +11,7 @@ import (
 
 // Update updates a security group.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
-	uri := "server/firewall/security_groups/update.json"
+	uri := apiPrefix + "/update.json"
 
 	keys := []string{
 		"client_id",

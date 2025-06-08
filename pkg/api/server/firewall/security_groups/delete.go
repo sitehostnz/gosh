@@ -10,7 +10,7 @@ import (
 
 // Delete removes a security group.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response models.APIResponse, err error) {
-	uri := "server/firewall/security_groups/delete.json"
+	uri := apiPrefix + "/delete.json"
 
 	keys := []string{
 		"client_id",
