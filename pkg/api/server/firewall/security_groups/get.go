@@ -2,12 +2,12 @@ package security_groups
 
 import (
 	"context"
-	"fmt"
+	"path"
 )
 
 // Get retrieves details of a security group including its rules and attached servers.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
-	uri := fmt.Sprintf(apiPrefix+"/get.json?name=%v", request.Name)
+	uri := path.Join(apiPrefix, "get.json?name=") + request.Name
 
 	req, err := s.client.NewRequest("GET", uri, "")
 	if err != nil {

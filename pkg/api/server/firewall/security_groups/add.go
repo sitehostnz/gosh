@@ -3,13 +3,14 @@ package security_groups
 import (
 	"context"
 	"net/url"
+	"path"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Add creates a new security group.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
-	uri := apiPrefix + "/add.json"
+	uri := path.Join(apiPrefix, "add.json")
 
 	keys := []string{
 		"client_id",

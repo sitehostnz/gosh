@@ -68,7 +68,7 @@ type (
 	UpdateResponse struct {
 		Return struct {
 			Type  string `json:"type"`
-			JobID string `json:"job_id"`
+			JobID string `json:"id"`
 		} `json:"return"`
 		models.APIResponse
 	}

@@ -36,18 +36,18 @@ type (
 
 	// ParamsOptions represents options for updating a security group.
 	ParamsOptions struct {
-		Label    string    `json:"label"`
-		RulesIn  []RuleIn  `json:"rules_in"`
-		RulesOut []RuleOut `json:"rules_out"`
+		Label    string              `json:"label"`
+		RulesIn  []UpdateRequestRule `json:"rules_in"`
+		RulesOut []UpdateRequestRule `json:"rules_out"`
 	}
 
-	// RuleIn represents a request to update an inbound rule for a security group.
-	RuleIn struct {
+	// UpdateRequestRule represents a request to update a rule for a security group.
+	UpdateRequestRule struct {
 		Enabled         bool   `json:"enabled"`
 		Action          string `json:"action"`
 		Protocol        string `json:"protocol"`
-		SourceIP        string `json:"src_ip"`
 		DestinationPort string `json:"dest_port"`
+		IP              string
 	}
 
 	// RuleOut represents a request to update an outbound rule for a security group.

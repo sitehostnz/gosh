@@ -2,13 +2,14 @@ package security_groups
 
 import (
 	"context"
+	"path"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // List retrieves all security groups with optional filtering.
 func (s *Client) List(ctx context.Context, request ListAllRequest) (response ListResponse, err error) {
-	uri := apiPrefix + "/list_all.json"
+	uri := path.Join(apiPrefix, "list_all.json")
 
 	path, err := utils.AddOptions(uri, request)
 	if err != nil {

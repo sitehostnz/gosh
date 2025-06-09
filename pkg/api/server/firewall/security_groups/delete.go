@@ -3,6 +3,7 @@ package security_groups
 import (
 	"context"
 	"net/url"
+	"path"
 
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/utils"
@@ -10,7 +11,7 @@ import (
 
 // Delete removes a security group.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response models.APIResponse, err error) {
-	uri := apiPrefix + "/delete.json"
+	uri := path.Join(apiPrefix, "delete.json")
 
 	keys := []string{
 		"client_id",

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"path"
 	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
@@ -11,7 +12,7 @@ import (
 
 // Update updates a security group.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
-	uri := apiPrefix + "/update.json"
+	uri := path.Join(apiPrefix, "update.json")
 
 	keys := []string{
 		"client_id",
@@ -34,7 +35,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		values.Add(prefix+"[enabled]", strconv.Itoa(utils.BoolToInt(rulein.Enabled)))
 		values.Add(prefix+"[action]", rulein.Action)
 		values.Add(prefix+"[protocol]", rulein.Protocol)
-		values.Add(prefix+"[src_ip]", rulein.SourceIP)
+		values.Add(prefix+"[src_ip]", rulein.IP)
 		values.Add(prefix+"[dest_port]", rulein.DestinationPort)
 	}
 
@@ -48,7 +49,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		values.Add(prefix+"[enabled]", strconv.Itoa(utils.BoolToInt(ruleout.Enabled)))
 		values.Add(prefix+"[action]", ruleout.Action)
 		values.Add(prefix+"[protocol]", ruleout.Protocol)
-		values.Add(prefix+"[dest_ip]", ruleout.DestinationIP)
+		values.Add(prefix+"[dest_ip]", ruleout.IP)
 		values.Add(prefix+"[dest_port]", ruleout.DestinationPort)
 	}
 
