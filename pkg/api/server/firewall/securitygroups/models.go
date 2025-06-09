@@ -1,4 +1,4 @@
-package security_groups
+package securitygroups
 
 import (
 	"github.com/sitehostnz/gosh/pkg/api"
