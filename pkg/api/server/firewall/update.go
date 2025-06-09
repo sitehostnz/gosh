@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"path"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Update function updates the server firewall.
 func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
-	uri := "server/firewall/update.json"
+	uri := path.Join(apiPrefix, "update.json")
 
 	keys := []string{
 		"client_id",
@@ -19,11 +20,11 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("name", request.ServerName)
+	values.Add("server", request.ServerName)
 
 	for i, group := range request.SecurityGroups {
-		keys = append(keys, fmt.Sprintf("group[%d]", i))
-		values.Add(fmt.Sprintf("group[%d]", i), group)
+		keys = append(keys, fmt.Sprintf("groups[%d]", i))
+		values.Add(fmt.Sprintf("groups[%d]", i), group)
 	}
 
 	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
