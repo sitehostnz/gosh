@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultBaseURL   = "https://api.sitehost.nz"
-	defaultVersion   = "1.3"
+	defaultVersion   = "1.5"
 	userAgent        = "gosh"
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
@@ -99,7 +99,7 @@ func (c *Client) Do(_ context.Context, req *http.Request, v interface{}) error {
 	return nil
 }
 
-// CheckResponse checks the API response for errors, and returns them if present.
+// CheckResponse checks the API response for errors and returns them if present.
 //
 // A response is considered an error if it has a status code outside the 200 range or if the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
