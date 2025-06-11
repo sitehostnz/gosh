@@ -2,28 +2,30 @@ package job
 
 import (
 	"context"
-	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/utils"
 )
 
 // Get information about a job.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
+	uri := "job/get.json"
 	keys := []string{
-		"id",
+		"apikey",
+		"client_id",
 		"type",
+		"id",
 	}
 
-	values := url.Values{}
-	values.Add("id", request.JobID)
-	values.Add("type", request.Type)
-
-	u := "job/get.json?" + utils.Encode(values, keys)
-
-	req, err := s.client.NewRequest("GET", u, "")
+	req, err := s.client.NewRequest("GET", uri, "")
 	if err != nil {
 		return response, err
 	}
+
+	values := req.URL.Query()
+	values.Add("type", request.Type)
+	values.Add("id", request.JobID)
+
+	req.URL.RawQuery = utils.Encode(values, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err
