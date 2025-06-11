@@ -3,6 +3,8 @@ timeout = "10m"
 
 [issues]
 exclude-use-default = false
+new = true
+new-from-rev = "main"
 
 # BUG(colin): https://github.com/kunwardeep/paralleltest/issues/8
 [[issues.exclude-rules]]
@@ -22,8 +24,10 @@ disable-all = true
 enable = [
   "asciicheck",
   "bodyclose",
+  "copyloopvar",
   "cyclop",
   "dogsled",
+  "decorder",
   # "dupl", // disabled because it cannot be nolint-ed
   "durationcheck",
   "errcheck",
@@ -44,6 +48,7 @@ enable = [
   "gosimple",
   "gosec",
   "govet",
+  "importas",
   "ineffassign",
   "makezero",
   "misspell",

@@ -21,7 +21,7 @@ type (
 
 	// GetRequest represents a SiteHost request for GET job api endpoint.
 	GetRequest struct {
-		JobID string `json:"job_id"`
+		JobID string `json:"id"`
 		Type  string `json:"type"`
 	}
 

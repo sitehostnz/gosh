@@ -1,6 +1,12 @@
 package models
 
 type (
+	// Job represents reference to a job.
+	Job struct {
+		ID   int    `json:"id"`
+		Type string `json:"type"`
+	}
+
 	// JobDetails represents the job information.
 	JobDetails struct {
 		Created   string `json:"created"`

@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultBaseURL   = "https://api.sitehost.nz"
-	defaultVersion   = "1.3"
+	defaultVersion   = "1.5"
 	userAgent        = "gosh"
 	defaultMediaType = "application/x-www-form-urlencoded"
 )
