@@ -69,7 +69,7 @@ type (
 		Return struct {
 			Job struct {
 				Type string `json:"type"`
-				Id   int    `json:"id"`
+				ID   int    `json:"id"`
 			} `json:"job"`
 		} `json:"return"`
 		models.APIResponse
