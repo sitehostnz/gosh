@@ -18,10 +18,7 @@ type (
 	// UpdateResponse represents the result of a request to update a server's firewall call.
 	UpdateResponse struct {
 		Return struct {
-			Job struct {
-				Type string `json:"type"`
-				ID   int    `json:"id"`
-			} `json:"job"`
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
