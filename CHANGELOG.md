@@ -1,9 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.5.0] - 2025-06-12
 ### Added
 - Added support for all endpoints under `/server/firewall/`.
 - Added support for all endpoints under `/server/firewall/security_groups/`.
+
+### Changed
+- Moved from v1.3 of the SiteHost API to v1.5.
+- Updated response objects to reflect changes in SiteHost API v1.5, which now returns job references including both the `id` and `type` fields.
 
 ## [v0.4.0] - 2024-07-17
 ### Added
