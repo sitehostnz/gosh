@@ -22,8 +22,6 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	}
 
 	values := req.URL.Query()
-	values.Add("apikey", s.client.APIKey)
-	values.Add("client_id", s.client.ClientID)
 	values.Add("type", request.Type)
 	values.Add("id", request.JobID)
 
