@@ -67,8 +67,10 @@ type (
 	// UpdateResponse represents a result of an update security group call.
 	UpdateResponse struct {
 		Return struct {
-			Type  string `json:"type"`
-			JobID string `json:"id"`
+			Job struct {
+				Type string `json:"type"`
+				Id   int    `json:"id"`
+			} `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
