@@ -1,6 +1,6 @@
 # Gosh
 
-Gosh is a Go client library for accessing the [SiteHost v1.3 API](https://docs.sitehost.nz/api/v1.3/).
+Gosh is a Go client library for accessing the [SiteHost v1.5 API](https://docs.sitehost.nz/api/v1.5/).
 
 ## Installation
 
@@ -53,7 +53,7 @@ func main() {
 ## Documentation
 
 The structure of this library closely mirrors that of our API, so the
-[API documentation](https://docs.sitehost.nz/api/v1.3/) should be your first
+[API documentation](https://docs.sitehost.nz/api/v1.5/) should be your first
 point of reference.
 
 ## Contributing

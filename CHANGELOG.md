@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+### Added
+- Added support for all endpoints under `/server/firewall/`.
+- Added support for all endpoints under `/server/firewall/security_groups/`.
+
 ## [v0.4.0] - 2024-07-17
 ### Added
 - Added support for all endpoints under `/cloud/db/`.
