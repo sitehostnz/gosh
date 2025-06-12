@@ -1,6 +1,8 @@
 package models
 
-import "github.com/sitehostnz/gosh/pkg/utils"
+import (
+	"github.com/sitehostnz/gosh/pkg/types"
+)
 
 type (
 	// SSHKey represents an SSH key in the SiteHost Api.
@@ -11,6 +13,6 @@ type (
 		Content           string          `json:"content"`
 		DateAdded         string          `json:"date_added"`
 		DateUpdated       string          `json:"date_updated"`
-		CustomImageAccess utils.MaybeBool `json:"custom_image_access"`
+		CustomImageAccess types.MaybeBool `json:"custom_image_access"`
 	}
 )

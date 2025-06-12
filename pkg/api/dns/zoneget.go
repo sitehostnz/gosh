@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // GetZone searches for a domain in the DNS made easy service
@@ -23,7 +23,7 @@ func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response 
 	values.Add("client_id", s.client.ClientID)
 	values.Add("query[domain]", request.DomainName)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

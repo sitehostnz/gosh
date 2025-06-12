@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Upgrade a server's plan .
@@ -22,7 +22,7 @@ func (s *Client) Upgrade(ctx context.Context, opts UpgradeRequest) (response Upd
 	values.Add("name", opts.Name)
 	values.Add("plan", opts.Plan)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

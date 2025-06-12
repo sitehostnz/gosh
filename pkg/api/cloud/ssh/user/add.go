@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
+	"github.com/sitehostnz/gosh/pkg/types"
 )
 
 // Add creates a new SSH user.
@@ -27,7 +28,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response UpdateRe
 	values.Add("server_name", request.ServerName)
 	values.Add("username", request.Username)
 	values.Add("params[password]", request.Password)
-	values.Add("params[read_only_config]", fmt.Sprint(utils.BoolToInt(request.ReadOnlyConfig)))
+	values.Add("params[read_only_config]", fmt.Sprint(types.BoolToInt(request.ReadOnlyConfig)))
 
 	for _, c := range request.Containers {
 		values.Add("params[containers][]", c)
@@ -41,7 +42,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response UpdateRe
 		values.Add("params[volumes][]", k)
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

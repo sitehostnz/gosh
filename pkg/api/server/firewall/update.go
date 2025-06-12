@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update function updates the server firewall.
@@ -27,7 +27,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		values.Add(fmt.Sprintf("groups[%d]", i), group)
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

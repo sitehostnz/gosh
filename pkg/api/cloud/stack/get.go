@@ -3,7 +3,7 @@ package stack
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get fetches a cloud stack.
@@ -25,7 +25,7 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	v.Add("server", request.ServerName)
 	v.Add("name", request.Name)
 
-	req.URL.RawQuery = utils.Encode(v, keys)
+	req.URL.RawQuery = net.Encode(v, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err

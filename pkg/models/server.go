@@ -1,19 +1,21 @@
 package models
 
-import "github.com/sitehostnz/gosh/pkg/utils"
+import (
+	"github.com/sitehostnz/gosh/pkg/types"
+)
 
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
 		Name             string            `json:"name"`
 		Label            string            `json:"label"`
-		ClientID         utils.MaybeString `json:"client_id"`
+		ClientID         types.MaybeString `json:"client_id"`
 		Created          string            `json:"created"`
 		Type             string            `json:"type"`
 		RAM              string            `json:"ram"`
 		Root             string            `json:"root"`
-		Disk             utils.MaybeBigInt `json:"disk"`
-		Cores            utils.MaybeBigInt `json:"cores"`
+		Disk             types.MaybeBigInt `json:"disk"`
+		Cores            types.MaybeBigInt `json:"cores"`
 		Core             string            `json:"core"`
 		Arch             string            `json:"arch"`
 		Kernel           string            `json:"kernel"`

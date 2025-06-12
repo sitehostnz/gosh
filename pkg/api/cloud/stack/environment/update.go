@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update applies updates to the stacks environment.
@@ -38,7 +38,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		}
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, append(keys, args...)))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, append(keys, args...)))
 	if err != nil {
 		return response, err
 	}

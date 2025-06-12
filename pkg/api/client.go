@@ -43,10 +43,20 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 		return nil, fmt.Errorf("API Key and Client ID must be different to empty")
 	}
 
-	values := u.Query()
+	// doing this, so we can kinda hope to preserve the order...
+	// really client id and what not should perhaps come higher up the food chain,
+	// and only default if not in the request.
+
+	values := make(url.Values)
 	values.Add("apikey", c.APIKey)
 	values.Add("client_id", c.ClientID)
-	u.RawQuery = values.Encode()
+
+	q := strings.Join(
+		[]string{values.Encode(), u.RawQuery},
+		"&",
+	)
+
+	u.RawQuery = q
 
 	req, err := http.NewRequestWithContext(context.Background(), method, u.String(), strings.NewReader(body))
 	if err != nil {
@@ -99,7 +109,7 @@ func (c *Client) Do(_ context.Context, req *http.Request, v interface{}) error {
 	return nil
 }
 
-// CheckResponse checks the API response for errors, and returns them if present.
+// CheckResponse checks the API response for errors and returns them if present.
 //
 // A response is considered an error if it has a status code outside the 200 range or if the Status is false.
 func CheckResponse(r *http.Response, data []byte) error {
