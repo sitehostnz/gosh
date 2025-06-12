@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update sets the password for the specified cloud database user.
@@ -25,7 +25,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	values.Add("username", request.Username)
 	values.Add("password", request.Password)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

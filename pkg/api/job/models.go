@@ -2,15 +2,16 @@ package job
 
 import (
 	"encoding/json"
+
 	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 const (
-	// SchedulerType is a job that runs on a scheduler
+	// SchedulerType is a job that runs on a scheduler.
 	SchedulerType string = "scheduler"
 
-	// DaemonType is a job that runs on a daemon
+	// DaemonType is a job that runs on a daemon.
 	DaemonType = "daemon"
 )
 

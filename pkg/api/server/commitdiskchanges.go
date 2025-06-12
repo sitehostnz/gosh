@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // CommitDiskChanges function commits changes to upgrade a server.
@@ -20,7 +20,7 @@ func (s *Client) CommitDiskChanges(ctx context.Context, request CommitDiskChange
 	values.Add("client_id", s.client.ClientID)
 	values.Add("name", request.ServerName)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/models"
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // DeleteZone deletes an existing DNS zone with the specified domain name.
@@ -23,7 +23,7 @@ func (s *Client) DeleteZone(ctx context.Context, request DeleteZoneRequest) (res
 	values.Add("client_id", s.client.ClientID)
 	values.Add("domain", request.DomainName)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get fetches a cloud image.
@@ -25,7 +25,7 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	values.Add("server_name", request.ServerName)
 	values.Add("username", request.Username)
 
-	req.URL.RawQuery = utils.Encode(values, keys)
+	req.URL.RawQuery = net.Encode(values, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err

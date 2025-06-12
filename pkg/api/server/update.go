@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update a Server.
@@ -22,7 +22,7 @@ func (s *Client) Update(ctx context.Context, opts UpdateRequest) (response Updat
 	values.Add("name", opts.Name)
 	values.Add("updates[label]", opts.Label)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}
