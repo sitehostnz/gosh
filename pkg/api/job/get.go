@@ -2,8 +2,9 @@ package job
 
 import (
 	"context"
-	"github.com/sitehostnz/gosh/pkg/net"
 	"strconv"
+
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get information about a job.

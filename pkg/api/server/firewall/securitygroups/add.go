@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Add creates a new security group.
@@ -21,7 +21,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response AddRespo
 	values.Add("client_id", s.client.ClientID)
 	values.Add("label", request.Label)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}
