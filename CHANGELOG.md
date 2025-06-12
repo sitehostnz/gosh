@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. The format 
 - update to use latest golangci-lint
 - replace go-acc with standard go vet / coverage
 - update pr make file to use golangci-lint GitHub action instead of building
+- Split url helpers and type helpers in to their own packages
 
 ## [v0.5.0] - 2025-06-12
 ### Added
