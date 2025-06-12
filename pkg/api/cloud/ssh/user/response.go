@@ -21,7 +21,7 @@ type (
 	// AddResponse is the return for adding an ssh/sftp user.
 	AddResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -29,7 +29,7 @@ type (
 	// UpdateResponse is the return for updating an ssh/sftp user.
 	UpdateResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -37,7 +37,7 @@ type (
 	// DeleteResponse is the return for deleting a ssh/sftp user.
 	DeleteResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}

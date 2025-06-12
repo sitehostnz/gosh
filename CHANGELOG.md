@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v0.3.x] - 2025-06-12
+## [v0.5.x] - 2025-06-12
 ### Fixed
 - Changed job handling to reflect v1.5 api
 - Made the core Client prepend client and api key to url, avoiding a resort of parameters
@@ -10,24 +10,32 @@ All notable changes to this project will be documented in this file. The format 
 - replace go-acc with standard go vet / coverage
 - update pr make file to use golangci-lint GitHub action instead of building
 
-## [v0.3.x] - 2024-05-14
+## [v0.5.0] - 2025-06-12
+### Added
+- Added support for all endpoints under `/server/firewall/`.
+- Added support for all endpoints under `/server/firewall/security_groups/`.
+
+### Changed
+- Moved from v1.3 of the SiteHost API to v1.5.
+- Updated response objects to reflect changes in SiteHost API v1.5, which now returns job references including both the `id` and `type` fields.
+
+## [v0.4.0] - 2024-07-17
 ### Added
 - Added support for all endpoints under `/cloud/db/`.
-- list/get/update/remove for `/cloud/db`
-- list/get/update/remove for `/cloud/db/user`
-- list/get/update/remove for `/cloud/db/grants`
-- cloud stack image list_all `/cloud/image`
+- Added support for all endpoints under `/cloud/db/grant/`.
+- Added support for all endpoints under `/cloud/db/user/`.
+- Added support for all endpoints under `/cloud/ssh/user/`.
+- Added support for the `/bandwith/get_ip_list.json` endpoint.
 - Added support for the `/cloud/stack/image/list_all.json` endpoint.
 
 ### Fixed
 - Corrected the SSH key update parameters.
 
-### Fixes
+### Changed
 - Updated Go from 1.19 to 1.22.
-- version updates
-- correct the ssh key update params
-- Changed the type of the `CustomImageAccess` API request struct fields from
-- add wrappers around api return types to get bools, not ints.
+- Updated dependencies.
+- Moved from v1.2 of the SiteHost API to v1.3.
+- Changed the type of the `CustomImageAccess` API request struct fields from `string` to `bool`.
 
 ## [v0.3.4] - 2024-03-12
 ### Added
@@ -35,12 +43,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [v0.3.3] - 2024-03-12
 ### Added
-- Add the ability to create, get and delete SSH Keys.
+- Add ability to create, get and delete SSH Keys.
 
 ## [v0.3.2] - 2023-03-22
 ### Fixed
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
-- Fix GetRecordWithRecord with the default priority.
+- Fix GetRecordWithRecord with default priority.
 - Fix ListRecords to remove the final dot in the content value.
 - Fix the priority value in the UpdateRecord function.
 

@@ -1,95 +1,81 @@
-version = '2'
+[run]
+timeout = "10m"
+
+[issues]
+exclude-use-default = false
+new = true
+new-from-rev = "main"
+
+# BUG(colin): https://github.com/kunwardeep/paralleltest/issues/8
+[[issues.exclude-rules]]
+linters = [ "paralleltest" ]
+text = "does not use range value in test Run"
+
+[[issues.exclude-rules]]
+path = "_test\\.go"
+linters = [ "funlen", "cyclop" ]
+
+[[issues.exclude-rules]]
+path = "test"
+linters = [ "funlen", "cyclop" ]
 
 [linters]
-default = 'none'
+disable-all = true
 enable = [
-  'asciicheck',
-  'bodyclose',
-  'cyclop',
-  'dogsled',
-  'durationcheck',
-  'errcheck',
-  'exhaustive',
-  'forcetypeassert',
-  'funlen',
-  'gocognit',
-  'goconst',
-  'gocritic',
-  'godot',
-  'gomoddirectives',
-  'goprintffuncname',
-  'gosec',
-  'govet',
-  'ineffassign',
-  'makezero',
-  'misspell',
-  'nakedret',
-  'nestif',
-  'nilerr',
-  'noctx',
-  'nolintlint',
-  'paralleltest',
-  'prealloc',
-  'predeclared',
-  'revive',
-  'rowserrcheck',
-  'sqlclosecheck',
-  'staticcheck',
-  'thelper',
-  'unconvert',
-  'unparam',
-  'unused',
-  'wastedassign',
-  'whitespace'
+  "asciicheck",
+  "bodyclose",
+  "copyloopvar",
+  "cyclop",
+  "dogsled",
+  "decorder",
+  # "dupl", // disabled because it cannot be nolint-ed
+  "durationcheck",
+  "errcheck",
+  "exhaustive",
+  "exportloopref",
+  "forcetypeassert",
+  "funlen",
+  "gci",
+  "gocognit",
+  "goconst",
+  "gocritic",
+  "godot",
+  "gofmt",
+  "gofumpt",
+  "goimports",
+  "gomoddirectives",
+  "goprintffuncname",
+  "gosimple",
+  "gosec",
+  "govet",
+  "importas",
+  "ineffassign",
+  "makezero",
+  "misspell",
+  "nakedret",
+  "nestif",
+  "nilerr",
+  "noctx",
+  "nolintlint",
+  "paralleltest",
+  "prealloc",
+  "predeclared",
+  "revive",
+  "rowserrcheck",
+  "sqlclosecheck",
+  "staticcheck",
+  "stylecheck",
+  "thelper",
+  "unconvert",
+  "unparam",
+  "unused",
+  "wastedassign",
+  "whitespace",
 ]
 
-[linters.settings]
-[linters.settings.exhaustive]
+[linters-settings.exhaustive]
 default-signifies-exhaustive = true
 
-[linters.settings.misspell]
-locale = 'UK'
+[linters-settings.misspell]
+locale = "UK" 
 
-[linters.exclusions]
-generated = 'lax'
-paths = [
-  'third_party$',
-  'builtin$',
-  'examples$'
-]
-
-[[linters.exclusions.rules]]
-linters = [
-  'paralleltest'
-]
-text = 'does not use range value in test Run'
-
-[[linters.exclusions.rules]]
-linters = [
-  'cyclop',
-  'funlen'
-]
-path = '_test\.go'
-
-[[linters.exclusions.rules]]
-linters = [
-  'cyclop',
-  'funlen'
-]
-path = 'test'
-
-[formatters]
-enable = [
-  'gci',
-  'gofmt',
-  'gofumpt',
-  'goimports'
-]
-
-[formatters.exclusions]
-generated = 'lax'
-paths = [
-  'third_party$',
-  'builtin$',
-  'examples$'
-]

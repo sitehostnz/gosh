@@ -23,7 +23,7 @@ type (
 	// UpdateResponse updates the specified database user.
 	UpdateResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -31,7 +31,7 @@ type (
 	// AddResponse adds a new database user.
 	AddResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -39,7 +39,7 @@ type (
 	// DeleteResponse deletes the specified database user.
 	DeleteResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
