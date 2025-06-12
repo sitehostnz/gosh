@@ -1,7 +1,5 @@
 package models
 
-import "encoding/json"
-
 type (
 
 	// Job represents reference to a job.
