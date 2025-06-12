@@ -1,6 +1,8 @@
 package models
 
-import "github.com/sitehostnz/gosh/pkg/utils"
+import (
+	"github.com/sitehostnz/gosh/pkg/types"
+)
 
 type (
 
@@ -17,8 +19,8 @@ type (
 		Changelog      string          `json:"changelog"`
 		DateAdded      string          `json:"date_added"`
 		DateUpdated    string          `json:"date_updated"`
-		IsPublic       utils.MaybeBool `json:"is_public"`
-		IsMissing      utils.MaybeBool `json:"is_missing"`
+		IsPublic       types.MaybeBool `json:"is_public"`
+		IsMissing      types.MaybeBool `json:"is_missing"`
 		ProjectID      string          `json:"project_id"`
 		RegistryID     string          `json:"registry_id"`
 		ForkedFrom     string          `json:"forked_from"`
@@ -42,8 +44,8 @@ type (
 		Changelog      string                 `json:"changelog"`
 		DateAdded      string                 `json:"date_added"`
 		DateUpdated    string                 `json:"date_updated"`
-		IsPublic       utils.MaybeBool        `json:"is_public"`
-		IsMissing      utils.MaybeBool        `json:"is_missing"`
+		IsPublic       types.MaybeBool        `json:"is_public"`
+		IsMissing      types.MaybeBool        `json:"is_missing"`
 		ProjectID      string                 `json:"project_id"`
 		RegistryID     string                 `json:"registry_id"`
 		ForkedFrom     string                 `json:"forked_from"`

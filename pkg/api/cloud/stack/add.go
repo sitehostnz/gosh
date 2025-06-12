@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Add creates a new cloud stack.
@@ -39,7 +39,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response AddRespo
 		keys = append(keys, "environments["+request.Name+".env]")
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

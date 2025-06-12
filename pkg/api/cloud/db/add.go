@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Add creates a new cloud database.
@@ -26,7 +26,7 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response AddRespo
 	values.Add("database", request.Database)
 	values.Add("container", request.Container)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/models"
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // UpdateRecord updates an existing DNS record for a domain.
@@ -33,7 +33,7 @@ func (s *Client) UpdateRecord(ctx context.Context, opts UpdateRecordRequest) (re
 	values.Add("content", opts.Content)
 	values.Add("prio", opts.Priority)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

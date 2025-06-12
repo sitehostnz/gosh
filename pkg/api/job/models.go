@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	// SchedulerType is a job that runs on a scheduler,  I am sure someone can fill this out more.
+	// SchedulerType is a job that runs on a scheduler.
 	SchedulerType string = "scheduler"
 
-	// DaemonType is a job that runs on a daemon, I am sure someone can fill this out more.
+	// DaemonType is a job that runs on a daemon.
 	DaemonType = "daemon"
 )
 
@@ -21,8 +21,8 @@ type (
 
 	// GetRequest represents a SiteHost request for GET job api endpoint.
 	GetRequest struct {
-		JobID string `json:"id"`
-		Type  string `json:"type"`
+		ID   int    `json:"id"`
+		Type string `json:"type"`
 	}
 
 	// GetResponse represents a SiteHost response for GET job api endpoint.

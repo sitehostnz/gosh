@@ -3,14 +3,14 @@ package user
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // List returns a list of cloud database users. It can be filtered by server, host, username.
 func (s *Client) List(ctx context.Context, opt ListOptions) (response ListResponse, err error) {
 	uri := "cloud/db/user/list_all.json"
 
-	path, err := utils.AddOptions(uri, opt)
+	path, err := net.AddOptions(uri, opt)
 	if err != nil {
 		return response, err
 	}

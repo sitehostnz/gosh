@@ -3,14 +3,14 @@ package user
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // List a list of all SSH users.
 func (s *Client) List(ctx context.Context, options ListOptions) (response ListResponse, err error) {
 	uri := "cloud/ssh/user/list_all.json"
 
-	path, err := utils.AddOptions(uri, options)
+	path, err := net.AddOptions(uri, options)
 	if err != nil {
 		return response, err
 	}

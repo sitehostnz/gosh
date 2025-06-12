@@ -2,8 +2,9 @@ package job
 
 import (
 	"context"
+	"strconv"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get information about a job.
@@ -23,9 +24,9 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 
 	values := req.URL.Query()
 	values.Add("type", request.Type)
-	values.Add("id", request.JobID)
+	values.Add("id", strconv.Itoa(request.ID))
 
-	req.URL.RawQuery = utils.Encode(values, keys)
+	req.URL.RawQuery = net.Encode(values, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err

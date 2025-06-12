@@ -7,7 +7,8 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
+	"github.com/sitehostnz/gosh/pkg/types"
 )
 
 // Update updates a security group.
@@ -32,7 +33,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		keys = append(keys, prefix+"[protocol]")
 		keys = append(keys, prefix+"[src_ip]")
 		keys = append(keys, prefix+"[dest_port]")
-		values.Add(prefix+"[enabled]", strconv.Itoa(utils.BoolToInt(rulein.Enabled)))
+		values.Add(prefix+"[enabled]", strconv.Itoa(types.BoolToInt(rulein.Enabled)))
 		values.Add(prefix+"[action]", rulein.Action)
 		values.Add(prefix+"[protocol]", rulein.Protocol)
 		values.Add(prefix+"[src_ip]", rulein.IP)
@@ -46,14 +47,14 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		keys = append(keys, prefix+"[protocol]")
 		keys = append(keys, prefix+"[dest_ip]")
 		keys = append(keys, prefix+"[dest_port]")
-		values.Add(prefix+"[enabled]", strconv.Itoa(utils.BoolToInt(ruleout.Enabled)))
+		values.Add(prefix+"[enabled]", strconv.Itoa(types.BoolToInt(ruleout.Enabled)))
 		values.Add(prefix+"[action]", ruleout.Action)
 		values.Add(prefix+"[protocol]", ruleout.Protocol)
 		values.Add(prefix+"[dest_ip]", ruleout.IP)
 		values.Add(prefix+"[dest_port]", ruleout.DestinationPort)
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

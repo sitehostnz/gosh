@@ -8,6 +8,9 @@
 *.test
 
 
+*.orig
+
+
 ### Go Patch ###
 /vendor/
 /Godeps/

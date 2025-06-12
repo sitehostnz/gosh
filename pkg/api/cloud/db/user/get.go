@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get fetches a cloud db user.
@@ -29,7 +29,7 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 	v.Add("mysql_host", request.MySQLHost)
 	v.Add("username", request.Username)
 
-	req.URL.RawQuery = utils.Encode(v, keys)
+	req.URL.RawQuery = net.Encode(v, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err

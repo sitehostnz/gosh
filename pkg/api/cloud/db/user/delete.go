@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Delete removes the specified cloud database user.
@@ -23,7 +23,7 @@ func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response De
 	values.Add("mysql_host", request.MySQLHost)
 	values.Add("username", request.Username)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

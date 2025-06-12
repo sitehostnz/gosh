@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Delete deletes the grant from the specific database/host/user.
@@ -25,7 +25,7 @@ func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response De
 	values.Add("username", request.Username)
 	values.Add("database", request.Database)
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}
