@@ -1,4 +1,4 @@
-package types
+package types //nolint:var-naming
 
 // BoolToInt simple formatter for mapping a bool to a 1 or a zero.
 func BoolToInt(b bool) int {

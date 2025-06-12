@@ -1,8 +1,6 @@
 package job
 
 import (
-	"encoding/json"
-
 	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/models"
 )
@@ -23,8 +21,8 @@ type (
 
 	// GetRequest represents a SiteHost request for GET job api endpoint.
 	GetRequest struct {
-		ID   json.Number `json:"id"`
-		Type string      `json:"type"`
+		ID   int    `json:"id"`
+		Type string `json:"type"`
 	}
 
 	// GetResponse represents a SiteHost response for GET job api endpoint.

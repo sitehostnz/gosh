@@ -12,7 +12,7 @@ type (
 	// UpdateResponse is the result of updating an environment on a stack.
 	UpdateResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}

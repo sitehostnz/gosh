@@ -6,7 +6,7 @@ type (
 	// AddResponse represents a response from adding a database grant with the `/cloud/db/grant/add.json` endpoint.
 	AddResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -14,7 +14,7 @@ type (
 	// UpdateResponse represents a response from updating a database grant with the `/cloud/db/grant/update.json` endpoint.
 	UpdateResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -22,7 +22,7 @@ type (
 	// DeleteResponse represents a response from deleting a database grant with the `/cloud/db/grant/delete.json` endpoint.
 	DeleteResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}

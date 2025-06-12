@@ -14,7 +14,7 @@ type (
 	// AddResponse is the response from calling the create stack api.
 	AddResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -31,7 +31,7 @@ type (
 	// StartStopRestartResponse represents the response from start/stop/restart actions.
 	StartStopRestartResponse struct {
 		Return struct {
-			Job models.JobResponse
+			models.Job `json:"job"`
 		} `json:"return"`
 		models.APIResponse
 	}

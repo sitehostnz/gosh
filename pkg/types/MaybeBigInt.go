@@ -1,4 +1,4 @@
-package types
+package types //nolint:var-naming
 
 import (
 	"encoding/json"

@@ -1,13 +1,11 @@
 package models
 
-import "encoding/json"
-
 type (
 
-	// JobResponse represents a response from create/update calls that return a job.
-	JobResponse struct {
-		ID   json.Number `json:"id"`
-		Type string      `json:"type"`
+	// Job represents reference to a job.
+	Job struct {
+		ID   int    `json:"id"`
+		Type string `json:"type"`
 	}
 
 	// JobDetails represents the job information.

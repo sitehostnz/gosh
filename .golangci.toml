@@ -5,7 +5,9 @@ default = 'none'
 enable = [
   'asciicheck',
   'bodyclose',
+  'copyloopvar',
   'cyclop',
+  'decorder',
   'dogsled',
   'durationcheck',
   'errcheck',
@@ -20,6 +22,7 @@ enable = [
   'goprintffuncname',
   'gosec',
   'govet',
+  'importas',
   'ineffassign',
   'makezero',
   'misspell',
@@ -77,6 +80,10 @@ linters = [
   'funlen'
 ]
 path = 'test'
+
+[issues]
+new-from-rev = 'main'
+new = true
 
 [formatters]
 enable = [
