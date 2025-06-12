@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.3.x] - 2025-06-12
+### Fixed
+- Changed job handling to reflect v1.5 api
+- Made the core Client prepend client and api key to url, avoiding a resort of parameters
+- version updates to core dependencies
+- update to use latest golangci-lint
+- replace go-acc with standard go vet / coverage
+- update pr make file to use golangci-lint GitHub action instead of building
+
 ## [v0.3.x] - 2024-05-14
 ### Added
 - Added support for all endpoints under `/cloud/db/`.
@@ -26,12 +35,12 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [v0.3.3] - 2024-03-12
 ### Added
-- Add ability to create, get and delete SSH Keys.
+- Add the ability to create, get and delete SSH Keys.
 
 ## [v0.3.2] - 2023-03-22
 ### Fixed
 - Fix a crash when unmarshalling when the `/server` returns a different type for the server disk size depending on the type of server.
-- Fix GetRecordWithRecord with default priority.
+- Fix GetRecordWithRecord with the default priority.
 - Fix ListRecords to remove the final dot in the content value.
 - Fix the priority value in the UpdateRecord function.
 

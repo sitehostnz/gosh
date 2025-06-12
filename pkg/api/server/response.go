@@ -6,7 +6,7 @@ type (
 	// DeleteResponse represents a result of a delete Server call.
 	DeleteResponse struct {
 		Return struct {
-			JobID string `json:"job_id"`
+			Job models.JobResponse
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -14,7 +14,7 @@ type (
 	// CommitDiskChangesResponse represents a result of a commit changes Server call.
 	CommitDiskChangesResponse struct {
 		Return struct {
-			JobID string `json:"job_id"`
+			Job models.JobResponse
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -22,7 +22,7 @@ type (
 	// CreateResponse represents a result of the create a Server call.
 	CreateResponse struct {
 		Return struct {
-			JobID    string   `json:"job_id"`
+			Job      models.JobResponse
 			Name     string   `json:"name"`
 			Password string   `json:"password"`
 			Ips      []string `json:"ips"`

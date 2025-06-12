@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/models"
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // DeleteRecord deletes a record from the DNS for a domain.
@@ -25,7 +25,7 @@ func (s *Client) DeleteRecord(ctx context.Context, opts DeleteRecordRequest) (re
 	values.Add("domain", opts.Domain)
 	values.Add("record_id", opts.RecordID)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

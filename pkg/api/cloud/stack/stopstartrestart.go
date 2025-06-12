@@ -3,7 +3,7 @@ package stack
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // stopStartRestart is the common function for stop, start and restart actions.
@@ -28,7 +28,7 @@ func (s *Client) stopStartRestart(ctx context.Context, request StopStartRestartR
 		v.Add("containers[]", container)
 	}
 
-	req.URL.RawQuery = utils.Encode(v, keys)
+	req.URL.RawQuery = net.Encode(v, keys)
 
 	if err := s.client.Do(ctx, req, &response); err != nil {
 		return response, err

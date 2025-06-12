@@ -1,6 +1,8 @@
 package models
 
-import "github.com/sitehostnz/gosh/pkg/utils"
+import (
+	"github.com/sitehostnz/gosh/pkg/types"
+)
 
 type (
 	// User represents a SSH/SFTP user.
@@ -11,16 +13,16 @@ type (
 		HomeDir        string          `json:"home_dir"`
 		SSHKeys        []SSHKey        `json:"ssh_keys"`
 		Pending        interface{}     `json:"pending"`
-		IsMissing      utils.MaybeBool `json:"is_missing"`
+		IsMissing      types.MaybeBool `json:"is_missing"`
 		DateAdded      string          `json:"date_added"`
 		DateUpdated    string          `json:"date_updated"`
 		ServerName     string          `json:"server_name"`
 		ServerLabel    string          `json:"server_label"`
-		ServerOwner    utils.MaybeBool `json:"server_owner"`
+		ServerOwner    types.MaybeBool `json:"server_owner"`
 		Image          string          `json:"image"`
 		Containers     []string        `json:"containers"`
 		Volumes        []string        `json:"volumes"`
-		ReadOnlyConfig utils.MaybeBool `json:"read_only_config"`
+		ReadOnlyConfig types.MaybeBool `json:"read_only_config"`
 		IPAddr         string          `json:"ip_addr"`
 	}
 )

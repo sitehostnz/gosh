@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update updates the grants for a specific db/user/host.
@@ -30,7 +30,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		values.Add("grants[]", grant)
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

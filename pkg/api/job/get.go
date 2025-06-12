@@ -4,21 +4,21 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Get information about a job.
 func (s *Client) Get(ctx context.Context, request GetRequest) (response GetResponse, err error) {
 	keys := []string{
-		"job_id",
 		"type",
+		"id",
 	}
 
 	values := url.Values{}
-	values.Add("job_id", request.JobID)
+	values.Add("id", request.ID.String())
 	values.Add("type", request.Type)
 
-	u := "job/get.json?" + utils.Encode(values, keys)
+	u := "job/get.json?" + net.Encode(values, keys)
 
 	req, err := s.client.NewRequest("GET", u, "")
 	if err != nil {

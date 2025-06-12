@@ -6,7 +6,7 @@ type (
 	// AddResponse is the return for adding a cloud database.
 	AddResponse struct {
 		Return struct {
-			JobID string `json:"job_id"`
+			Job models.JobResponse
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -17,7 +17,7 @@ type (
 	// DeleteResponse is the return from deleting.
 	DeleteResponse struct {
 		Return struct {
-			JobID string `json:"job_id"`
+			Job models.JobResponse
 		} `json:"return"`
 		models.APIResponse
 	}
