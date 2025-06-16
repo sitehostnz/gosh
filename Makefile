@@ -8,6 +8,11 @@ bin/golangci-lint: GOOS =
 bin/golangci-lint: go.sum
 	@go build -o $@ github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
+bin/go-acc: GOARCH =
+bin/go-acc: GOOS =
+bin/go-acc: go.sum
+	@go build -o $@ github.com/ory/go-acc
+
 lint: CGO_ENABLED = 1
 lint: GOARCH =
 lint: GOOS =
@@ -20,7 +25,6 @@ tidy:
 dirty: tidy
 	git status --porcelain
 	@[ -z "$$(git status --porcelain)" ]
-
 
 vet: GOARCH =
 vet: GOOS =
