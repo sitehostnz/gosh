@@ -20,13 +20,11 @@ jobs:
       - name: Run make dirty
         run: make -B dirty
 
+      - name: Run vet
+        run: make vet
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.1
           only-new-issues: true
-
-#      - name: Run vet & lint
-#        run: |
-#          make vet
-#          make lint

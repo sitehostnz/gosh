@@ -1,4 +1,4 @@
-package types //nolint:var-naming
+package shtypes
 
 import (
 	"encoding/json"

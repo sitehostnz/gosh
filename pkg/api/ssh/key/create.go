@@ -6,7 +6,7 @@ import (
 	"net/url"
 
 	"github.com/sitehostnz/gosh/pkg/net"
-	"github.com/sitehostnz/gosh/pkg/types"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 // Create an SSH Key.
@@ -22,7 +22,7 @@ func (s *Client) Create(ctx context.Context, opts CreateRequest) (response Creat
 	values := url.Values{}
 	values.Add("label", opts.Label)
 	values.Add("content", opts.Content)
-	values.Add("params[custom_image_access]", fmt.Sprint(types.BoolToInt(opts.CustomImageAccess)))
+	values.Add("params[custom_image_access]", fmt.Sprint(shtypes.BoolToInt(opts.CustomImageAccess)))
 
 	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {

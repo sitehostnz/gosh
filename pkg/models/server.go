@@ -1,42 +1,42 @@
 package models
 
 import (
-	"github.com/sitehostnz/gosh/pkg/types"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
-		Name             string            `json:"name"`
-		Label            string            `json:"label"`
-		ClientID         types.MaybeString `json:"client_id"`
-		Created          string            `json:"created"`
-		Type             string            `json:"type"`
-		RAM              string            `json:"ram"`
-		Root             string            `json:"root"`
-		Disk             types.MaybeBigInt `json:"disk"`
-		Cores            types.MaybeBigInt `json:"cores"`
-		Core             string            `json:"core"`
-		Arch             string            `json:"arch"`
-		Kernel           string            `json:"kernel"`
-		Initrd           string            `json:"initrd"`
-		Modules          string            `json:"modules"`
-		Distro           string            `json:"distro"`
-		Os               string            `json:"os"`
-		Rescue           string            `json:"rescue"`
-		Managed          string            `json:"managed"`
-		Locked           string            `json:"locked"`
-		LockedFrom       string            `json:"locked_from"`
-		LockedUntil      string            `json:"locked_until"`
-		LockedComment    string            `json:"locked_comment"`
-		State            string            `json:"state"`
-		MaintDate        string            `json:"maint_date"`
-		MaintDateEnd     string            `json:"maint_date_end"`
-		EmailLogs        string            `json:"email_logs"`
-		VncPort          string            `json:"vnc_port"`
-		VncScreen        string            `json:"vnc_screen"`
-		IPAddrLimit      string            `json:"ip_addr_limit"`
-		Notes            string            `json:"notes"`
+		Name             string              `json:"name"`
+		Label            string              `json:"label"`
+		ClientID         shtypes.MaybeString `json:"client_id"`
+		Created          string              `json:"created"`
+		Type             string              `json:"type"`
+		RAM              string              `json:"ram"`
+		Root             string              `json:"root"`
+		Disk             shtypes.MaybeBigInt `json:"disk"`
+		Cores            shtypes.MaybeBigInt `json:"cores"`
+		Core             string              `json:"core"`
+		Arch             string              `json:"arch"`
+		Kernel           string              `json:"kernel"`
+		Initrd           string              `json:"initrd"`
+		Modules          string              `json:"modules"`
+		Distro           string              `json:"distro"`
+		Os               string              `json:"os"`
+		Rescue           string              `json:"rescue"`
+		Managed          string              `json:"managed"`
+		Locked           string              `json:"locked"`
+		LockedFrom       string              `json:"locked_from"`
+		LockedUntil      string              `json:"locked_until"`
+		LockedComment    string              `json:"locked_comment"`
+		State            string              `json:"state"`
+		MaintDate        string              `json:"maint_date"`
+		MaintDateEnd     string              `json:"maint_date_end"`
+		EmailLogs        string              `json:"email_logs"`
+		VncPort          string              `json:"vnc_port"`
+		VncScreen        string              `json:"vnc_screen"`
+		IPAddrLimit      string              `json:"ip_addr_limit"`
+		Notes            string              `json:"notes"`
 		Ips              []IP
 		Interfaces       []string      `json:"interfaces"`
 		GroupID          string        `json:"group_id"`
