@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 // Update updates a security group.
@@ -32,7 +33,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		keys = append(keys, prefix+"[protocol]")
 		keys = append(keys, prefix+"[src_ip]")
 		keys = append(keys, prefix+"[dest_port]")
-		values.Add(prefix+"[enabled]", strconv.Itoa(types.BoolToInt(rulein.Enabled)))
+		values.Add(prefix+"[enabled]", strconv.Itoa(shtypes.BoolToInt(rulein.Enabled)))
 		values.Add(prefix+"[action]", rulein.Action)
 		values.Add(prefix+"[protocol]", rulein.Protocol)
 		values.Add(prefix+"[src_ip]", rulein.IP)
@@ -46,7 +47,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		keys = append(keys, prefix+"[protocol]")
 		keys = append(keys, prefix+"[dest_ip]")
 		keys = append(keys, prefix+"[dest_port]")
-		values.Add(prefix+"[enabled]", strconv.Itoa(types.BoolToInt(ruleout.Enabled)))
+		values.Add(prefix+"[enabled]", strconv.Itoa(shtypes.BoolToInt(ruleout.Enabled)))
 		values.Add(prefix+"[action]", ruleout.Action)
 		values.Add(prefix+"[protocol]", ruleout.Protocol)
 		values.Add(prefix+"[dest_ip]", ruleout.IP)
