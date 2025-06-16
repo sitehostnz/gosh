@@ -1,15 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [v0.5.x] - 2025-06-12
+## [v0.6.0] - 2025-06-17
 ### Fixed
-- Changed job handling to reflect v1.5 api
-- Made the core Client prepend client and api key to url, avoiding a resort of parameters
-- version updates to core dependencies
-- update to use latest golangci-lint
-- replace go-acc with standard go vet / coverage
-- update pr make file to use golangci-lint GitHub action instead of building
-- Split url helpers and type helpers in to their own packages
+- Made the core Client prepend client and api key to url, avoiding a resort of parameters.
+- Update Go version to 1.24.4
+- Update golangci-lint version to v2.1.6
+- Update pr make file to use golangci-lint GitHub action.
+- Split url helpers and type helpers in to their own packages.
 
 ## [v0.5.0] - 2025-06-12
 ### Added
