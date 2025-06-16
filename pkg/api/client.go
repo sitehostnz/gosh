@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/sitehostnz/gosh/pkg/models"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 const (
@@ -47,12 +48,13 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 	// really client id and what not should perhaps come higher up the food chain,
 	// and only default if not in the request.
 
+	keys := []string{"apikey", "client_id"}
 	values := make(url.Values)
 	values.Add("apikey", c.APIKey)
 	values.Add("client_id", c.ClientID)
 
 	q := strings.Join(
-		[]string{values.Encode(), u.RawQuery},
+		[]string{net.Encode(values, keys), u.RawQuery},
 		"&",
 	)
 
