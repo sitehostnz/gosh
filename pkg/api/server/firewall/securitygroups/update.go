@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
-	"github.com/sitehostnz/gosh/pkg/types"
 )
 
 // Update updates a security group.

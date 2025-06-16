@@ -22,9 +22,8 @@ dirty: tidy
 	@[ -z "$$(git status --porcelain)" ]
 
 
-# replace this with something else.
-#vet: GOARCH =
-#vet: GOOS =
-#vet: CGO_ENABLED =
-#vet: bin/go-acc $(SRC)
-#	$< --covermode=atomic $(TESTABLE) -- -race -v
+vet: GOARCH =
+vet: GOOS =
+vet: CGO_ENABLED =
+vet: bin/go-acc $(SRC)
+	$< --covermode=atomic $(TESTABLE) -- -race -v

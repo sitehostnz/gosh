@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
-	"github.com/sitehostnz/gosh/pkg/types"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 // Update updates the database's backup location.
@@ -28,7 +28,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	values.Add("server_name", request.ServerName)
 	values.Add("username", request.Username)
 	values.Add("params[password]", request.Password)
-	values.Add("params[read_only_config]", strconv.Itoa(types.BoolToInt(request.ReadOnlyConfig)))
+	values.Add("params[read_only_config]", strconv.Itoa(shtypes.BoolToInt(request.ReadOnlyConfig)))
 
 	for _, c := range request.Containers {
 		values.Add("params[containers][]", c)

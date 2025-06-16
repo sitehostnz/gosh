@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/sitehostnz/gosh/pkg/types"
-)
-
 type (
 	// Server represents a Server in the SiteHost.
 	Server struct {
