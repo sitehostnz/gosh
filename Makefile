@@ -1,11 +1,12 @@
 SRC := go.sum $(shell git ls-files -cmo --exclude-standard -- "*.go")
 TESTABLE := ./...
 
-
+# this is only really needed for the linting locally, if you don't
+# have installed. Moved this to the pr.yml action
 bin/golangci-lint: GOARCH =
 bin/golangci-lint: GOOS =
 bin/golangci-lint: go.sum
-	@go build -o $@ github.com/golangci/golangci-lint/cmd/golangci-lint
+	@go build -o $@ github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 
 bin/go-acc: GOARCH =
 bin/go-acc: GOOS =

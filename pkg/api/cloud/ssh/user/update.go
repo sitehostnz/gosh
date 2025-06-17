@@ -5,7 +5,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 // Update updates the database's backup location.
@@ -27,7 +28,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	values.Add("server_name", request.ServerName)
 	values.Add("username", request.Username)
 	values.Add("params[password]", request.Password)
-	values.Add("params[read_only_config]", strconv.Itoa(utils.BoolToInt(request.ReadOnlyConfig)))
+	values.Add("params[read_only_config]", strconv.Itoa(shtypes.BoolToInt(request.ReadOnlyConfig)))
 
 	for _, c := range request.Containers {
 		values.Add("params[containers][]", c)
@@ -41,7 +42,7 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 		values.Add("params[volumes][]", k)
 	}
 
-	req, err := s.client.NewRequest("POST", uri, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}

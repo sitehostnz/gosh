@@ -3,7 +3,7 @@ package dns
 import (
 	"context"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // ListZones retrieves a list of all DNS zones associated with the client's account,
@@ -12,7 +12,7 @@ import (
 func (s *Client) ListZones(ctx context.Context, opt *ListZoneOptions) (response ListZoneResponse, err error) {
 	u := "dns/list_domains.json"
 
-	path, err := utils.AddOptions(u, opt)
+	path, err := net.AddOptions(u, opt)
 	if err != nil {
 		return response, err
 	}

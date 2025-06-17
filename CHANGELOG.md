@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [v0.6.0] - 2025-06-17
+### Fixed
+- Made the core Client prepend client and api key to url, avoiding a resort of parameters.
+- Update Go version to 1.24.4
+- Update golangci-lint version to v2.1.6
+- Update pr make file to use golangci-lint GitHub action.
+- Split url helpers and type helpers in to their own packages.
+
 ## [v0.5.0] - 2025-06-12
 ### Added
 - Added support for all endpoints under `/server/firewall/`.
@@ -26,8 +34,7 @@ All notable changes to this project will be documented in this file. The format 
 - Updated Go from 1.19 to 1.22.
 - Updated dependencies.
 - Moved from v1.2 of the SiteHost API to v1.3.
-- Changed the type of the `CustomImageAccess` API request struct fields from
-  `string` to `bool`.
+- Changed the type of the `CustomImageAccess` API request struct fields from `string` to `bool`.
 
 ## [v0.3.4] - 2024-03-12
 ### Added

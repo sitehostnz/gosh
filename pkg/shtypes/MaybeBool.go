@@ -1,4 +1,4 @@
-package utils
+package shtypes
 
 import (
 	"strconv"

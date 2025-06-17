@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/sitehostnz/gosh/pkg/utils"
+	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // AddRecord adds a new record to the DNS for a domain.
@@ -30,7 +30,7 @@ func (s *Client) AddRecord(ctx context.Context, opts AddRecordRequest) (response
 	values.Add("content", opts.Content)
 	values.Add("prio", opts.Priority)
 
-	req, err := s.client.NewRequest("POST", u, utils.Encode(values, keys))
+	req, err := s.client.NewRequest("POST", u, net.Encode(values, keys))
 	if err != nil {
 		return response, err
 	}
