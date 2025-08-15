@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strings"
 
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // Update applies updates to the stacks environment.
-func (s *Client) Update(ctx context.Context, request UpdateRequest) (response UpdateResponse, err error) {
+func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/stack/environment/update.json"
 	keys := []string{
 		"client_id",
@@ -25,16 +24,11 @@ func (s *Client) Update(ctx context.Context, request UpdateRequest) (response Up
 	values.Add("project", request.Project)
 	values.Add("service", request.Service)
 
-	args := make([]string, len(request.EnvironmentVariables)*2)
+	args := make([]string, len(request.EnvironmentVariables))
 	i := 0
 	for x, v := range request.EnvironmentVariables {
 		args[i] = fmt.Sprintf("variables[%d][name]", x)
 		values.Add(args[i], v.Name)
-		i++
-
-		// we're allowed empty strings here now, as properties need to be explicitly removed
-		args[i] = fmt.Sprintf("variables[%d][content]", x)
-		values.Add(args[i], strings.TrimSpace(v.Content))
 		i++
 	}
 

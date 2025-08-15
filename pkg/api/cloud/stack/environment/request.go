@@ -17,4 +17,12 @@ type (
 		Service              string `json:"service"`
 		EnvironmentVariables []models.EnvironmentVariable
 	}
+
+	// DeleteRequest is a request to remove variables from a stack environment.
+	DeleteRequest struct {
+		ServerName           string `json:"server"`
+		Project              string `json:"project"`
+		Service              string `json:"service"`
+		EnvironmentVariables []models.EnvironmentVariable
+	}
 )
