@@ -9,7 +9,9 @@ All notable changes to this project will be documented in this file. The format 
 ### Fixed
 - Added handling of null json types to maybe bool, which will evaluate to false, since they are falsy in js 
 - Updated dependencies 
-- Fixes in DNS handling
+- Fixes in DNS handling - split out Get and Search endpoints - lament the pagination.
+
+
 
 ## [v0.6.0] - 2025-06-17
 ### Fixed

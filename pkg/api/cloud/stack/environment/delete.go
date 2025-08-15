@@ -10,7 +10,7 @@ import (
 
 // Update applies updates to the stacks environment.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
-	uri := "cloud/stack/environment/update.json"
+	uri := "cloud/stack/environment/delete.json"
 	keys := []string{
 		"client_id",
 		"server",
