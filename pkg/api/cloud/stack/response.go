@@ -43,4 +43,15 @@ type (
 		} `json:"return"`
 		models.APIResponse
 	}
+
+	// JobResponse is the shared response shape for the
+	// asynchronous write operations: Update, Delete, Copy,
+	// Overwrite, Backup, and PurgeCache. Each queues a scheduler
+	// job; the job id is returned for tracking.
+	JobResponse struct {
+		Return struct {
+			models.Job `json:"job"`
+		} `json:"return"`
+		models.APIResponse
+	}
 )

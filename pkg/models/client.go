@@ -13,4 +13,9 @@ type ClientBase struct {
 	// API Credentials
 	APIKey   string
 	ClientID string
+
+	// Host for the GitLab instance backing custom-image repositories.
+	// Defaults to "gitlab-clients.sitehost.co.nz". Override via
+	// api.SetCustomImageGitHost for staging/test environments.
+	CustomImageGitHost string
 }
