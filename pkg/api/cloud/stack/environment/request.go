@@ -17,4 +17,14 @@ type (
 		Service              string `json:"service"`
 		EnvironmentVariables []models.EnvironmentVariable
 	}
+
+	// DeleteRequest removes the named environment variables from a
+	// stack service. Names lists the variable names to drop; their
+	// values aren't required (and aren't sent on the wire).
+	DeleteRequest struct {
+		ServerName string   `json:"server"`
+		Project    string   `json:"project"`
+		Service    string   `json:"service"`
+		Names      []string `json:"-"`
+	}
 )

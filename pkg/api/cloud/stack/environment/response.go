@@ -16,4 +16,9 @@ type (
 		} `json:"return"`
 		models.APIResponse
 	}
+
+	// DeleteResponse is returned by environment/delete; synchronous.
+	DeleteResponse struct {
+		models.APIResponse
+	}
 )
