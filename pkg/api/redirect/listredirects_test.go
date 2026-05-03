@@ -45,6 +45,29 @@ func TestListRedirects_ParsesNestedShape(t *testing.T) {
 	}
 }
 
+func TestListRedirects_EmptyArrayShape(t *testing.T) {
+	// The live API returns the JSON array [] (not the empty object
+	// {}) when an account has no redirects. Custom UnmarshalJSON
+	// must tolerate this.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"return":[],"msg":"Successful","status":true}`)
+	}))
+	defer srv.Close()
+
+	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
+	got, err := New(c).ListRedirects(context.Background(), ListRedirectsRequest{})
+	if err != nil {
+		t.Fatalf("ListRedirects: %v", err)
+	}
+	if got.Return == nil {
+		t.Errorf("Return should be non-nil even for empty result")
+	}
+	if len(got.Return) != 0 {
+		t.Errorf("Return = %+v, want empty map", got.Return)
+	}
+}
+
 func TestListRedirects_PagingFilters(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
