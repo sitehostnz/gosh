@@ -10,6 +10,38 @@ import (
 )
 
 // Add creates a new cloud stack.
+//
+// # Gotchas (validated live, May 2026)
+//
+//  1. **Label must be a valid FQDN.** Despite the field name, the
+//     API uses Label as the primary hostname for nginx-proxy
+//     routing — passing a free-text label is rejected with
+//     "Unable to add stack, the hostname is invalid." Use the
+//     same FQDN you intend to put in the compose body's
+//     VIRTUAL_HOST.
+//
+//  2. **Stack Name must come from cloud.stack.GenerateName.**
+//     The API rejects custom-shaped names with the same generic
+//     "hostname is invalid" message; only platform-generated
+//     "cc<hex>" names are accepted.
+//
+//  3. **Compose image references need an explicit version tag.**
+//     `image: registry-clients.sitehost.co.nz/g_<id>/<code>` is
+//     rejected with "There was no image version provided."; you
+//     must include the `:1.0-<build_id>` tag from
+//     cloud.image.version.list_all (or use the WaitForBuild
+//     helper which surfaces it).
+//
+//  4. **Per-CCS write-time resource gate.** When the target CCS
+//     is at capacity the API returns "the number of new images
+//     required exceeds the number of available images on this
+//     server." The read-side fields on cloud.server.List
+//     (images_used / images_remaining) don't reliably reflect
+//     the live cap; provision a fresh CCS or free a slot. See
+//     docs/api-issues/ccs-write-time-resource-gate.md.
+//
+// See examples/custom-image and examples/build-a-site for the
+// canonical working compose body shape.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
 	uri := "cloud/stack/add.json"
 	keys := []string{
