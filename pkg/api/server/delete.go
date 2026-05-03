@@ -7,7 +7,27 @@ import (
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
-// Delete a server with the provided name.
+// Delete a server with the provided name via /server/delete.json.
+//
+// **Fresh CCSes need `force_delete=1` (verified live, May 2026).**
+// Every fresh Cloud Container Server auto-deploys an `infra` stack
+// (collectd, nginx-proxy, Let's Encrypt companion). Plain delete
+// rejects with "the server has containers" because the infra
+// stack is still present. The fix is to add `force_delete=1` to
+// the request body, which tears down the infra stack and the
+// server in one go.
+//
+// This base wrapper sends only `client_id` and `name`. The Force
+// field on DeleteRequest (added in a later branch) appends
+// `force_delete=1` when set; until that lands here, examples that
+// need to tear down a fresh CCS send the form-body raw — see
+// examples/probe-tls-default and examples/server-upgrade-components.
+//
+// **Cannot delete while in 'Upgrading' state.** If a recent
+// server.Upgrade (plan upgrade) has just been issued, Delete is
+// rejected with "The specified server cannot be deleted while in
+// the 'Upgrading' state." Poll server.Get(name) until State is
+// On or Off before issuing Delete.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	u := "server/delete.json"
 
