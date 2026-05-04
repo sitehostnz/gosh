@@ -12,6 +12,7 @@ import (
 )
 
 func TestNewClientWithDiscovery_Success(t *testing.T) {
+	t.Parallel()
 	var bootstrapClientID, seenAPIKey string
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/get_info.json" {
@@ -51,6 +52,7 @@ func TestNewClientWithDiscovery_Success(t *testing.T) {
 }
 
 func TestNewClientWithDiscovery_EmptyKey(t *testing.T) {
+	t.Parallel()
 	_, err := NewClientWithDiscovery(context.Background(), "")
 	if err == nil || !strings.Contains(err.Error(), "apiKey must not be empty") {
 		t.Errorf("err = %v, want apiKey must not be empty", err)
@@ -58,7 +60,8 @@ func TestNewClientWithDiscovery_EmptyKey(t *testing.T) {
 }
 
 func TestNewClientWithDiscovery_StatusFalse(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status": false, "msg": "Invalid API key"}`)
 	}))
@@ -74,7 +77,8 @@ func TestNewClientWithDiscovery_StatusFalse(t *testing.T) {
 }
 
 func TestNewClientWithDiscovery_EmptyClientID(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
 			"status": true, "msg": "Successful.",
