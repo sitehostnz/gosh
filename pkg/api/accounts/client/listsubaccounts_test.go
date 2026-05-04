@@ -22,6 +22,7 @@ const sampleListSubAccounts = `{
 }`
 
 func TestListSubAccounts_Defaults(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/accounts/client/list_sub_accounts.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -46,6 +47,7 @@ func TestListSubAccounts_Defaults(t *testing.T) {
 }
 
 func TestListSubAccounts_Filters(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		if q.Get("filters[name]") != "John" {
