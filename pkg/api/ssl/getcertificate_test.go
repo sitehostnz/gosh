@@ -12,6 +12,7 @@ import (
 )
 
 func TestGetCertificate_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/ssl/get_certificate.json" {
 			t.Errorf("path = %q, want /ssl/get_certificate.json", r.URL.Path)
@@ -64,6 +65,7 @@ func TestGetCertificate_Success(t *testing.T) {
 }
 
 func TestGetCertificate_CertIDRequired(t *testing.T) {
+	t.Parallel()
 	c, err := api.New("k", "1")
 	if err != nil {
 		t.Fatalf("api.New: %v", err)
@@ -76,11 +78,4 @@ func TestGetCertificate_CertIDRequired(t *testing.T) {
 	if !strings.Contains(err.Error(), "CertID is required") {
 		t.Errorf("error = %q, want it to contain 'CertID is required'", err.Error())
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

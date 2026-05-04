@@ -12,6 +12,7 @@ import (
 )
 
 func TestGetCSR_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/ssl/get_csr.json" {
 			t.Errorf("path = %q, want /ssl/get_csr.json", r.URL.Path)
@@ -67,6 +68,7 @@ func TestGetCSR_Success(t *testing.T) {
 }
 
 func TestGetCSR_CertIDRequired(t *testing.T) {
+	t.Parallel()
 	c, err := api.New("k", "1")
 	if err != nil {
 		t.Fatalf("api.New: %v", err)

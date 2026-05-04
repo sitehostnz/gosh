@@ -11,6 +11,7 @@ import (
 )
 
 func TestListCertificates_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/ssl/list_certificates.json" {
 			t.Errorf("path = %q, want /ssl/list_certificates.json", r.URL.Path)
