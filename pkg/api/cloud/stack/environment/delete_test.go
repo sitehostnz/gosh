@@ -12,6 +12,7 @@ import (
 )
 
 func TestDelete_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/environment/delete.json" {
 			t.Errorf("path = %q", r.URL.Path)
