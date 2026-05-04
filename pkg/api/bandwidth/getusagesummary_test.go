@@ -11,6 +11,7 @@ import (
 )
 
 func TestGetUsageSummary_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/bandwidth/get_usage_summary.json" {
 			t.Errorf("path = %q, want /bandwidth/get_usage_summary.json", r.URL.Path)
