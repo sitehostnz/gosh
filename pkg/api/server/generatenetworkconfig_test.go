@@ -11,13 +11,16 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testName = "ch-foo"
+
 func TestGenerateNetworkConfig_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/generate_network_config.json" {
 			t.Errorf("path = %q, want /server/generate_network_config.json", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("name"); got != "ch-foo" {
-			t.Errorf("name = %q, want ch-foo", got)
+		if got := r.URL.Query().Get("name"); got != testName {
+			t.Errorf("name = %q, want %s", got, testName)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
@@ -35,7 +38,7 @@ func TestGenerateNetworkConfig_Success(t *testing.T) {
 		t.Fatalf("api.New: %v", err)
 	}
 
-	got, err := New(c).GenerateNetworkConfig(context.Background(), GenerateNetworkConfigOptions{Name: "ch-foo"})
+	got, err := New(c).GenerateNetworkConfig(context.Background(), GenerateNetworkConfigOptions{Name: testName})
 	if err != nil {
 		t.Fatalf("GenerateNetworkConfig: %v", err)
 	}
@@ -47,11 +50,4 @@ func TestGenerateNetworkConfig_Success(t *testing.T) {
 	if !strings.Contains(cfg, "network:") {
 		t.Errorf("config does not contain 'network:': %q", cfg[:min(60, len(cfg))])
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

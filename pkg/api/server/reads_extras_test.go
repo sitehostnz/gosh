@@ -11,6 +11,7 @@ import (
 )
 
 func TestListIPs_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/list_ips.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -45,6 +46,7 @@ func TestListIPs_Success(t *testing.T) {
 }
 
 func TestListAllocatedIPs_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Note the literal underscore in the path — list_allocated_i_ps.
 		if r.URL.Path != "/server/list_allocated_i_ps.json" {
@@ -80,6 +82,7 @@ func TestListAllocatedIPs_Success(t *testing.T) {
 }
 
 func TestListStatisticTypes_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/list_statistic_types.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -103,6 +106,7 @@ func TestListStatisticTypes_Success(t *testing.T) {
 }
 
 func TestGetStatistics_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/get_statistics.json" {
 			t.Errorf("path = %q", r.URL.Path)

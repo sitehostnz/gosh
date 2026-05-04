@@ -79,6 +79,8 @@ type (
 	}
 
 	// ServerState is the runtime state of a server.
+	//
+	//nolint:revive // name kept verbose for grep-from-API parity
 	ServerState struct {
 		State   string  `json:"state"`
 		Rescue  bool    `json:"rescue"`

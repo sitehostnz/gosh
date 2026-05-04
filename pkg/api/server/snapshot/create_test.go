@@ -12,6 +12,7 @@ import (
 )
 
 func TestCreate_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("method = %q", r.Method)
@@ -37,12 +38,13 @@ func TestCreate_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if got.Return.Job.ID != 29658457 {
-		t.Errorf("Job.ID = %d", got.Return.Job.ID)
+	if got.Return.ID != 29658457 {
+		t.Errorf("Job.ID = %d", got.Return.ID)
 	}
 }
 
 func TestCreate_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).Create(context.Background(), CreateOptions{Partition: "scsi0", Lifetime: 1}); err == nil ||
 		!strings.Contains(err.Error(), "Name is required") {

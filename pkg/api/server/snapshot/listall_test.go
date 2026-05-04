@@ -12,6 +12,7 @@ import (
 )
 
 func TestList_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/snapshot/list_all.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -61,6 +62,7 @@ func TestList_Success(t *testing.T) {
 }
 
 func TestList_NameRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).List(context.Background(), ListOptions{}); err == nil ||
 		!strings.Contains(err.Error(), "Name is required") {

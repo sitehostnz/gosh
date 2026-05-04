@@ -12,6 +12,7 @@ import (
 )
 
 func TestSetLifetime_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
@@ -36,6 +37,7 @@ func TestSetLifetime_Success(t *testing.T) {
 }
 
 func TestSetLifetime_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).SetLifetime(context.Background(), SetLifetimeOptions{Snapshot: "1", Lifetime: 1}); err == nil ||
 		!strings.Contains(err.Error(), "Name is required") {

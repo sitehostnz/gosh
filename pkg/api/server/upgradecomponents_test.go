@@ -12,6 +12,7 @@ import (
 )
 
 func TestUpgradeComponents_BothFields(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/upgrade.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -48,6 +49,7 @@ func TestUpgradeComponents_BothFields(t *testing.T) {
 }
 
 func TestUpgradeComponents_DiskByLabel(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		v, _ := url.ParseQuery(string(body))
@@ -67,6 +69,7 @@ func TestUpgradeComponents_DiskByLabel(t *testing.T) {
 }
 
 func TestUpgradeComponents_OmitsZeroFields(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, _ := io.ReadAll(r.Body)
 		v, _ := url.ParseQuery(string(body))

@@ -12,6 +12,7 @@ import (
 )
 
 func TestDelete_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
@@ -31,6 +32,7 @@ func TestDelete_Success(t *testing.T) {
 }
 
 func TestDelete_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).Delete(context.Background(), SnapshotOptions{Snapshot: "1"}); err == nil ||
 		!strings.Contains(err.Error(), "Name is required") {

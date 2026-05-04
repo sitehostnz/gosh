@@ -11,6 +11,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testIP = "192.0.2.10"
+
 func mockClient(t *testing.T, h http.HandlerFunc) (*api.Client, func()) {
 	t.Helper()
 	srv := httptest.NewServer(h)
@@ -23,12 +25,13 @@ func mockClient(t *testing.T, h http.HandlerFunc) (*api.Client, func()) {
 }
 
 func TestAddIP_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/add_ip.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		_ = r.ParseForm()
-		if got := r.Form.Get("param"); got != "192.0.2.10" {
+		if got := r.Form.Get("param"); got != testIP {
 			t.Errorf("param = %q (note: add_ip uses 'param', not 'address')", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -36,19 +39,20 @@ func TestAddIP_Success(t *testing.T) {
 	})
 	defer done()
 
-	got, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo", IP: "192.0.2.10"})
+	got, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo", IP: testIP})
 	if err != nil {
 		t.Fatalf("AddIP: %v", err)
 	}
-	if got.Return.IPAddr != "192.0.2.10" {
+	if got.Return.IPAddr != testIP {
 		t.Errorf("IPAddr = %q", got.Return.IPAddr)
 	}
 }
 
 func TestRemoveIP_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
-		if got := r.Form.Get("address"); got != "192.0.2.10" {
+		if got := r.Form.Get("address"); got != testIP {
 			t.Errorf("address = %q (note: remove_ip uses 'address', not 'param')", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -56,15 +60,16 @@ func TestRemoveIP_Success(t *testing.T) {
 	})
 	defer done()
 
-	if _, err := New(c).RemoveIP(context.Background(), RemoveIPOptions{Name: "ch-foo", IP: "192.0.2.10"}); err != nil {
+	if _, err := New(c).RemoveIP(context.Background(), RemoveIPOptions{Name: "ch-foo", IP: testIP}); err != nil {
 		t.Fatalf("RemoveIP: %v", err)
 	}
 }
 
 func TestSetPrimaryIP_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
-		if got := r.Form.Get("address"); got != "192.0.2.10" {
+		if got := r.Form.Get("address"); got != testIP {
 			t.Errorf("address = %q", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -72,16 +77,17 @@ func TestSetPrimaryIP_Success(t *testing.T) {
 	})
 	defer done()
 
-	got, err := New(c).SetPrimaryIP(context.Background(), SetPrimaryIPOptions{Name: "ch-foo", IP: "192.0.2.10"})
+	got, err := New(c).SetPrimaryIP(context.Background(), SetPrimaryIPOptions{Name: "ch-foo", IP: testIP})
 	if err != nil {
 		t.Fatalf("SetPrimaryIP: %v", err)
 	}
-	if got.Return.IPAddr != "192.0.2.10" {
+	if got.Return.IPAddr != testIP {
 		t.Errorf("IPAddr = %q", got.Return.IPAddr)
 	}
 }
 
 func TestChangeState_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		if got := r.Form.Get("state"); got != StatePowerOn {
@@ -98,6 +104,7 @@ func TestChangeState_Success(t *testing.T) {
 }
 
 func TestCanProvision_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		if got := r.Form.Get("product"); got != "XENLIT" {
@@ -120,6 +127,7 @@ func TestCanProvision_Success(t *testing.T) {
 }
 
 func TestServerWrites_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).AddIP(context.Background(), AddIPOptions{IP: "1.2.3.4"}); err == nil ||
 		!strings.Contains(err.Error(), "Name is required") {

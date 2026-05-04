@@ -11,6 +11,7 @@ import (
 )
 
 func TestListImages_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/server/list_images.json" {
 			t.Errorf("path = %q, want /server/list_images.json", r.URL.Path)

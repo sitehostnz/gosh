@@ -11,25 +11,25 @@ type (
 	// JSON bool. Pending is "1" while a job is in flight and "0"
 	// when stable.
 	Snapshot struct {
-		ID            string `json:"id"`
-		Name          string `json:"name"`
-		Device        string `json:"device"`
-		MountPoint    string `json:"mountpoint"`
-		Size          int64  `json:"size"`
-		FSType        string `json:"fstype"`
-		DRBD          string `json:"drbd"`
-		Parent        string `json:"parent"`
-		Pending       string `json:"pending"`
-		Created       string `json:"created"`
-		Backup        string `json:"backup"`
-		DiskTotal     string `json:"disk_total"`
-		DiskUsed      string `json:"disk_used"`
-		InodesTotal   string `json:"inodes_total"`
-		InodesUsed    string `json:"inodes_used"`
-		StatsUpdated  string `json:"stats_updated"`
-		DiskWarn      string `json:"disk_warn"`
-		IsMissing     bool   `json:"is_missing"`
-		Expires       string `json:"expires"`
+		ID           string `json:"id"`
+		Name         string `json:"name"`
+		Device       string `json:"device"`
+		MountPoint   string `json:"mountpoint"`
+		Size         int64  `json:"size"`
+		FSType       string `json:"fstype"`
+		DRBD         string `json:"drbd"`
+		Parent       string `json:"parent"`
+		Pending      string `json:"pending"`
+		Created      string `json:"created"`
+		Backup       string `json:"backup"`
+		DiskTotal    string `json:"disk_total"`
+		DiskUsed     string `json:"disk_used"`
+		InodesTotal  string `json:"inodes_total"`
+		InodesUsed   string `json:"inodes_used"`
+		StatsUpdated string `json:"stats_updated"`
+		DiskWarn     string `json:"disk_warn"`
+		IsMissing    bool   `json:"is_missing"`
+		Expires      string `json:"expires"`
 	}
 
 	// ListResponse represents the response from list_all.

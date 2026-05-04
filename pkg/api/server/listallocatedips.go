@@ -9,7 +9,7 @@ import "context"
 //
 // The endpoint URL is "server/list_allocated_i_ps.json" — note the
 // underscore between "i" and "ps". This is the canonical name on
-// the API; using "list_allocated_ips" returns "method does not exist."
+// the API; using "list_allocated_ips" returns "method does not exist".
 func (s *Client) ListAllocatedIPs(ctx context.Context) (response ListAllocatedIPsResponse, err error) {
 	u := "server/list_allocated_i_ps.json"
 	req, err := s.client.NewRequest("GET", u, "")

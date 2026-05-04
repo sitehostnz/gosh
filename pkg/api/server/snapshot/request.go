@@ -20,6 +20,8 @@ type (
 	// SnapshotOptions identifies a snapshot for the operations
 	// that act on a single snapshot (delete, restore). The server
 	// is identified by Name; the snapshot by Snapshot.
+	//
+	//nolint:revive // name kept verbose for grep-from-API parity
 	SnapshotOptions struct {
 		Name     string `url:"name"`
 		Snapshot string `url:"snapshot"`
