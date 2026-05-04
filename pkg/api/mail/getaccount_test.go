@@ -11,13 +11,20 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const (
+	testServerName = "sth-mail-air"
+	testDomain     = "example.co.nz"
+	testEmail      = "alice@example.co.nz"
+)
+
 func TestGetAccount_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/get_account.json" {
 			t.Errorf("path = %q, want /mail/get_account.json", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("server_name"); got != "sth-mail-air" {
-			t.Errorf("server_name = %q, want sth-mail-air", got)
+		if got := r.URL.Query().Get("server_name"); got != testServerName {
+			t.Errorf("server_name = %q, want %s", got, testServerName)
 		}
 		if got := r.URL.Query().Get("email"); got != "test@example.co.nz" {
 			t.Errorf("email = %q, want test@example.co.nz", got)
@@ -53,7 +60,7 @@ func TestGetAccount_Success(t *testing.T) {
 	}
 
 	got, err := New(c).GetAccount(context.Background(), GetAccountOptions{
-		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
+		ServerOptions: ServerOptions{ServerName: testServerName},
 		Email:         "test@example.co.nz",
 	})
 	if err != nil {
@@ -72,9 +79,10 @@ func TestGetAccount_Success(t *testing.T) {
 }
 
 func TestGetAccount_EmailRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).GetAccount(context.Background(), GetAccountOptions{
-		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
+		ServerOptions: ServerOptions{ServerName: testServerName},
 	})
 	if err == nil {
 		t.Fatal("expected error for empty Email, got nil")

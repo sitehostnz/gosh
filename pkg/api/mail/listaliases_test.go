@@ -12,6 +12,7 @@ import (
 )
 
 func TestListAliases_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/list_aliases.json" {
 			t.Errorf("path = %q, want /mail/list_aliases.json", r.URL.Path)
@@ -51,6 +52,7 @@ func TestListAliases_Success(t *testing.T) {
 }
 
 func TestListAliases_DomainRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).ListAliases(context.Background(), ListAliasesOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},

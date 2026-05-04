@@ -65,8 +65,14 @@ func run() error {
 		return fmt.Errorf("ListAll: %w", err)
 	}
 	log.Printf("✓ %d record(s) total", len(all.Return))
-	mailboxes, aliases, forwards := 0, 0, 0
-	for _, r := range all.Return {
+	mailboxes, aliases, forwards := categorise(all.Return)
+	log.Printf("==> breakdown: %d mailboxes, %d aliases, %d forwards",
+		mailboxes, aliases, forwards)
+	return nil
+}
+
+func categorise(records []mail.EmailRecord) (mailboxes, aliases, forwards int) {
+	for _, r := range records {
 		switch r.Type {
 		case 0:
 			mailboxes++
@@ -82,7 +88,5 @@ func run() error {
 			log.Printf("  [type=%d ] %s  (unexpected type)", r.Type, r.EmailAddr)
 		}
 	}
-	log.Printf("==> breakdown: %d mailboxes, %d aliases, %d forwards",
-		mailboxes, aliases, forwards)
-	return nil
+	return mailboxes, aliases, forwards
 }

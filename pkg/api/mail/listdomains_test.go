@@ -12,6 +12,7 @@ import (
 )
 
 func TestListDomains_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/list_domains.json" {
 			t.Errorf("path = %q, want /mail/list_domains.json", r.URL.Path)
@@ -70,6 +71,7 @@ func TestListDomains_Success(t *testing.T) {
 }
 
 func TestListDomains_ServerNameRequired(t *testing.T) {
+	t.Parallel()
 	c, err := api.New("k", "1")
 	if err != nil {
 		t.Fatalf("api.New: %v", err)

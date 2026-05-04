@@ -12,6 +12,7 @@ import (
 )
 
 func TestSearchForwards_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/search_forwards.json" {
 			t.Errorf("path = %q, want /mail/search_forwards.json", r.URL.Path)
@@ -47,6 +48,7 @@ func TestSearchForwards_Success(t *testing.T) {
 }
 
 func TestSearchForwards_FilterRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).SearchForwards(context.Background(), SearchForwardsOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},

@@ -42,6 +42,7 @@ func formCheck(t *testing.T, r *http.Request, key, want string) {
 // --- AddAccount -----------------------------------------------------
 
 func TestAddAccount_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/add_account.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -63,12 +64,13 @@ func TestAddAccount_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("AddAccount: %v", err)
 	}
-	if got.Return.Job.ID != 42 {
-		t.Errorf("Job.ID = %d", got.Return.Job.ID)
+	if got.Return.ID != 42 {
+		t.Errorf("Job.ID = %d", got.Return.ID)
 	}
 }
 
 func TestAddAccount_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).AddAccount(context.Background(), AddAccountOptions{
 		Email: "x", AccountParams: AccountParams{Password: "p"},
@@ -90,6 +92,7 @@ func TestAddAccount_RequiredFields(t *testing.T) {
 // --- UpdateAccount --------------------------------------------------
 
 func TestUpdateAccount_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/update_account.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -111,6 +114,7 @@ func TestUpdateAccount_Success(t *testing.T) {
 // --- DeleteAccount --------------------------------------------------
 
 func TestDeleteAccount_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/delete_account.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -133,6 +137,7 @@ func TestDeleteAccount_Success(t *testing.T) {
 // --- AddDomain ------------------------------------------------------
 
 func TestAddDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/add_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -159,6 +164,7 @@ func TestAddDomain_Success(t *testing.T) {
 // --- UpdateDomain ---------------------------------------------------
 
 func TestUpdateDomain_Catchall(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		_ = r.ParseForm()
 		formCheck(t, r, "params[catchall]", "alice@example.co.nz")
@@ -179,6 +185,7 @@ func TestUpdateDomain_Catchall(t *testing.T) {
 // --- DeleteDomain ---------------------------------------------------
 
 func TestDeleteDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/delete_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -199,6 +206,7 @@ func TestDeleteDomain_Success(t *testing.T) {
 // --- AddAlias / DeleteAlias / AddForward / DeleteForward ------------
 
 func TestAddAlias_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/add_alias.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -220,6 +228,7 @@ func TestAddAlias_Success(t *testing.T) {
 }
 
 func TestDeleteAlias_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/delete_alias.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -238,6 +247,7 @@ func TestDeleteAlias_Success(t *testing.T) {
 }
 
 func TestDeleteAlias_RequiresBoth(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).DeleteAlias(context.Background(), DeleteAliasOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
@@ -249,6 +259,7 @@ func TestDeleteAlias_RequiresBoth(t *testing.T) {
 }
 
 func TestAddForward_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/add_forward.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -267,6 +278,7 @@ func TestAddForward_Success(t *testing.T) {
 }
 
 func TestDeleteForward_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/delete_forward.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -287,6 +299,7 @@ func TestDeleteForward_Success(t *testing.T) {
 // --- AddAliasDomain / DeleteAliasDomain -----------------------------
 
 func TestAddAliasDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/add_alias_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -309,6 +322,7 @@ func TestAddAliasDomain_Success(t *testing.T) {
 }
 
 func TestDeleteAliasDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := newMockClient(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/delete_alias_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)

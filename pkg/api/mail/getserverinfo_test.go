@@ -12,6 +12,7 @@ import (
 )
 
 func TestGetServerInfo_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/get_server_info.json" {
 			t.Errorf("path = %q, want /mail/get_server_info.json", r.URL.Path)
@@ -53,6 +54,7 @@ func TestGetServerInfo_Success(t *testing.T) {
 }
 
 func TestGetServerInfo_ServerNameRequired(t *testing.T) {
+	t.Parallel()
 	c, err := api.New("k", "1")
 	if err != nil {
 		t.Fatalf("api.New: %v", err)
@@ -71,6 +73,7 @@ func TestGetServerInfo_ServerNameRequired(t *testing.T) {
 // NewForServer behaviour: a captured default is used when the
 // per-call options omit ServerName.
 func TestGetServerInfo_DefaultServerNameInherited(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("server_name"); got != "captured-default" {
 			t.Errorf("server_name = %q, want captured-default", got)
@@ -96,6 +99,7 @@ func TestGetServerInfo_DefaultServerNameInherited(t *testing.T) {
 // explicit ServerName in the per-call options beats a captured
 // default.
 func TestGetServerInfo_PerCallOverridesDefault(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("server_name"); got != "per-call" {
 			t.Errorf("server_name = %q, want per-call (per-call must override default)", got)

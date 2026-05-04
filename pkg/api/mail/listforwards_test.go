@@ -12,6 +12,7 @@ import (
 )
 
 func TestListForwards_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/list_forwards.json" {
 			t.Errorf("path = %q, want /mail/list_forwards.json", r.URL.Path)
@@ -44,6 +45,7 @@ func TestListForwards_Success(t *testing.T) {
 }
 
 func TestListForwards_DomainRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).ListForwards(context.Background(), ListForwardsOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},

@@ -12,6 +12,7 @@ import (
 )
 
 func TestSearchAccounts_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/search_accounts.json" {
 			t.Errorf("path = %q, want /mail/search_accounts.json", r.URL.Path)
@@ -62,6 +63,7 @@ func TestSearchAccounts_Success(t *testing.T) {
 }
 
 func TestSearchAccounts_FilterRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).SearchAccounts(context.Background(), SearchAccountsOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},

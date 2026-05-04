@@ -11,6 +11,7 @@ import (
 )
 
 func TestListAll_ParsesUnionTypes(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/list_all.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -54,6 +55,7 @@ func TestListAll_ParsesUnionTypes(t *testing.T) {
 }
 
 func TestListAll_RequiresServerName(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).ListAll(context.Background(), ListAllOptions{Domain: "x.com"}); err == nil {
 		t.Fatal("expected error for missing ServerName")
@@ -61,6 +63,7 @@ func TestListAll_RequiresServerName(t *testing.T) {
 }
 
 func TestListAll_RequiresDomain(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).ListAll(context.Background(), ListAllOptions{
 		ServerOptions: ServerOptions{ServerName: "s"},

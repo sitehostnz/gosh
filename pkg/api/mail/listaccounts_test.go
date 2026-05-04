@@ -12,15 +12,16 @@ import (
 )
 
 func TestListAccounts_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/list_accounts.json" {
 			t.Errorf("path = %q, want /mail/list_accounts.json", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("server_name"); got != "sth-mail-air" {
-			t.Errorf("server_name = %q, want sth-mail-air", got)
+		if got := r.URL.Query().Get("server_name"); got != testServerName {
+			t.Errorf("server_name = %q, want %s", got, testServerName)
 		}
-		if got := r.URL.Query().Get("domain"); got != "example.co.nz" {
-			t.Errorf("domain = %q, want example.co.nz", got)
+		if got := r.URL.Query().Get("domain"); got != testDomain {
+			t.Errorf("domain = %q, want %s", got, testDomain)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
@@ -53,8 +54,8 @@ func TestListAccounts_Success(t *testing.T) {
 	}
 
 	got, err := New(c).ListAccounts(context.Background(), ListAccountsOptions{
-		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
-		Domain:        "example.co.nz",
+		ServerOptions: ServerOptions{ServerName: testServerName},
+		Domain:        testDomain,
 	})
 	if err != nil {
 		t.Fatalf("ListAccounts: %v", err)
@@ -64,8 +65,8 @@ func TestListAccounts_Success(t *testing.T) {
 		t.Fatalf("len(Return) = %d, want 1", len(got.Return))
 	}
 	a := got.Return[0]
-	if a.EmailAddr != "alice@example.co.nz" {
-		t.Errorf("EmailAddr = %q, want alice@example.co.nz", a.EmailAddr)
+	if a.EmailAddr != testEmail {
+		t.Errorf("EmailAddr = %q, want %s", a.EmailAddr, testEmail)
 	}
 	if a.QuotaUsed != "1024" {
 		t.Errorf("QuotaUsed = %q, want 1024", a.QuotaUsed)
@@ -76,9 +77,10 @@ func TestListAccounts_Success(t *testing.T) {
 }
 
 func TestListAccounts_DomainRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).ListAccounts(context.Background(), ListAccountsOptions{
-		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
+		ServerOptions: ServerOptions{ServerName: testServerName},
 	})
 	if err == nil {
 		t.Fatal("expected error for empty Domain, got nil")
@@ -89,9 +91,10 @@ func TestListAccounts_DomainRequired(t *testing.T) {
 }
 
 func TestListAccounts_EmailAddrFilter(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if got := r.URL.Query().Get("filters[emailaddr]"); got != "alice@example.co.nz" {
-			t.Errorf("filters[emailaddr] = %q, want alice@example.co.nz", got)
+		if got := r.URL.Query().Get("filters[emailaddr]"); got != testEmail {
+			t.Errorf("filters[emailaddr] = %q, want %s", got, testEmail)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":[]}`)
@@ -100,9 +103,9 @@ func TestListAccounts_EmailAddrFilter(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	if _, err := New(c).ListAccounts(context.Background(), ListAccountsOptions{
-		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},
-		Domain:        "example.co.nz",
-		EmailAddr:     "alice@example.co.nz",
+		ServerOptions: ServerOptions{ServerName: testServerName},
+		Domain:        testDomain,
+		EmailAddr:     testEmail,
 	}); err != nil {
 		t.Fatalf("ListAccounts (filter): %v", err)
 	}

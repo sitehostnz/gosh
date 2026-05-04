@@ -12,6 +12,7 @@ import (
 )
 
 func TestSearchAliases_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/mail/search_aliases.json" {
 			t.Errorf("path = %q, want /mail/search_aliases.json", r.URL.Path)
@@ -47,6 +48,7 @@ func TestSearchAliases_Success(t *testing.T) {
 }
 
 func TestSearchAliases_FilterRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).SearchAliases(context.Background(), SearchAliasesOptions{
 		ServerOptions: ServerOptions{ServerName: "sth-mail-air"},

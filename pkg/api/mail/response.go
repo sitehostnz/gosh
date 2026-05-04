@@ -81,21 +81,21 @@ type (
 	// ("0", "1", "yes", "no") and represented as Go strings here
 	// for fidelity.
 	Account struct {
-		ClientID         string `json:"client_id"`
-		EmailAddr        string `json:"emailaddr"`
-		Label            string `json:"label"`
-		Username         string `json:"username"`
-		Autoresponder    string `json:"autoresponder"`
+		ClientID          string `json:"client_id"`
+		EmailAddr         string `json:"emailaddr"`
+		Label             string `json:"label"`
+		Username          string `json:"username"`
+		Autoresponder     string `json:"autoresponder"`
 		AutoresponderText string `json:"autoresponder_text"`
-		Active           string `json:"active"`
-		Quota            string `json:"quota"`
-		SpamStrategy     string `json:"spam_strategy"`
-		QuotaUsed        string `json:"quota_used,omitempty"`
-		QuotaPercent     string `json:"quota_percent,omitempty"`
-		MessageCount     string `json:"message_count,omitempty"`
-		LastUpdated      string `json:"last_updated,omitempty"`
-		Key              string `json:"key,omitempty"`
-		DateAdded        string `json:"date_added,omitempty"`
+		Active            string `json:"active"`
+		Quota             string `json:"quota"`
+		SpamStrategy      string `json:"spam_strategy"`
+		QuotaUsed         string `json:"quota_used,omitempty"`
+		QuotaPercent      string `json:"quota_percent,omitempty"`
+		MessageCount      string `json:"message_count,omitempty"`
+		LastUpdated       string `json:"last_updated,omitempty"`
+		Key               string `json:"key,omitempty"`
+		DateAdded         string `json:"date_added,omitempty"`
 	}
 
 	// GetAccountResponse represents the response from get_account.
