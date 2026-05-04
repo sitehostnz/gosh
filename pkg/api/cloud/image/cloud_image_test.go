@@ -27,6 +27,7 @@ func readForm(t *testing.T, r *http.Request) url.Values {
 const jobOK = `{"status":true,"msg":"Successful","return":{"job":{"id":7319505,"type":"scheduler"}}}`
 
 func TestCreate_Forked(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/create.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -58,6 +59,7 @@ func TestCreate_Forked(t *testing.T) {
 }
 
 func TestCreate_FromScratch_OmitsForkID(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := readForm(t, r)
 		if _, present := v["params[fork_id]"]; present {
@@ -75,6 +77,7 @@ func TestCreate_FromScratch_OmitsForkID(t *testing.T) {
 }
 
 func TestCreate_RequiresLabel(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).Create(context.Background(), CreateRequest{}); err == nil {
 		t.Fatal("expected error for missing Label")
@@ -82,6 +85,7 @@ func TestCreate_RequiresLabel(t *testing.T) {
 }
 
 func TestDelete_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/delete.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -106,6 +110,7 @@ func TestDelete_Success(t *testing.T) {
 }
 
 func TestGetChangelog_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/get_changelog.json" {
 			t.Errorf("path = %q", r.URL.Path)

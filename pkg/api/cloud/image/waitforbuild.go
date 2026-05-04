@@ -31,6 +31,8 @@ const (
 // protects against the platform's "Only the last successfully built
 // version is available to be deployed" rule — we always look at the
 // latest version, never an older success.
+//
+//nolint:cyclop // poll-loop with terminal/timeout/cancel branches; further extraction hurts readability
 func (s *Client) WaitForBuild(ctx context.Context, imageID int, timeout, interval time.Duration) (version.Version, error) {
 	if imageID == 0 {
 		return version.Version{}, fmt.Errorf("cloud.image.WaitForBuild: imageID is required")
@@ -43,37 +45,45 @@ func (s *Client) WaitForBuild(ctx context.Context, imageID int, timeout, interva
 	deadline := time.Now().Add(timeout)
 
 	for {
-		resp, err := versionClient.ListAll(ctx, version.ListAllRequest{
-			ImageID:  imageID,
-			SortBy:   "date_added",
-			SortDir:  "DESC",
-			PageSize: 1,
-		})
+		latest, hasVersion, err := pollLatestVersion(ctx, versionClient, imageID)
 		if err != nil {
-			return version.Version{}, fmt.Errorf("listing versions for image %d: %w", imageID, err)
+			return version.Version{}, err
 		}
-
-		if len(resp.Return.Versions) > 0 {
-			latest := resp.Return.Versions[0]
-			switch latest.BuildStatus {
-			case BuildStatusSuccess, BuildStatusFailed:
-				return latest, nil
-			}
+		if hasVersion && (latest.BuildStatus == BuildStatusSuccess || latest.BuildStatus == BuildStatusFailed) {
+			return latest, nil
 		}
-
 		if time.Now().After(deadline) {
-			latestStatus := "no versions yet"
-			if len(resp.Return.Versions) > 0 {
-				latestStatus = resp.Return.Versions[0].BuildStatus
-			}
-			return version.Version{}, fmt.Errorf("timed out after %s waiting for image %d build (last status: %s)",
-				timeout, imageID, latestStatus)
+			return version.Version{}, deadlineErr(timeout, imageID, latest, hasVersion)
 		}
-
 		select {
 		case <-ctx.Done():
 			return version.Version{}, ctx.Err()
 		case <-time.After(interval):
 		}
 	}
+}
+
+func pollLatestVersion(ctx context.Context, vc *version.Client, imageID int) (version.Version, bool, error) {
+	resp, err := vc.ListAll(ctx, version.ListAllRequest{
+		ImageID:  imageID,
+		SortBy:   "date_added",
+		SortDir:  "DESC",
+		PageSize: 1,
+	})
+	if err != nil {
+		return version.Version{}, false, fmt.Errorf("listing versions for image %d: %w", imageID, err)
+	}
+	if len(resp.Return.Versions) == 0 {
+		return version.Version{}, false, nil
+	}
+	return resp.Return.Versions[0], true, nil
+}
+
+func deadlineErr(timeout time.Duration, imageID int, latest version.Version, hasVersion bool) error {
+	status := "no versions yet"
+	if hasVersion {
+		status = latest.BuildStatus
+	}
+	return fmt.Errorf("timed out after %s waiting for image %d build (last status: %s)",
+		timeout, imageID, status)
 }

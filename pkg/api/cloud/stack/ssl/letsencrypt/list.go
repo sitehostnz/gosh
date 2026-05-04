@@ -28,4 +28,3 @@ func (s *Client) List(ctx context.Context, request ListRequest) (response ListRe
 	}
 	return response, nil
 }
-

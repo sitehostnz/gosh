@@ -25,6 +25,7 @@ func readForm(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestListAll_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/version/list_all.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -58,6 +59,7 @@ func TestListAll_Success(t *testing.T) {
 }
 
 func TestListAll_RequiresImageID(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).ListAll(context.Background(), ListAllRequest{}); err == nil {
 		t.Fatal("expected error for missing ImageID")
@@ -65,6 +67,7 @@ func TestListAll_RequiresImageID(t *testing.T) {
 }
 
 func TestGetBuild_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/version/get_build.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -93,6 +96,7 @@ func TestGetBuild_Success(t *testing.T) {
 }
 
 func TestDelete_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/image/version/delete.json" {
 			t.Errorf("path = %q", r.URL.Path)

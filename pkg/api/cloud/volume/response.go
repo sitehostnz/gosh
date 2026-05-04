@@ -13,18 +13,18 @@ type (
 	// Containers is a list of container identifiers the volume is
 	// currently attached to; empty when not mounted anywhere.
 	Volume struct {
-		ID           string   `json:"id"`
-		ClientID     string   `json:"client_id"`
-		ServerID     string   `json:"server_id"`
-		Pending      string   `json:"pending"`
-		VolumeName   string   `json:"volume_name"`
-		IsMissing    string   `json:"is_missing"`
-		DateAdded    string   `json:"date_added"`
-		DateUpdated  string   `json:"date_updated"`
-		ServerName   string   `json:"server_name"`
-		ServerLabel  string   `json:"server_label"`
-		ServerOwner  bool     `json:"server_owner"`
-		Containers   []string `json:"containers"`
+		ID          string   `json:"id"`
+		ClientID    string   `json:"client_id"`
+		ServerID    string   `json:"server_id"`
+		Pending     string   `json:"pending"`
+		VolumeName  string   `json:"volume_name"`
+		IsMissing   string   `json:"is_missing"`
+		DateAdded   string   `json:"date_added"`
+		DateUpdated string   `json:"date_updated"`
+		ServerName  string   `json:"server_name"`
+		ServerLabel string   `json:"server_label"`
+		ServerOwner bool     `json:"server_owner"`
+		Containers  []string `json:"containers"`
 	}
 
 	// ListResponse represents the response from list_all.

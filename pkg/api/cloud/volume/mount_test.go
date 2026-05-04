@@ -12,6 +12,7 @@ import (
 )
 
 func TestMount_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/volume/mount.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -37,6 +38,7 @@ func TestMount_Success(t *testing.T) {
 }
 
 func TestMount_RequiredContainer(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).Mount(context.Background(), MountOptions{
 		ServerName: "ch-foo", VolumeName: "data-vol",

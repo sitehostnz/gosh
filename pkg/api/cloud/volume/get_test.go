@@ -12,14 +12,15 @@ import (
 )
 
 func TestGet_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/volume/get.json" {
 			t.Errorf("path = %q, want /cloud/volume/get.json", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("server"); got != "ch-foo" {
+		if got := r.URL.Query().Get("server"); got != testServerName {
 			t.Errorf("server = %q, want ch-foo (note: not server_name)", got)
 		}
-		if got := r.URL.Query().Get("volume"); got != "data-vol" {
+		if got := r.URL.Query().Get("volume"); got != testVolumeName {
 			t.Errorf("volume = %q, want data-vol (note: not volume_name)", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -38,16 +39,17 @@ func TestGet_Success(t *testing.T) {
 	defer server.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
-	got, err := New(c).Get(context.Background(), GetOptions{Server: "ch-foo", Volume: "data-vol"})
+	got, err := New(c).Get(context.Background(), GetOptions{Server: testServerName, Volume: testVolumeName})
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
-	if got.Return.VolumeName != "data-vol" {
+	if got.Return.VolumeName != testVolumeName {
 		t.Errorf("VolumeName = %q", got.Return.VolumeName)
 	}
 }
 
 func TestGet_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	if _, err := New(c).Get(context.Background(), GetOptions{Volume: "v"}); err == nil ||
 		!strings.Contains(err.Error(), "Server is required") {

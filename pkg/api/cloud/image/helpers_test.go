@@ -13,6 +13,7 @@ import (
 )
 
 func TestCloneURL_Default(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "958466", api.SetBaseURL("http://example.invalid"))
 	got := New(c).CloneURL("cerb-custom-image")
 	want := "git@gitlab-clients.sitehost.co.nz:g_958466/cerb-custom-image.git"
@@ -22,6 +23,7 @@ func TestCloneURL_Default(t *testing.T) {
 }
 
 func TestCloneURL_OverriddenHost(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"),
 		api.SetCustomImageGitHost("gitlab-staging.sitehost.co.nz"))
 	got := New(c).CloneURL("test-image")
@@ -31,6 +33,7 @@ func TestCloneURL_OverriddenHost(t *testing.T) {
 }
 
 func TestForkFromImage_ResolvesParentID(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
@@ -65,7 +68,8 @@ func TestForkFromImage_ResolvesParentID(t *testing.T) {
 }
 
 func TestForkFromImage_ParentNotFound(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
 			"status":true,"msg":"OK",
@@ -82,8 +86,9 @@ func TestForkFromImage_ParentNotFound(t *testing.T) {
 }
 
 func TestWaitForBuild_TerminatesOnSuccess(t *testing.T) {
+	t.Parallel()
 	calls := 0
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		calls++
 		w.Header().Set("Content-Type", "application/json")
 		status := "running"
@@ -108,6 +113,7 @@ func TestWaitForBuild_TerminatesOnSuccess(t *testing.T) {
 }
 
 func TestLintManifest_Valid(t *testing.T) {
+	t.Parallel()
 	data := []byte(`version: 1
 image:
   label: my-custom-image
@@ -120,6 +126,7 @@ image:
 }
 
 func TestLintManifest_MissingFields(t *testing.T) {
+	t.Parallel()
 	data := []byte(`version: 2
 image:
   label: ""
@@ -137,6 +144,7 @@ image:
 }
 
 func TestLintManifest_BadYAML(t *testing.T) {
+	t.Parallel()
 	if err := LintManifest([]byte("\tnot: yaml: at all: [")); err == nil {
 		t.Error("expected YAML parse error")
 	}

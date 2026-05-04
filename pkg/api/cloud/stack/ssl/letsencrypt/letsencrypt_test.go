@@ -30,6 +30,7 @@ func readForm(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestList_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/ssl/lets_encrypt/list_all.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -77,8 +78,13 @@ func TestList_Success(t *testing.T) {
 	}
 }
 
-func assertWriteSends(t *testing.T, path, server, name string, fn func(*Client) error) {
+// assertWriteSends spins up a httptest server for one of the
+// letsencrypt write endpoints, asserts the path + form fields,
+// and runs fn against it. server is fixed at "ch-test" for the
+// fixture suite.
+func assertWriteSends(t *testing.T, path string, fn func(*Client) error) {
 	t.Helper()
+	const wantServer = "ch-test"
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != path {
 			t.Errorf("path = %q, want %q", r.URL.Path, path)
@@ -87,11 +93,11 @@ func assertWriteSends(t *testing.T, path, server, name string, fn func(*Client) 
 			t.Errorf("method = %q", r.Method)
 		}
 		v := readForm(t, r)
-		if v.Get("server") != server {
+		if v.Get("server") != wantServer {
 			t.Errorf("server = %q", v.Get("server"))
 		}
-		if v.Get("name") != name {
-			t.Errorf("name = %q", v.Get("name"))
+		if v.Get("name") != "cc1234" {
+			t.Errorf("name = %q (want cc1234)", v.Get("name"))
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, jobOK)
@@ -104,7 +110,8 @@ func assertWriteSends(t *testing.T, path, server, name string, fn func(*Client) 
 }
 
 func TestCreate_Success(t *testing.T) {
-	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/create.json", "ch-test", "cc1234", func(c *Client) error {
+	t.Parallel()
+	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/create.json", func(c *Client) error {
 		got, err := c.Create(context.Background(), CreateRequest{ServerName: "ch-test", Name: "cc1234"})
 		if err != nil {
 			return err
@@ -117,21 +124,24 @@ func TestCreate_Success(t *testing.T) {
 }
 
 func TestDelete_Success(t *testing.T) {
-	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/delete.json", "ch-test", "cc1234", func(c *Client) error {
+	t.Parallel()
+	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/delete.json", func(c *Client) error {
 		_, err := c.Delete(context.Background(), DeleteRequest{ServerName: "ch-test", Name: "cc1234"})
 		return err
 	})
 }
 
 func TestRenew_Success(t *testing.T) {
-	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/renew.json", "ch-test", "cc1234", func(c *Client) error {
+	t.Parallel()
+	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/renew.json", func(c *Client) error {
 		_, err := c.Renew(context.Background(), RenewRequest{ServerName: "ch-test", Name: "cc1234"})
 		return err
 	})
 }
 
 func TestRevoke_Success(t *testing.T) {
-	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/revoke.json", "ch-test", "cc1234", func(c *Client) error {
+	t.Parallel()
+	assertWriteSends(t, "/cloud/stack/ssl/lets_encrypt/revoke.json", func(c *Client) error {
 		_, err := c.Revoke(context.Background(), RevokeRequest{ServerName: "ch-test", Name: "cc1234"})
 		return err
 	})

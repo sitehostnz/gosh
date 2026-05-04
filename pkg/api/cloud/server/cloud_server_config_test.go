@@ -11,6 +11,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testServerName = "ch-test"
+
 func readForm(t *testing.T, r *http.Request) url.Values {
 	t.Helper()
 	body, err := io.ReadAll(r.Body)
@@ -25,11 +27,12 @@ func readForm(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestGetUpdateWindow_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/server/get_update_window.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("server_name"); got != "ch-test" {
+		if got := r.URL.Query().Get("server_name"); got != testServerName {
 			t.Errorf("server_name = %q", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -41,7 +44,7 @@ func TestGetUpdateWindow_Success(t *testing.T) {
 	defer srv.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).GetUpdateWindow(context.Background(), GetUpdateWindowRequest{ServerName: "ch-test"})
+	got, err := New(c).GetUpdateWindow(context.Background(), GetUpdateWindowRequest{ServerName: testServerName})
 	if err != nil {
 		t.Fatalf("GetUpdateWindow: %v", err)
 	}
@@ -56,12 +59,13 @@ const jobOK = `{
 }`
 
 func TestSetUpdateWindow_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/server/set_update_window.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("server_name") != "ch-test" {
+		if v.Get("server_name") != testServerName {
 			t.Errorf("server_name = %q", v.Get("server_name"))
 		}
 		if v.Get("enabled") != "1" || v.Get("day_of_week") != "2" ||
@@ -75,7 +79,7 @@ func TestSetUpdateWindow_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).SetUpdateWindow(context.Background(), SetUpdateWindowRequest{
-		ServerName: "ch-test", Enabled: 1, DayOfWeek: 2, HourOfDay: 4, MinuteOfHour: 30,
+		ServerName: testServerName, Enabled: 1, DayOfWeek: 2, HourOfDay: 4, MinuteOfHour: 30,
 	})
 	if err != nil {
 		t.Fatalf("SetUpdateWindow: %v", err)
@@ -86,12 +90,13 @@ func TestSetUpdateWindow_Success(t *testing.T) {
 }
 
 func TestUpdateMinimumTLSVersion_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/server/update_minimum_tls_version.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("server_name") != "ch-test" {
+		if v.Get("server_name") != testServerName {
 			t.Errorf("server_name = %q", v.Get("server_name"))
 		}
 		if v.Get("minimum_tls_version") != "TLSv1.2" {
@@ -104,7 +109,7 @@ func TestUpdateMinimumTLSVersion_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).UpdateMinimumTLSVersion(context.Background(), UpdateMinimumTLSVersionRequest{
-		ServerName: "ch-test", MinimumTLSVersion: "TLSv1.2",
+		ServerName: testServerName, MinimumTLSVersion: "TLSv1.2",
 	})
 	if err != nil {
 		t.Fatalf("UpdateMinimumTLSVersion: %v", err)

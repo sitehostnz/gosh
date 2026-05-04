@@ -11,6 +11,7 @@ import (
 )
 
 func TestList_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/volume/list_all.json" {
 			t.Errorf("path = %q, want /cloud/volume/list_all.json", r.URL.Path)
@@ -61,6 +62,7 @@ func TestList_Success(t *testing.T) {
 }
 
 func TestList_Filters(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("filters[server_name]"); got != "ch-foo" {
 			t.Errorf("filters[server_name] = %q", got)

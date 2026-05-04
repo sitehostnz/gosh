@@ -8,10 +8,10 @@
 // database engines simultaneously, each as its own Docker stack.
 // The stack names ARE the engine identifiers — typical examples:
 //
-//   mariadb1108  — MariaDB 11.8
-//   mysql57      — MySQL 5.7
-//   mysql8       — MySQL 8.x
-//   postgres15   — PostgreSQL 15
+//	mariadb1108  — MariaDB 11.8
+//	mysql57      — MySQL 5.7
+//	mysql8       — MySQL 8.x
+//	postgres15   — PostgreSQL 15
 //
 // (See cloud.stack.image.list_all for the catalog of available
 // engines + the exact stack code shapes.)
@@ -29,23 +29,23 @@
 //
 // # Required env
 //
-//   SH_API_KEY     — API key
-//   SH_CLIENT_ID   — client id
-//   SH_CCS_NAME    — name of the Cloud Container Server with the
-//                    database stacks deployed
+//	SH_API_KEY     — API key
+//	SH_CLIENT_ID   — client id
+//	SH_CCS_NAME    — name of the Cloud Container Server with the
+//	                 database stacks deployed
 //
 // # Optional env
 //
-//   SH_CONTAINER_NAME — existing www-type container name on the
-//                       CCS to use as the database's owning
-//                       container (cloud.db.Add's `container`
-//                       field). If unset, the example picks the
-//                       first non-DB / non-infra stack it finds on
-//                       the CCS. Provide explicitly if your CCS
-//                       has multiple containers and you want to
-//                       pin the association.
-//   JOURNEY_KEEP=1  — leave the created databases + users in place
-//                     (default: cleanup).
+//	SH_CONTAINER_NAME — existing www-type container name on the
+//	                    CCS to use as the database's owning
+//	                    container (cloud.db.Add's `container`
+//	                    field). If unset, the example picks the
+//	                    first non-DB / non-infra stack it finds on
+//	                    the CCS. Provide explicitly if your CCS
+//	                    has multiple containers and you want to
+//	                    pin the association.
+//	JOURNEY_KEEP=1  — leave the created databases + users in place
+//	                  (default: cleanup).
 package main
 
 import (
@@ -63,6 +63,7 @@ import (
 	cloudDBUser "github.com/sitehostnz/gosh/pkg/api/cloud/db/user"
 	"github.com/sitehostnz/gosh/pkg/api/cloud/stack"
 	"github.com/sitehostnz/gosh/pkg/api/job"
+	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // dbStackPrefixes — known database stack name prefixes. The
@@ -76,7 +77,7 @@ var dbStackPrefixes = []struct {
 }
 
 type dbResult struct {
-	engine   string
+	engine    string
 	stackName string
 	dbName    string
 	dbUser    string
@@ -91,6 +92,7 @@ func main() {
 	}
 }
 
+//nolint:cyclop,funlen // linear example journey; further extraction obscures the read order
 func run() error {
 	apiKey := os.Getenv("SH_API_KEY")
 	clientID := os.Getenv("SH_CLIENT_ID")
@@ -115,25 +117,7 @@ func run() error {
 	}
 	log.Printf("    %d stack(s)", len(stacks.Return.Stacks))
 
-	dbStacks := []dbResult{}
-	containerName := os.Getenv("SH_CONTAINER_NAME")
-	for _, s := range stacks.Return.Stacks {
-		matched := false
-		for _, p := range dbStackPrefixes {
-			if strings.HasPrefix(s.Name, p.prefix) {
-				dbStacks = append(dbStacks, dbResult{engine: p.engine, stackName: s.Name})
-				log.Printf("    [db]  %s (%s)", s.Name, p.engine)
-				matched = true
-				break
-			}
-		}
-		if !matched && containerName == "" && s.Name != "infra" {
-			containerName = s.Name // first non-DB / non-infra stack
-		}
-		if !matched {
-			log.Printf("    [app] %s", s.Name)
-		}
-	}
+	dbStacks, containerName := categoriseStacks(stacks.Return.Stacks, os.Getenv("SH_CONTAINER_NAME"))
 
 	if len(dbStacks) < 2 {
 		return fmt.Errorf("need at least 2 DB stacks on %s for a comparison; found %d",
@@ -186,70 +170,7 @@ func run() error {
 			log.Printf("    sleeping 30s for container-level lock to release before next DB add")
 			time.Sleep(30 * time.Second)
 		}
-		d := &dbStacks[i]
-		shortEngine := strings.ToLower(d.engine[:1]) // m / y / p
-		d.dbName = fmt.Sprintf("goshdb_%s_%s", strings.ToLower(d.engine), suffix)
-		d.dbUser = fmt.Sprintf("g%s%s", shortEngine, suffix) // e.g. gm9f5508 (8 chars)
-		d.dbPass = randHex(16)
-
-		log.Printf("==> %s: cloud.db.Add(%s)", d.engine, d.dbName)
-		addResp, err := cloudDB.New(c).Add(ctx, cloudDB.AddRequest{
-			ServerName: ccsName,
-			MySQLHost:  d.stackName,
-			Database:   d.dbName,
-			Container:  containerName,
-		})
-		if err != nil {
-			d.addErr = err
-			log.Printf("    error: %v", err)
-			continue
-		}
-		if err := waitForJob(ctx, c, addResp.Return.ID, addResp.Return.Type, 2*time.Minute); err != nil {
-			d.addErr = err
-			log.Printf("    job: %v", err)
-			continue
-		}
-		log.Printf("    ✓ database created")
-
-		log.Printf("==> %s: cloud.db.user.Add(%s)", d.engine, d.dbUser)
-		userResp, err := cloudDBUser.New(c).Add(ctx, cloudDBUser.AddRequest{
-			ServerName: ccsName,
-			MySQLHost:  d.stackName,
-			Username:   d.dbUser,
-			Password:   d.dbPass,
-			Database:   d.dbName,
-			Grants: []string{
-				"select", "insert", "update", "delete",
-				"create", "drop", "index", "alter",
-				"create temporary tables", "lock tables",
-				"create view", "show view",
-			},
-		})
-		if err != nil {
-			d.addErr = err
-			log.Printf("    error: %v", err)
-			continue
-		}
-		if err := waitForJob(ctx, c, userResp.Return.ID, userResp.Return.Type, 2*time.Minute); err != nil {
-			d.addErr = err
-			log.Printf("    job: %v", err)
-			continue
-		}
-		log.Printf("    ✓ user + grants applied")
-
-		// Read back to capture how each engine reports the DB.
-		got, err := cloudDB.New(c).Get(ctx, cloudDB.GetRequest{
-			ServerName: ccsName,
-			MySQLHost:  d.stackName,
-			Database:   d.dbName,
-		})
-		if err != nil {
-			log.Printf("    Get: %v", err)
-			continue
-		}
-		d.dbInfo = fmt.Sprintf("id=%s db_name=%s mysql_host=%s size=%v client_id=%s",
-			got.Database.ID, got.Database.DBName, got.Database.MySQLHost,
-			got.Database.Size, got.Database.ClientID)
+		provisionDB(ctx, c, &dbStacks[i], ccsName, containerName, suffix)
 	}
 
 	// 3. Comparison output.
@@ -302,6 +223,89 @@ func randHex(n int) string {
 	b := make([]byte, (n+1)/2)
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("%x", b)[:n]
+}
+
+func provisionDB(ctx context.Context, c *api.Client, d *dbResult, ccsName, containerName, suffix string) {
+	shortEngine := strings.ToLower(d.engine[:1]) // m / y / p
+	d.dbName = fmt.Sprintf("goshdb_%s_%s", strings.ToLower(d.engine), suffix)
+	d.dbUser = fmt.Sprintf("g%s%s", shortEngine, suffix) // e.g. gm9f5508
+	d.dbPass = randHex(16)
+
+	log.Printf("==> %s: cloud.db.Add(%s)", d.engine, d.dbName)
+	addResp, err := cloudDB.New(c).Add(ctx, cloudDB.AddRequest{
+		ServerName: ccsName, MySQLHost: d.stackName,
+		Database: d.dbName, Container: containerName,
+	})
+	if err != nil {
+		d.addErr = err
+		log.Printf("    error: %v", err)
+		return
+	}
+	if err := waitForJob(ctx, c, addResp.Return.ID, addResp.Return.Type, 2*time.Minute); err != nil {
+		d.addErr = err
+		log.Printf("    job: %v", err)
+		return
+	}
+	log.Printf("    ✓ database created")
+
+	log.Printf("==> %s: cloud.db.user.Add(%s)", d.engine, d.dbUser)
+	userResp, err := cloudDBUser.New(c).Add(ctx, cloudDBUser.AddRequest{
+		ServerName: ccsName, MySQLHost: d.stackName,
+		Username: d.dbUser, Password: d.dbPass, Database: d.dbName,
+		Grants: []string{
+			"select", "insert", "update", "delete",
+			"create", "drop", "index", "alter",
+			"create temporary tables", "lock tables",
+			"create view", "show view",
+		},
+	})
+	if err != nil {
+		d.addErr = err
+		log.Printf("    error: %v", err)
+		return
+	}
+	if err := waitForJob(ctx, c, userResp.Return.ID, userResp.Return.Type, 2*time.Minute); err != nil {
+		d.addErr = err
+		log.Printf("    job: %v", err)
+		return
+	}
+	log.Printf("    ✓ user + grants applied")
+
+	got, err := cloudDB.New(c).Get(ctx, cloudDB.GetRequest{
+		ServerName: ccsName, MySQLHost: d.stackName, Database: d.dbName,
+	})
+	if err != nil {
+		log.Printf("    Get: %v", err)
+		return
+	}
+	d.dbInfo = fmt.Sprintf("id=%s db_name=%s mysql_host=%s size=%v client_id=%s",
+		got.Database.ID, got.Database.DBName, got.Database.MySQLHost,
+		got.Database.Size, got.Database.ClientID)
+}
+
+func categoriseStacks(stacks []models.Stack, containerName string) ([]dbResult, string) {
+	dbStacks := []dbResult{}
+	for _, s := range stacks {
+		if engine, ok := matchDBPrefix(s.Name); ok {
+			dbStacks = append(dbStacks, dbResult{engine: engine, stackName: s.Name})
+			log.Printf("    [db]  %s (%s)", s.Name, engine)
+			continue
+		}
+		if containerName == "" && s.Name != "infra" {
+			containerName = s.Name // first non-DB / non-infra stack
+		}
+		log.Printf("    [app] %s", s.Name)
+	}
+	return dbStacks, containerName
+}
+
+func matchDBPrefix(name string) (string, bool) {
+	for _, p := range dbStackPrefixes {
+		if strings.HasPrefix(name, p.prefix) {
+			return p.engine, true
+		}
+	}
+	return "", false
 }
 
 func waitForJob(ctx context.Context, c *api.Client, id int, jobType string, timeout time.Duration) error {

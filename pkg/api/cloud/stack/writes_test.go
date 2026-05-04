@@ -12,6 +12,11 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const (
+	testServerName = "srv1"
+	testStackName  = "stack1"
+)
+
 // jobOK returns a stock JobResponse body for write-write tests.
 const jobOK = `{
 	"status": true, "msg": "Successful.",
@@ -33,6 +38,7 @@ func readForm(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestUpdate_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/update.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -41,10 +47,10 @@ func TestUpdate_Success(t *testing.T) {
 			t.Errorf("method = %q", r.Method)
 		}
 		v := readForm(t, r)
-		if v.Get("server") != "srv1" {
+		if v.Get("server") != testServerName {
 			t.Errorf("server = %q", v.Get("server"))
 		}
-		if v.Get("name") != "stack1" {
+		if v.Get("name") != testStackName {
 			t.Errorf("name = %q", v.Get("name"))
 		}
 		if v.Get("label") != "new-label" {
@@ -60,7 +66,7 @@ func TestUpdate_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).Update(context.Background(), UpdateRequest{
-		ServerName: "srv1", Name: "stack1", Label: "new-label", EnableSSL: 1,
+		ServerName: testServerName, Name: testStackName, Label: "new-label", EnableSSL: 1,
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
@@ -71,12 +77,13 @@ func TestUpdate_Success(t *testing.T) {
 }
 
 func TestDelete_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/delete.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("server") != "srv1" || v.Get("name") != "stack1" {
+		if v.Get("server") != testServerName || v.Get("name") != testStackName {
 			t.Errorf("server=%q name=%q", v.Get("server"), v.Get("name"))
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -86,7 +93,7 @@ func TestDelete_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).Delete(context.Background(), DeleteRequest{
-		ServerName: "srv1", Name: "stack1",
+		ServerName: testServerName, Name: testStackName,
 	})
 	if err != nil {
 		t.Fatalf("Delete: %v", err)
@@ -97,15 +104,16 @@ func TestDelete_Success(t *testing.T) {
 }
 
 func TestCopy_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/copy.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("source_server") != "srv1" {
+		if v.Get("source_server") != testServerName {
 			t.Errorf("source_server = %q", v.Get("source_server"))
 		}
-		if v.Get("name") != "stack1" {
+		if v.Get("name") != testStackName {
 			t.Errorf("name = %q", v.Get("name"))
 		}
 		if v.Get("destination_server") != "srv2" {
@@ -121,7 +129,7 @@ func TestCopy_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).Copy(context.Background(), CopyRequest{
-		SourceServer: "srv1", Name: "stack1",
+		SourceServer: testServerName, Name: testStackName,
 		DestinationServer: "srv2", Label: "copy-label",
 	})
 	if err != nil {
@@ -133,15 +141,16 @@ func TestCopy_Success(t *testing.T) {
 }
 
 func TestOverwrite_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/overwrite.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("source_server") != "srv1" {
+		if v.Get("source_server") != testServerName {
 			t.Errorf("source_server = %q", v.Get("source_server"))
 		}
-		if v.Get("name") != "stack1" {
+		if v.Get("name") != testStackName {
 			t.Errorf("name = %q", v.Get("name"))
 		}
 		if v.Get("destination_server") != "srv2" {
@@ -157,7 +166,7 @@ func TestOverwrite_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).Overwrite(context.Background(), OverwriteRequest{
-		SourceServer: "srv1", Name: "stack1",
+		SourceServer: testServerName, Name: testStackName,
 		DestinationServer: "srv2", DestinationStack: "stack2",
 	})
 	if err != nil {
@@ -169,12 +178,13 @@ func TestOverwrite_Success(t *testing.T) {
 }
 
 func TestBackup_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/backup.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("server") != "srv1" || v.Get("name") != "stack1" {
+		if v.Get("server") != testServerName || v.Get("name") != testStackName {
 			t.Errorf("server=%q name=%q", v.Get("server"), v.Get("name"))
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -184,7 +194,7 @@ func TestBackup_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).Backup(context.Background(), BackupRequest{
-		ServerName: "srv1", Name: "stack1",
+		ServerName: testServerName, Name: testStackName,
 	})
 	if err != nil {
 		t.Fatalf("Backup: %v", err)
@@ -195,12 +205,13 @@ func TestBackup_Success(t *testing.T) {
 }
 
 func TestPurgeCache_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/cloud/stack/purge_cache.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := readForm(t, r)
-		if v.Get("server") != "srv1" || v.Get("name") != "stack1" {
+		if v.Get("server") != testServerName || v.Get("name") != testStackName {
 			t.Errorf("server=%q name=%q", v.Get("server"), v.Get("name"))
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -210,7 +221,7 @@ func TestPurgeCache_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
 	got, err := New(c).PurgeCache(context.Background(), PurgeCacheRequest{
-		ServerName: "srv1", Name: "stack1",
+		ServerName: testServerName, Name: testStackName,
 	})
 	if err != nil {
 		t.Fatalf("PurgeCache: %v", err)
@@ -221,14 +232,15 @@ func TestPurgeCache_Success(t *testing.T) {
 }
 
 func TestWrites_StatusFalse(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status": false, "msg": "Stack not found"}`)
 	}))
 	defer server.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
-	_, err := New(c).Delete(context.Background(), DeleteRequest{ServerName: "srv1", Name: "missing"})
+	_, err := New(c).Delete(context.Background(), DeleteRequest{ServerName: testServerName, Name: "missing"})
 	if err == nil {
 		t.Fatal("expected error on status:false, got nil")
 	}
