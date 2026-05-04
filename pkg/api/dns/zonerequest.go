@@ -6,6 +6,12 @@ type (
 		DomainName string `json:"name"`
 	}
 
+	SearchZoneRequest struct {
+		Query  string `json:"query"`
+		Offset int    `json:"offset"`
+		Limit  int    `json:"limit"`
+	}
+
 	// CreateZoneRequest represents a request to create a DNSZone (domain).
 	CreateZoneRequest struct {
 		DomainName string `json:"name"`

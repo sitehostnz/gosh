@@ -5,7 +5,7 @@ import (
 )
 
 type (
-	// ListResponse is the returned response from the List endpoint.
+	// ListResponse is the returned response from the ListDomains endpoint.
 	ListResponse struct {
 		Return struct {
 			Users []models.DatabaseUser `json:"data"`

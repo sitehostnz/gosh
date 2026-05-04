@@ -1,5 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+## [v0.6.x]  - 2025-08-15
+### Added
+- Cloud stack environment delete variables
+- SRS list domains
+- SRS list contacts
+- 
+### Fixed
+- Added handling of null json types to maybe bool, which will evaluate to false, since they are falsy in js 
+- Updated dependencies 
+- Fixes in DNS handling - split out Get and Search endpoints - lament the pagination.
+
+
 
 ## [v0.6.0] - 2025-06-17
 ### Fixed
@@ -8,6 +20,7 @@ All notable changes to this project will be documented in this file. The format 
 - Update golangci-lint version to v2.1.6
 - Update pr make file to use golangci-lint GitHub action.
 - Split url helpers and type helpers in to their own packages.
+
 
 ## [v0.5.0] - 2025-06-12
 ### Added

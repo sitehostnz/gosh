@@ -28,9 +28,16 @@ type (
 		models.APIResponse
 	}
 
-	// GetZoneResponse represents a request to get a DNSZone (domain).
-	GetZoneResponse struct {
+	// SearchZoneResponse represents a request to search for a Domain (domain).
+	SearchZoneResponse struct {
 		Return []struct {
+			Name string `json:"name"`
+		} `json:"return"`
+		models.APIResponse
+	}
+
+	GetZoneResponse struct {
+		Return struct {
 			Name string `json:"name"`
 		} `json:"return"`
 		models.APIResponse
