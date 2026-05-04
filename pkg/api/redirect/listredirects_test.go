@@ -11,6 +11,7 @@ import (
 )
 
 func TestListRedirects_ParsesNestedShape(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/redirect/list_redirects.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -46,10 +47,11 @@ func TestListRedirects_ParsesNestedShape(t *testing.T) {
 }
 
 func TestListRedirects_EmptyArrayShape(t *testing.T) {
+	t.Parallel()
 	// The live API returns the JSON array [] (not the empty object
 	// {}) when an account has no redirects. Custom UnmarshalJSON
 	// must tolerate this.
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"return":[],"msg":"Successful","status":true}`)
 	}))
@@ -69,6 +71,7 @@ func TestListRedirects_EmptyArrayShape(t *testing.T) {
 }
 
 func TestListRedirects_PagingFilters(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		if q.Get("filters[page_size]") != "50" || q.Get("filters[page_number]") != "3" {
