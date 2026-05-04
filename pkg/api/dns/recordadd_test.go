@@ -10,7 +10,10 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testDomain = "example.co.nz"
+
 func TestAddRecord_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("method = %q, want POST", r.Method)
@@ -21,8 +24,8 @@ func TestAddRecord_Success(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
 		}
-		if got := r.Form.Get("domain"); got != "example.co.nz" {
-			t.Errorf("domain = %q, want example.co.nz", got)
+		if got := r.Form.Get("domain"); got != testDomain {
+			t.Errorf("domain = %q, want %s", got, testDomain)
 		}
 		if got := r.Form.Get("type"); got != "A" {
 			t.Errorf("type = %q, want A", got)
@@ -41,9 +44,9 @@ func TestAddRecord_Success(t *testing.T) {
 	}
 
 	got, err := New(c).AddRecord(context.Background(), AddRecordRequest{
-		Domain:  "example.co.nz",
+		Domain:  testDomain,
 		Type:    "A",
-		Name:    "www.example.co.nz",
+		Name:    "www." + testDomain,
 		Content: "192.0.2.10",
 	})
 	if err != nil {

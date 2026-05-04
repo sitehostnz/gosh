@@ -11,6 +11,7 @@ import (
 )
 
 func TestListRecords_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/list_records.json" {
 			t.Errorf("path = %q, want /dns/list_records.json", r.URL.Path)
@@ -32,7 +33,7 @@ func TestListRecords_Success(t *testing.T) {
 		t.Fatalf("api.New: %v", err)
 	}
 
-	got, err := New(c).ListRecords(context.Background(), ListRecordsRequest{Domain: "example.co.nz"})
+	got, err := New(c).ListRecords(context.Background(), ListRecordsRequest{Domain: testDomain})
 	if err != nil {
 		t.Fatalf("ListRecords: %v", err)
 	}

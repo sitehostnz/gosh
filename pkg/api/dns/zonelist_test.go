@@ -11,6 +11,7 @@ import (
 )
 
 func TestListZones_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/list_domains.json" {
 			t.Errorf("path = %q, want /dns/list_domains.json", r.URL.Path)
@@ -46,8 +47,8 @@ func TestListZones_Success(t *testing.T) {
 		t.Fatalf("len(Data) = %d, want 1", len(got.Return.Data))
 	}
 	z := got.Return.Data[0]
-	if z.Name != "example.co.nz" {
-		t.Errorf("Name = %q, want example.co.nz", z.Name)
+	if z.Name != testDomain {
+		t.Errorf("Name = %q, want %s", z.Name, testDomain)
 	}
 	if z.TemplateID != "0" {
 		t.Errorf("TemplateID = %q, want 0", z.TemplateID)

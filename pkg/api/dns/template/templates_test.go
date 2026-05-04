@@ -25,6 +25,7 @@ func formBody(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestGet_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/domain_templates/get_template.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -50,6 +51,7 @@ func TestGet_Success(t *testing.T) {
 }
 
 func TestGet_RequiresTemplateID(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).Get(context.Background(), GetRequest{}); err == nil {
 		t.Fatal("expected error")
@@ -57,6 +59,7 @@ func TestGet_RequiresTemplateID(t *testing.T) {
 }
 
 func TestListRecords_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/domain_templates/list_records.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -82,6 +85,7 @@ func TestListRecords_Success(t *testing.T) {
 }
 
 func TestSearchTemplates_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/domain_templates/search_templates.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -110,6 +114,7 @@ func TestSearchTemplates_Success(t *testing.T) {
 }
 
 func TestCreateTemplate_AllOptional(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("name") != "T1" {
@@ -138,6 +143,7 @@ func TestCreateTemplate_AllOptional(t *testing.T) {
 }
 
 func TestCreateTemplate_OmitsZeroFields(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		for _, k := range []string{"params[Email]", "params[Refresh]", "params[Retry]", "params[Expire]", "params[Min]", "params[Nameserver]"} {
@@ -156,6 +162,7 @@ func TestCreateTemplate_OmitsZeroFields(t *testing.T) {
 }
 
 func TestCloneTemplate_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("template_id") != "1" || v.Get("new_template_name") != "Clone" {
@@ -178,6 +185,7 @@ func TestCloneTemplate_Success(t *testing.T) {
 }
 
 func TestUpdateTemplate_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("template_id") != "1" || v.Get("new_name") != "Renamed" {
@@ -196,6 +204,7 @@ func TestUpdateTemplate_Success(t *testing.T) {
 }
 
 func TestDeleteTemplate_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("template_id") != "15" {
@@ -212,6 +221,7 @@ func TestDeleteTemplate_Success(t *testing.T) {
 }
 
 func TestAddRecord_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("type") != "A" || v.Get("name") != "subdomain" || v.Get("content") != "1.1.1.1" {
@@ -230,6 +240,7 @@ func TestAddRecord_Success(t *testing.T) {
 }
 
 func TestUpdateRecord_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("record_id") != "12" || v.Get("content") != "192.168.1.10" {
@@ -248,6 +259,7 @@ func TestUpdateRecord_Success(t *testing.T) {
 }
 
 func TestDeleteRecord_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("template_id") != "36" || v.Get("record_id") != "12" {
@@ -266,6 +278,7 @@ func TestDeleteRecord_Success(t *testing.T) {
 }
 
 func TestUpdateDomain_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("domain") != "example.com" || v.Get("params[template_id]") != "23" {
@@ -288,6 +301,7 @@ func TestUpdateDomain_Success(t *testing.T) {
 }
 
 func TestUpdateDomainDNS_ReturnsJob(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/domain_templates/update_domain_dns.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -307,6 +321,7 @@ func TestUpdateDomainDNS_ReturnsJob(t *testing.T) {
 }
 
 func TestUpdateTemplateDNS_ReturnsJob(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/domain_templates/update_template_dns.json" {
 			t.Errorf("path = %q", r.URL.Path)

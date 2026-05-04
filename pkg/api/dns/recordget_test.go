@@ -35,6 +35,7 @@ func listRecordsHandler(t *testing.T) http.HandlerFunc {
 }
 
 func TestGetRecord_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(listRecordsHandler(t))
 	defer server.Close()
 
@@ -44,7 +45,7 @@ func TestGetRecord_Success(t *testing.T) {
 	}
 
 	got, err := New(c).GetRecord(context.Background(), RecordRequest{
-		ID: "3", DomainName: "example.co.nz",
+		ID: "3", DomainName: testDomain,
 	})
 	if err != nil {
 		t.Fatalf("GetRecord: %v", err)
@@ -59,6 +60,7 @@ func TestGetRecord_Success(t *testing.T) {
 }
 
 func TestGetRecordWithType_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(listRecordsHandler(t))
 	defer server.Close()
 
@@ -68,7 +70,7 @@ func TestGetRecordWithType_Success(t *testing.T) {
 	}
 
 	got, err := New(c).GetRecordWithType(context.Background(), RecordRequest{
-		RRType: "A", DomainName: "example.co.nz",
+		RRType: "A", DomainName: testDomain,
 	})
 	if err != nil {
 		t.Fatalf("GetRecordWithType: %v", err)
@@ -85,6 +87,7 @@ func TestGetRecordWithType_Success(t *testing.T) {
 }
 
 func TestGetRecordWithRecord_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(listRecordsHandler(t))
 	defer server.Close()
 
@@ -94,7 +97,7 @@ func TestGetRecordWithRecord_Success(t *testing.T) {
 	}
 
 	got, err := New(c).GetRecordWithRecord(context.Background(), models.DNSRecord{
-		Domain:   "example.co.nz",
+		Domain:   testDomain,
 		Name:     "www.example.co.nz",
 		Type:     "A",
 		Content:  "192.0.2.10",

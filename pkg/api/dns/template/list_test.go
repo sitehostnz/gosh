@@ -19,6 +19,7 @@ import (
 // httptest.Server stands in for api.sitehost.nz, api.SetBaseURL points
 // the client at it, request shape and response parsing are both asserted.
 func TestList_Success(t *testing.T) {
+	t.Parallel()
 	const (
 		apiKey   = "test-key"
 		clientID = "1234"
@@ -76,6 +77,7 @@ func TestList_Success(t *testing.T) {
 // TestList_APIError verifies that a non-success API response (status:false)
 // surfaces as an error, not as a silently-empty success.
 func TestList_APIError(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status": false, "msg": "Permission denied"}`)

@@ -11,6 +11,7 @@ import (
 )
 
 func TestDeleteRecord_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("method = %q, want POST", r.Method)
@@ -35,7 +36,7 @@ func TestDeleteRecord_Success(t *testing.T) {
 	}
 
 	got, err := New(c).DeleteRecord(context.Background(), DeleteRecordRequest{
-		Domain:   "example.co.nz",
+		Domain:   testDomain,
 		RecordID: "9000001",
 	})
 	if err != nil {

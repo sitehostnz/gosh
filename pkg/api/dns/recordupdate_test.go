@@ -11,6 +11,7 @@ import (
 )
 
 func TestUpdateRecord_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("method = %q, want POST", r.Method)
@@ -35,7 +36,7 @@ func TestUpdateRecord_Success(t *testing.T) {
 	}
 
 	got, err := New(c).UpdateRecord(context.Background(), UpdateRecordRequest{
-		Domain:   "example.co.nz",
+		Domain:   testDomain,
 		RecordID: "9000001",
 		Type:     "A",
 		Name:     "www.example.co.nz",

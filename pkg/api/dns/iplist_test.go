@@ -11,6 +11,7 @@ import (
 )
 
 func TestListIPs_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/list_ips.json" {
 			t.Errorf("path = %q, want /dns/list_ips.json", r.URL.Path)

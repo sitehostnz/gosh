@@ -25,6 +25,7 @@ func formBody(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestUpdateSOA_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/update_soa.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -56,6 +57,7 @@ func TestUpdateSOA_Success(t *testing.T) {
 }
 
 func TestUpdateReverseDNS_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/update_reverse_dns.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -78,6 +80,7 @@ func TestUpdateReverseDNS_Success(t *testing.T) {
 }
 
 func TestResetReverseDNS_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/dns/reset_reverse_dns.json" {
 			t.Errorf("path = %q", r.URL.Path)

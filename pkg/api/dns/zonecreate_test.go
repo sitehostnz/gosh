@@ -11,6 +11,7 @@ import (
 )
 
 func TestCreateZone_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Errorf("method = %q, want POST", r.Method)
@@ -21,8 +22,8 @@ func TestCreateZone_Success(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
 		}
-		if got := r.Form.Get("domain"); got != "example.co.nz" {
-			t.Errorf("domain = %q, want example.co.nz", got)
+		if got := r.Form.Get("domain"); got != testDomain {
+			t.Errorf("domain = %q, want %s", got, testDomain)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status": true, "msg": "Successful", "return": {"is_migration": false}}`)
@@ -34,7 +35,7 @@ func TestCreateZone_Success(t *testing.T) {
 		t.Fatalf("api.New: %v", err)
 	}
 
-	got, err := New(c).CreateZone(context.Background(), CreateZoneRequest{DomainName: "example.co.nz"})
+	got, err := New(c).CreateZone(context.Background(), CreateZoneRequest{DomainName: testDomain})
 	if err != nil {
 		t.Fatalf("CreateZone: %v", err)
 	}

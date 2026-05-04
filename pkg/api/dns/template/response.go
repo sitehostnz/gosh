@@ -15,6 +15,8 @@ type (
 	// TemplateDetails carries the full metadata + SOA defaults for
 	// a single template, returned by GetTemplate. Fields are
 	// strings to match the API's stringly-typed numerics.
+	//
+	//nolint:revive // name kept verbose for grep-from-API parity
 	TemplateDetails struct {
 		TemplateID   string `json:"template_id"`
 		ClientID     string `json:"client_id"`
