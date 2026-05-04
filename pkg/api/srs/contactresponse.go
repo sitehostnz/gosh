@@ -38,7 +38,7 @@ type (
 		ClientID        string `json:"ClientID"`
 		Name            string `json:"Name"`
 		RegistrantName  string `json:"RegistrantName"`
-		Organization    string `json:"Organization"`
+		Organization    string `json:"Organization"` //nolint:misspell // matches the upstream API JSON key
 		PostalAddress   string `json:"PostalAddress"`
 		PostalAddress2  string `json:"PostalAddress2"`
 		Suburb          string `json:"Suburb"`

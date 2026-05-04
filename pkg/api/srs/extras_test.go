@@ -24,6 +24,7 @@ func mockSRS(t *testing.T, h http.HandlerFunc) (*api.Client, func()) {
 }
 
 func TestGetDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/get_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -65,7 +66,8 @@ func TestGetDomain_Success(t *testing.T) {
 }
 
 func TestDomainAvailable_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"Available","return":true}`)
 	})
@@ -80,7 +82,8 @@ func TestDomainAvailable_Success(t *testing.T) {
 }
 
 func TestDomainInsideGracePeriod_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"Not in grace period","return":false}`)
 	})
@@ -95,7 +98,8 @@ func TestDomainInsideGracePeriod_Success(t *testing.T) {
 }
 
 func TestGetDomainPrice_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":{"DomainPrice":39.5,"total_price":39.5,"tiered_price":"39.50","base_price":"39.50","premium":false,"base_privacy_price":"0.00","tiered_privacy_price":"0.00"}}`)
 	})
@@ -110,7 +114,8 @@ func TestGetDomainPrice_Success(t *testing.T) {
 }
 
 func TestCanTransferDomain_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":{"domain":"example.nz","can_transfer":true,"reason":""}}`)
 	})
@@ -125,7 +130,8 @@ func TestCanTransferDomain_Success(t *testing.T) {
 }
 
 func TestListNameServers_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":[
 			{"name":"ns1.sitehost.co.nz","ipv4addr":"","ipv6addr":""},
@@ -143,7 +149,8 @@ func TestListNameServers_Success(t *testing.T) {
 }
 
 func TestListContacts_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
 			"total_items":1,"current_items":1,"current_page":1,"total_pages":1,
@@ -165,6 +172,7 @@ func TestListContacts_Success(t *testing.T) {
 }
 
 func TestGetContact_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
 		if got := r.URL.Query().Get("contact_id"); got != "9001" {
 			t.Errorf("contact_id = %q", got)
@@ -186,6 +194,7 @@ func TestGetContact_Success(t *testing.T) {
 }
 
 func TestSearchContacts_FilterRequired(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).SearchContacts(context.Background(), SearchContactsOptions{})
 	if err == nil || !strings.Contains(err.Error(), "at least one of") {
@@ -194,7 +203,8 @@ func TestSearchContacts_FilterRequired(t *testing.T) {
 }
 
 func TestListValidTLDs_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":[
 			{"tld":"co.nz","term":"12","type":"NZRS","can_transfer":"1","can_protect":"1","date_added":"","date_updated":""}
@@ -211,7 +221,8 @@ func TestListValidTLDs_Success(t *testing.T) {
 }
 
 func TestGetPricingTiers_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":[
 			{"type":1,"type_name":"NZRS","count":"19","price":"39.50"}
@@ -228,7 +239,8 @@ func TestGetPricingTiers_Success(t *testing.T) {
 }
 
 func TestGetCompanyInfo_Success(t *testing.T) {
-	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":{"client_id":1234,"companyname":"Test Co","companyurl":"https://test","companyrenewurl":"","companyemail":"","companyemailfrom":"","companyemailfromname":"","companysupportemail":"","companyphone":"","companyfax":"","send_renewed_email":"1","send_invoice":"1"}}`)
 	})
@@ -243,6 +255,7 @@ func TestGetCompanyInfo_Success(t *testing.T) {
 }
 
 func TestCreateDomain_RequiredFields(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1")
 	_, err := New(c).CreateDomain(context.Background(), CreateDomainOptions{Domain: "x.nz"})
 	if err == nil || !strings.Contains(err.Error(), "contact IDs") {
@@ -251,6 +264,7 @@ func TestCreateDomain_RequiredFields(t *testing.T) {
 }
 
 func TestCancelDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/cancel_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -267,12 +281,13 @@ func TestCancelDomain_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CancelDomain: %v", err)
 	}
-	if got.Return.Job.ID != 29658613 {
-		t.Errorf("Job.ID = %d", got.Return.Job.ID)
+	if got.Return.ID != 29658613 {
+		t.Errorf("Job.ID = %d", got.Return.ID)
 	}
 }
 
 func TestCreateDomain_Success(t *testing.T) {
+	t.Parallel()
 	c, done := mockSRS(t, func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/create_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -299,7 +314,7 @@ func TestCreateDomain_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateDomain: %v", err)
 	}
-	if got.Return.Job.ID != 29658610 {
-		t.Errorf("Job.ID = %d", got.Return.Job.ID)
+	if got.Return.ID != 29658610 {
+		t.Errorf("Job.ID = %d", got.Return.ID)
 	}
 }

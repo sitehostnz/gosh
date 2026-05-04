@@ -56,38 +56,9 @@ func (s *Client) TransferDomain(ctx context.Context, opt TransferDomainOptions) 
 	if opt.Domain == "" {
 		return response, fmt.Errorf("srs.TransferDomain: Domain is required")
 	}
-	values := url.Values{}
-	values.Set("domain", opt.Domain)
-	if opt.UDAI != "" {
-		values.Set("udai", opt.UDAI)
-	}
-	if opt.RegistrantContactID != 0 {
-		values.Set("params[registrant_contact_id]", strconv.Itoa(opt.RegistrantContactID))
-	}
-	if opt.AdminContactID != 0 {
-		values.Set("params[admin_contact_id]", strconv.Itoa(opt.AdminContactID))
-	}
-	if opt.TechnicalContactID != 0 {
-		values.Set("params[technical_contact_id]", strconv.Itoa(opt.TechnicalContactID))
-	}
-	if opt.BillingContactID != 0 {
-		values.Set("params[billing_contact_id]", strconv.Itoa(opt.BillingContactID))
-	}
-	if opt.Term > 0 {
-		values.Set("params[term]", strconv.Itoa(opt.Term))
-	}
-	for i, ns := range opt.NameServers {
-		if ns.Name == "" {
-			return response, fmt.Errorf("srs.TransferDomain: NameServers[%d].Name is required", i)
-		}
-		idx := strconv.Itoa(i)
-		values.Set("params[nameservers]["+idx+"][name]", ns.Name)
-		if ns.IPv4Addr != "" {
-			values.Set("params[nameservers]["+idx+"][ipv4addr]", ns.IPv4Addr)
-		}
-		if ns.IPv6Addr != "" {
-			values.Set("params[nameservers]["+idx+"][ipv6addr]", ns.IPv6Addr)
-		}
+	values, err := encodeTransferDomain(opt)
+	if err != nil {
+		return response, err
 	}
 	req, err := s.client.NewRequest("POST", "srs/transfer_domain.json", values.Encode())
 	if err != nil {
@@ -97,4 +68,44 @@ func (s *Client) TransferDomain(ctx context.Context, opt TransferDomainOptions) 
 		return response, err
 	}
 	return response, nil
+}
+
+func encodeTransferDomain(opt TransferDomainOptions) (url.Values, error) {
+	values := url.Values{}
+	values.Set("domain", opt.Domain)
+	setNonEmpty(values, "udai", opt.UDAI)
+	setNonZero(values, "params[registrant_contact_id]", opt.RegistrantContactID)
+	setNonZero(values, "params[admin_contact_id]", opt.AdminContactID)
+	setNonZero(values, "params[technical_contact_id]", opt.TechnicalContactID)
+	setNonZero(values, "params[billing_contact_id]", opt.BillingContactID)
+	setNonZero(values, "params[term]", opt.Term)
+	if err := encodeNameServersParam(values, opt.NameServers); err != nil {
+		return nil, err
+	}
+	return values, nil
+}
+
+func encodeNameServersParam(values url.Values, nss []NameServerEntry) error {
+	for i, ns := range nss {
+		if ns.Name == "" {
+			return fmt.Errorf("srs.TransferDomain: NameServers[%d].Name is required", i)
+		}
+		idx := strconv.Itoa(i)
+		values.Set("params[nameservers]["+idx+"][name]", ns.Name)
+		setNonEmpty(values, "params[nameservers]["+idx+"][ipv4addr]", ns.IPv4Addr)
+		setNonEmpty(values, "params[nameservers]["+idx+"][ipv6addr]", ns.IPv6Addr)
+	}
+	return nil
+}
+
+func setNonEmpty(values url.Values, key, val string) {
+	if val != "" {
+		values.Set(key, val)
+	}
+}
+
+func setNonZero(values url.Values, key string, val int) {
+	if val != 0 {
+		values.Set(key, strconv.Itoa(val))
+	}
 }

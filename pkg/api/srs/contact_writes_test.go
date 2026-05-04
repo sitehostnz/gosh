@@ -11,6 +11,7 @@ import (
 )
 
 func TestCreateContact_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/create_contact.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -47,6 +48,7 @@ func TestCreateContact_Success(t *testing.T) {
 }
 
 func TestCreateContact_RequiresNameAndEmail(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).CreateContact(context.Background(), CreateContactOptions{Email: "x"}); err == nil {
 		t.Fatal("expected error for missing Name")
@@ -57,6 +59,7 @@ func TestCreateContact_RequiresNameAndEmail(t *testing.T) {
 }
 
 func TestUpdateContact_OmitsEmptyFields(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("contact_id") != "100" {
@@ -83,6 +86,7 @@ func TestUpdateContact_OmitsEmptyFields(t *testing.T) {
 }
 
 func TestDeleteContact_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/delete_contact.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -103,6 +107,7 @@ func TestDeleteContact_Success(t *testing.T) {
 }
 
 func TestUpdateDomainContacts_RequiresThreeRoles(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	// Missing TechnicalContactID
 	if _, err := New(c).UpdateDomainContacts(context.Background(), UpdateDomainContactsOptions{
@@ -113,6 +118,7 @@ func TestUpdateDomainContacts_RequiresThreeRoles(t *testing.T) {
 }
 
 func TestUpdateDomainContacts_BillingOptional(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("registrant_contact_id") != "10" {
@@ -137,6 +143,7 @@ func TestUpdateDomainContacts_BillingOptional(t *testing.T) {
 }
 
 func TestUpdateCompanyInfo_OnlySendsSetFields(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("params[CompanyName]") != "TestCo" {

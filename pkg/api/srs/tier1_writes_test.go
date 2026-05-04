@@ -11,6 +11,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testComDomain = "example.com"
+
 func formBody(t *testing.T, r *http.Request) url.Values {
 	t.Helper()
 	body, err := io.ReadAll(r.Body)
@@ -25,12 +27,13 @@ func formBody(t *testing.T, r *http.Request) url.Values {
 }
 
 func TestLockDomain_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/lock_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
 		}
 		v := formBody(t, r)
-		if v.Get("domain") != "example.com" {
+		if v.Get("domain") != testComDomain {
 			t.Errorf("domain = %q", v.Get("domain"))
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -39,12 +42,13 @@ func TestLockDomain_Success(t *testing.T) {
 	defer srv.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	if _, err := New(c).LockDomain(context.Background(), DomainOptions{Domain: "example.com"}); err != nil {
+	if _, err := New(c).LockDomain(context.Background(), DomainOptions{Domain: testComDomain}); err != nil {
 		t.Fatalf("LockDomain: %v", err)
 	}
 }
 
 func TestLockDomain_RequiresDomain(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).LockDomain(context.Background(), DomainOptions{}); err == nil {
 		t.Fatal("expected error for missing Domain")
@@ -52,6 +56,7 @@ func TestLockDomain_RequiresDomain(t *testing.T) {
 }
 
 func TestUnlockDomain_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/unlock_domain.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -62,12 +67,13 @@ func TestUnlockDomain_Success(t *testing.T) {
 	defer srv.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	if _, err := New(c).UnlockDomain(context.Background(), DomainOptions{Domain: "example.com"}); err != nil {
+	if _, err := New(c).UnlockDomain(context.Background(), DomainOptions{Domain: testComDomain}); err != nil {
 		t.Fatalf("UnlockDomain: %v", err)
 	}
 }
 
 func TestEnablePrivacyProtection_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/enable_privacy_protection.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -83,22 +89,24 @@ func TestEnablePrivacyProtection_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).EnablePrivacyProtection(context.Background(), PrivacyOptions{
-		Domain: "example.com", Reason: "test run",
+		Domain: testComDomain, Reason: "test run",
 	}); err != nil {
 		t.Fatalf("EnablePrivacyProtection: %v", err)
 	}
 }
 
 func TestEnablePrivacyProtection_RequiresReason(t *testing.T) {
+	t.Parallel()
 	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
 	if _, err := New(c).EnablePrivacyProtection(context.Background(), PrivacyOptions{
-		Domain: "example.com",
+		Domain: testComDomain,
 	}); err == nil {
 		t.Fatal("expected error for missing Reason")
 	}
 }
 
 func TestDisablePrivacyProtection_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/disable_privacy_protection.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -110,13 +118,14 @@ func TestDisablePrivacyProtection_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).DisablePrivacyProtection(context.Background(), PrivacyOptions{
-		Domain: "example.com", Reason: "test run",
+		Domain: testComDomain, Reason: "test run",
 	}); err != nil {
 		t.Fatalf("DisablePrivacyProtection: %v", err)
 	}
 }
 
 func TestUpdateAutoRenew_Success(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/srs/update_auto_renew.json" {
 			t.Errorf("path = %q", r.URL.Path)
@@ -132,13 +141,14 @@ func TestUpdateAutoRenew_Success(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).UpdateAutoRenew(context.Background(), UpdateAutoRenewOptions{
-		Domain: "example.com", Term: 12, DaysRemaining: 30,
+		Domain: testComDomain, Term: 12, DaysRemaining: 30,
 	}); err != nil {
 		t.Fatalf("UpdateAutoRenew: %v", err)
 	}
 }
 
 func TestUpdateAutoRenew_DisableViaTermZero(t *testing.T) {
+	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		v := formBody(t, r)
 		if v.Get("term") != "0" {
@@ -151,7 +161,7 @@ func TestUpdateAutoRenew_DisableViaTermZero(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).UpdateAutoRenew(context.Background(), UpdateAutoRenewOptions{
-		Domain: "example.com", Term: 0, DaysRemaining: 30,
+		Domain: testComDomain, Term: 0, DaysRemaining: 30,
 	}); err != nil {
 		t.Fatalf("UpdateAutoRenew: %v", err)
 	}

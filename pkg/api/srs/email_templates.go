@@ -29,7 +29,7 @@ type EmailTemplate struct {
 	DateUpdated   string   `json:"date_updated"`
 	AvailableTags []string `json:"available_tags"`
 	RequiredTags  []string `json:"required_tags"`
-	Customized    bool     `json:"customized"`
+	Customized    bool     `json:"customized"` //nolint:misspell // matches the upstream API JSON key
 }
 
 // ListEmailTemplatesResponse is the response from

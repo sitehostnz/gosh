@@ -10,7 +10,10 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+const testCoNZDomain = "example.co.nz"
+
 func TestListDomains_Success(t *testing.T) {
+	t.Parallel()
 	const (
 		apiKey   = "test-key"
 		clientID = "1234"
@@ -77,8 +80,8 @@ func TestListDomains_Success(t *testing.T) {
 	if len(got.Return.Data) != 2 {
 		t.Fatalf("len(Data) = %d, want 2", len(got.Return.Data))
 	}
-	if got.Return.Data[0].Domain != "example.co.nz" {
-		t.Errorf("Data[0].Domain = %q, want example.co.nz", got.Return.Data[0].Domain)
+	if got.Return.Data[0].Domain != testCoNZDomain {
+		t.Errorf("Data[0].Domain = %q, want %s", got.Return.Data[0].Domain, testCoNZDomain)
 	}
 	if got.Return.Data[0].ID != "100" {
 		t.Errorf("Data[0].ID = %q, want 100", got.Return.Data[0].ID)
@@ -98,6 +101,7 @@ func TestListDomains_Success(t *testing.T) {
 }
 
 func TestListDomains_FilterParams(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		if got := q.Get("filters[sort_by]"); got != "domain" {

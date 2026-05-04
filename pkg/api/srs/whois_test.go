@@ -12,6 +12,7 @@ import (
 )
 
 func TestWhois_Success(t *testing.T) {
+	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			t.Errorf("method = %q, want GET", r.Method)
@@ -103,6 +104,7 @@ func TestWhois_Success(t *testing.T) {
 }
 
 func TestWhois_DomainRequired(t *testing.T) {
+	t.Parallel()
 	c, err := api.New("k", "1")
 	if err != nil {
 		t.Fatalf("api.New: %v", err)

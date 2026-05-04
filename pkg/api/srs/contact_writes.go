@@ -18,7 +18,7 @@ import (
 //   - Top-level (no params[] wrapper): name, email, postal_address,
 //     postal_address2, suburb, city, country.
 //   - params[<PascalCase>] for everything else: PostCode, Province,
-//     Organization.
+//     Organisation (see field name on the struct for the wire key).
 //   - params[<Group>][<Field>] for the three phone-style numbers:
 //     params[Phone][Country|Area|Local|Extension] and identical
 //     shapes for Fax and Mobile.
@@ -39,7 +39,7 @@ import (
 //   - Phone: Country, Area, Local (Extension optional)
 //
 // Optional but commonly required by registries:
-//   - Suburb, Province, Organization
+//   - Suburb, Province, Organisation
 //   - Fax, Mobile (full sub-arrays)
 //
 // # Email TLD constraint (live finding)
@@ -66,7 +66,7 @@ type CreateContactOptions struct {
 	Country        string `url:"country"`
 	PostCode       string `url:"params[PostCode]"`
 	Province       string `url:"params[Province],omitempty"`
-	Organization   string `url:"params[Organization],omitempty"`
+	Organization   string `url:"params[Organization],omitempty"` //nolint:misspell // matches the upstream API wire field name
 
 	// Phone is required. Per the published schema: Country, Area,
 	// Local are required; Extension is optional.

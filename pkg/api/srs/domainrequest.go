@@ -34,12 +34,12 @@ type (
 	//   - params[BillingContact]
 	// The Go fields use uniform names; tags reflect the wire shape.
 	CreateDomainOptions struct {
-		Domain             string `url:"domain"`
-		Term               int    `url:"term,omitempty"`
-		RegistrantContact  int    `url:"registrant_contact"`
-		AdminContact       int    `url:"params[AdminContact]"`
-		TechnicalContact   int    `url:"params[TechContact]"`
-		BillingContact     int    `url:"params[BillingContact]"`
-		Privacy            string `url:"privacy,omitempty"`
+		Domain            string `url:"domain"`
+		Term              int    `url:"term,omitempty"`
+		RegistrantContact int    `url:"registrant_contact"`
+		AdminContact      int    `url:"params[AdminContact]"`
+		TechnicalContact  int    `url:"params[TechContact]"`
+		BillingContact    int    `url:"params[BillingContact]"`
+		Privacy           string `url:"privacy,omitempty"`
 	}
 )
