@@ -1,6 +1,10 @@
 package server
 
-import "github.com/sitehostnz/gosh/pkg/models"
+import (
+	"encoding/json"
+
+	"github.com/sitehostnz/gosh/pkg/models"
+)
 
 type (
 	// DeleteResponse represents a result of a delete Server call.
@@ -295,3 +299,60 @@ type (
 		models.APIResponse
 	}
 )
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// the server has no generated network config rows.
+func (r *GenerateNetworkConfigResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]string{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// the server has no allocated IPs.
+func (r *ListAllocatedIPsResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]AllocatedIP{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// no statistics are available for the requested interval.
+func (r *GetStatisticsResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]interface{}{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
