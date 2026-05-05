@@ -108,10 +108,10 @@ func stepListResources(ctx context.Context, b *bandwidth.Client) error {
 // stepGetUsageByMonth is a sanity check on the per-IP populated-shape
 // decode. Skipped when the account has no IPv4 IPs.
 //
-// Filters to IPv4 deliberately: /bandwidth/get_ip_list.json mangles
-// IPv6 strings (replaces ':' with '.'), and the API then rejects the
-// mangled form on the way back into get_usage_by_*. Separate quirk,
-// tracked in docs/api-issues/bandwidth-get-ip-list-ipv6-mangling.md.
+// Filters to IPv4 deliberately: /bandwidth/get_ip_list.json returns
+// IPv6 strings with ':' replaced by '.' (and '::' as '..'), and the
+// API then rejects the mangled form on the way back into
+// get_usage_by_*. See models.IPAddress for the full caveat.
 func stepGetUsageByMonth(ctx context.Context, b *bandwidth.Client, ips map[string]models.IPAddress) error {
 	var ip string
 	for k, info := range ips {
