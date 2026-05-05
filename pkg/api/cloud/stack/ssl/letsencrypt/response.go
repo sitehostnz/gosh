@@ -1,6 +1,10 @@
 package letsencrypt
 
-import "github.com/sitehostnz/gosh/pkg/models"
+import (
+	"encoding/json"
+
+	"github.com/sitehostnz/gosh/pkg/models"
+)
 
 type (
 	// CertInfo is a single LE cert's metadata as returned by
@@ -37,3 +41,22 @@ type (
 		models.APIResponse
 	}
 )
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// no stacks have LE certs configured.
+func (r *ListResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]CertInfo{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
