@@ -1,6 +1,10 @@
 package dns
 
-import "github.com/sitehostnz/gosh/pkg/models"
+import (
+	"encoding/json"
+
+	"github.com/sitehostnz/gosh/pkg/models"
+)
 
 type (
 	// IPInfo describes a single IP allocation as returned by
@@ -25,8 +29,32 @@ type (
 	// ListIPsResponse represents the response from list_ips. The
 	// Return map is keyed by the IP address (as a string) — the
 	// same string is also present as IPAddr inside each entry.
+	//
+	// **Wire-shape quirk** (verified live): when the account has no
+	// allocated IPs, "return" is the JSON array `[]`, not the empty
+	// object `{}`. Custom UnmarshalJSON tolerates both forms.
 	ListIPsResponse struct {
 		Return map[string]IPInfo `json:"return"`
 		models.APIResponse
 	}
 )
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// the account has no allocated IPs. See type comment.
+func (r *ListIPsResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]IPInfo{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}

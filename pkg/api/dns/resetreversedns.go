@@ -18,7 +18,6 @@ import (
 // access check is asymmetric between the two endpoints. Workaround:
 // call UpdateReverseDNS with the platform default form (e.g.
 // "<dashed-ip>.sitehost.co.nz") instead of attempting a reset.
-// See docs/api-issues/dns-reset-reverse-dns-asymmetric-access.md.
 func (s *Client) ResetReverseDNS(ctx context.Context, request ResetReverseDNSRequest) (response models.APIResponse, err error) {
 	u := "dns/reset_reverse_dns.json"
 	keys := []string{"client_id", "ip_addr"}
