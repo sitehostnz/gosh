@@ -56,3 +56,28 @@ func TestListIPAddresses_Success(t *testing.T) {
 		t.Errorf("Family = %q, want 4", ip.Family)
 	}
 }
+
+func TestListIPAddresses_EmptyAccount(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":[]}`)
+	}))
+	defer server.Close()
+
+	c, err := api.New("k", "1", api.SetBaseURL(server.URL))
+	if err != nil {
+		t.Fatalf("api.New: %v", err)
+	}
+
+	got, err := New(c).ListIPAddresses(context.Background())
+	if err != nil {
+		t.Fatalf("ListIPAddresses: %v", err)
+	}
+	if got.Return == nil {
+		t.Fatal("Return is nil, want non-nil empty map")
+	}
+	if len(got.Return) != 0 {
+		t.Errorf("len(Return) = %d, want 0", len(got.Return))
+	}
+}

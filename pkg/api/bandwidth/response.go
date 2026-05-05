@@ -1,9 +1,17 @@
 package bandwidth
 
-import "github.com/sitehostnz/gosh/pkg/models"
+import (
+	"encoding/json"
+
+	"github.com/sitehostnz/gosh/pkg/models"
+)
 
 type (
 	// ListIPAddressesResponse represents a response from listing IP addresses with the `/bandwidth/get_ip_list.json` endpoint.
+	//
+	// **Wire-shape quirk** (verified live): when the account has no
+	// allocated IPs, "return" is the JSON array `[]`, not the empty
+	// object `{}`. Custom UnmarshalJSON tolerates both forms.
 	ListIPAddressesResponse struct {
 		models.APIResponse
 		Return map[string]models.IPAddress `json:"return"`
@@ -30,21 +38,30 @@ type (
 	//       by_month → "YYYY-MM"
 	//       by_year  → "YYYY"
 	//   - traffic-class is "DOMESTIC" or "INTERNATIONAL"
+	//
+	// **Wire-shape quirk** (verified live): when the account has no
+	// bandwidth history (or no rows in the queried window), "return"
+	// is the JSON array `[]`, not the empty object `{}`. Custom
+	// UnmarshalJSON tolerates both forms.
 	UsageResponse struct {
 		Return map[string]map[string]map[string]TrafficStats `json:"return"`
 		models.APIResponse
 	}
 
 	// ResourceQuota is a single quota entry inside a resource group.
-	// TotalUnits and UsedUnits are returned as strings; AvailableUnits
-	// is returned as a number (and may be negative when over-quota).
+	// AvailableUnits is returned as a number (and may be negative
+	// when over-quota).
+	//
+	// TotalUnits and UsedUnits use [Number] because the API mixes
+	// JSON-string and JSON-number forms within a single response —
+	// see the [Number] type documentation.
 	ResourceQuota struct {
 		AttributeID    string   `json:"attribute_id"`
 		AttributeName  string   `json:"attribute_name"`
 		AttributeUnit  string   `json:"attribute_unit"`
 		AttributeType  string   `json:"attribute_type"`
-		TotalUnits     string   `json:"total_units"`
-		UsedUnits      string   `json:"used_units"`
+		TotalUnits     Number   `json:"total_units"`
+		UsedUnits      Number   `json:"used_units"`
 		AvailableUnits int      `json:"available_units"`
 		Objects        []string `json:"objects"`
 	}
@@ -63,3 +80,44 @@ type (
 		models.APIResponse
 	}
 )
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// the account has no allocated IPs. See type comment.
+func (r *ListIPAddressesResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]models.IPAddress{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
+
+// UnmarshalJSON tolerates the empty-array form the API returns when
+// the account has no bandwidth history in the queried window. See
+// type comment.
+func (r *UsageResponse) UnmarshalJSON(data []byte) error {
+	var envelope struct {
+		Return json.RawMessage `json:"return"`
+		models.APIResponse
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return err
+	}
+	r.APIResponse = envelope.APIResponse
+
+	raw := envelope.Return
+	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+		r.Return = map[string]map[string]map[string]TrafficStats{}
+		return nil
+	}
+	return json.Unmarshal(raw, &r.Return)
+}
