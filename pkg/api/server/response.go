@@ -300,6 +300,13 @@ type (
 	}
 )
 
+// isEmptyMapShape reports whether the raw "return" payload is one of
+// the forms the API uses for an empty map: omitted/zero-length, JSON
+// null, or the empty array `[]` it serialises in place of `{}`.
+func isEmptyMapShape(raw json.RawMessage) bool {
+	return len(raw) == 0 || string(raw) == "null" || string(raw) == "[]"
+}
+
 // UnmarshalJSON tolerates the empty-array form the API returns when
 // the server has no generated network config rows.
 func (r *GenerateNetworkConfigResponse) UnmarshalJSON(data []byte) error {
@@ -312,7 +319,7 @@ func (r *GenerateNetworkConfigResponse) UnmarshalJSON(data []byte) error {
 	}
 	r.APIResponse = envelope.APIResponse
 	raw := envelope.Return
-	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+	if isEmptyMapShape(raw) {
 		r.Return = map[string]string{}
 		return nil
 	}
@@ -331,7 +338,7 @@ func (r *ListAllocatedIPsResponse) UnmarshalJSON(data []byte) error {
 	}
 	r.APIResponse = envelope.APIResponse
 	raw := envelope.Return
-	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+	if isEmptyMapShape(raw) {
 		r.Return = map[string]AllocatedIP{}
 		return nil
 	}
@@ -350,7 +357,7 @@ func (r *GetStatisticsResponse) UnmarshalJSON(data []byte) error {
 	}
 	r.APIResponse = envelope.APIResponse
 	raw := envelope.Return
-	if len(raw) == 0 || string(raw) == "null" || string(raw) == "[]" {
+	if isEmptyMapShape(raw) {
 		r.Return = map[string]interface{}{}
 		return nil
 	}
