@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
 )
@@ -47,13 +46,13 @@ func (s *Client) UpdateDomainDNS(ctx context.Context, request UpdateDomainDNSReq
 // records on a template when you want the change applied to every
 // domain it serves.
 func (s *Client) UpdateTemplateDNS(ctx context.Context, request UpdateTemplateDNSRequest) (response JobResponse, err error) {
-	if request.TemplateID == 0 {
+	if request.TemplateID == "" {
 		return response, fmt.Errorf("template.UpdateTemplateDNS: TemplateID is required")
 	}
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("template_id", strconv.Itoa(request.TemplateID))
+	values.Add("template_id", request.TemplateID)
 
 	req, err := s.client.NewRequest("POST", "dns/domain_templates/update_template_dns.json",
 		net.Encode(values, []string{"client_id", "template_id"}))

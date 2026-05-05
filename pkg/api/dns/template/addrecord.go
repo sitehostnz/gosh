@@ -16,7 +16,7 @@ import (
 // Type must be one of: A, AAAA, NS, MX, PTR, SRV, TXT, CNAME.
 // Priority is only meaningful for MX/SRV; pass 0 otherwise.
 func (s *Client) AddRecord(ctx context.Context, request AddRecordRequest) (response models.APIResponse, err error) {
-	if request.TemplateID == 0 {
+	if request.TemplateID == "" {
 		return response, fmt.Errorf("template.AddRecord: TemplateID is required")
 	}
 	if request.Type == "" || request.Name == "" || request.Content == "" {
@@ -25,7 +25,7 @@ func (s *Client) AddRecord(ctx context.Context, request AddRecordRequest) (respo
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("template_id", strconv.Itoa(request.TemplateID))
+	values.Add("template_id", request.TemplateID)
 	values.Add("type", request.Type)
 	values.Add("name", request.Name)
 	values.Add("content", request.Content)

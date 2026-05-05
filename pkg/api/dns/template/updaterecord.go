@@ -13,7 +13,7 @@ import (
 // UpdateRecord replaces a template record in-place via
 // /dns/domain_templates/update_record.json. All fields required.
 func (s *Client) UpdateRecord(ctx context.Context, request UpdateRecordRequest) (response models.APIResponse, err error) {
-	if request.TemplateID == 0 || request.RecordID == 0 {
+	if request.TemplateID == "" || request.RecordID == 0 {
 		return response, fmt.Errorf("template.UpdateRecord: TemplateID and RecordID are required")
 	}
 	if request.Type == "" || request.Name == "" || request.Content == "" {
@@ -22,7 +22,7 @@ func (s *Client) UpdateRecord(ctx context.Context, request UpdateRecordRequest) 
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("template_id", strconv.Itoa(request.TemplateID))
+	values.Add("template_id", request.TemplateID)
 	values.Add("record_id", strconv.Itoa(request.RecordID))
 	values.Add("type", request.Type)
 	values.Add("name", request.Name)

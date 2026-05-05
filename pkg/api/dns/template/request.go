@@ -2,13 +2,18 @@ package template
 
 type (
 	// GetRequest fetches one template's metadata + SOA defaults.
+	//
+	// TemplateID is a string because the API accepts and returns it
+	// that way (e.g. "0", "855") and template_id "0" is the real
+	// "Manual DNS Settings" platform-shared template — typing it as
+	// int and rejecting the zero value would block legitimate calls.
 	GetRequest struct {
-		TemplateID int
+		TemplateID string
 	}
 
 	// ListRecordsRequest lists every record under a template.
 	ListRecordsRequest struct {
-		TemplateID int
+		TemplateID string
 	}
 
 	// SearchTemplatesRequest fuzzy-matches templates by name.
@@ -37,7 +42,7 @@ type (
 	// CloneTemplateRequest duplicates an existing template under
 	// a new name. The clone inherits records and SOA defaults.
 	CloneTemplateRequest struct {
-		TemplateID      int
+		TemplateID      string
 		NewTemplateName string
 	}
 
@@ -45,21 +50,21 @@ type (
 	// only documents `new_name` as updatable here; for SOA-default
 	// edits, recreate or use UpdateTemplateDNS to rebuild zones.
 	UpdateTemplateRequest struct {
-		TemplateID int
+		TemplateID string
 		NewName    string
 	}
 
 	// DeleteTemplateRequest removes a template. The API rejects the
 	// call if any domain is still linked to it.
 	DeleteTemplateRequest struct {
-		TemplateID int
+		TemplateID string
 	}
 
 	// AddRecordRequest adds a record to a template. Type is one of
 	// the documented enum: A, AAAA, NS, MX, PTR, SRV, TXT, CNAME.
 	// Priority is only meaningful for MX/SRV; pass 0 otherwise.
 	AddRecordRequest struct {
-		TemplateID int
+		TemplateID string
 		Type       string
 		Name       string
 		Content    string
@@ -69,7 +74,7 @@ type (
 	// UpdateRecordRequest replaces a record in-place. All fields
 	// are required.
 	UpdateRecordRequest struct {
-		TemplateID int
+		TemplateID string
 		RecordID   int
 		Type       string
 		Name       string
@@ -79,15 +84,15 @@ type (
 
 	// DeleteRecordRequest removes one record from a template.
 	DeleteRecordRequest struct {
-		TemplateID int
+		TemplateID string
 		RecordID   int
 	}
 
 	// UpdateDomainRequest points a domain at a different template
-	// (or unlinks it by passing TemplateID=0).
+	// (or unlinks it by passing TemplateID="").
 	UpdateDomainRequest struct {
 		Domain     string
-		TemplateID int
+		TemplateID string
 	}
 
 	// UpdateDomainDNSRequest forces a rebuild of one domain's zone
@@ -99,6 +104,6 @@ type (
 	// UpdateTemplateDNSRequest forces a rebuild of every domain
 	// linked to the given template. Returns a scheduler job.
 	UpdateTemplateDNSRequest struct {
-		TemplateID int
+		TemplateID string
 	}
 )

@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // UpdateDomain points a domain at a different template via
-// /dns/domain_templates/update_domain.json. Pass TemplateID=0 to
+// /dns/domain_templates/update_domain.json. Pass TemplateID="" to
 // unlink the domain entirely (it then keeps its current zone but
 // no longer tracks any template).
 func (s *Client) UpdateDomain(ctx context.Context, request UpdateDomainRequest) (response UpdateDomainResponse, err error) {
@@ -21,7 +20,7 @@ func (s *Client) UpdateDomain(ctx context.Context, request UpdateDomainRequest) 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
 	values.Add("domain", request.Domain)
-	values.Add("params[template_id]", strconv.Itoa(request.TemplateID))
+	values.Add("params[template_id]", request.TemplateID)
 
 	req, err := s.client.NewRequest("POST", "dns/domain_templates/update_domain.json",
 		net.Encode(values, []string{"client_id", "domain", "params[template_id]"}))

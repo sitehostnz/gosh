@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 
 	"github.com/sitehostnz/gosh/pkg/net"
 )
@@ -13,7 +12,7 @@ import (
 // via /dns/domain_templates/clone_template.json. The clone
 // inherits records and SOA defaults from the source template.
 func (s *Client) CloneTemplate(ctx context.Context, request CloneTemplateRequest) (response CloneTemplateResponse, err error) {
-	if request.TemplateID == 0 {
+	if request.TemplateID == "" {
 		return response, fmt.Errorf("template.CloneTemplate: TemplateID is required")
 	}
 	if request.NewTemplateName == "" {
@@ -22,7 +21,7 @@ func (s *Client) CloneTemplate(ctx context.Context, request CloneTemplateRequest
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("template_id", strconv.Itoa(request.TemplateID))
+	values.Add("template_id", request.TemplateID)
 	values.Add("new_template_name", request.NewTemplateName)
 
 	req, err := s.client.NewRequest("POST", "dns/domain_templates/clone_template.json",

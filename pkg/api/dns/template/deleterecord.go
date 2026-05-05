@@ -13,13 +13,13 @@ import (
 // DeleteRecord removes one record from a template via
 // /dns/domain_templates/delete_record.json.
 func (s *Client) DeleteRecord(ctx context.Context, request DeleteRecordRequest) (response models.APIResponse, err error) {
-	if request.TemplateID == 0 || request.RecordID == 0 {
+	if request.TemplateID == "" || request.RecordID == 0 {
 		return response, fmt.Errorf("template.DeleteRecord: TemplateID and RecordID are required")
 	}
 
 	values := url.Values{}
 	values.Add("client_id", s.client.ClientID)
-	values.Add("template_id", strconv.Itoa(request.TemplateID))
+	values.Add("template_id", request.TemplateID)
 	values.Add("record_id", strconv.Itoa(request.RecordID))
 
 	req, err := s.client.NewRequest("POST", "dns/domain_templates/delete_record.json",

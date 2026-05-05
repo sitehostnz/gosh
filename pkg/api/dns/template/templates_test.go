@@ -41,7 +41,7 @@ func TestGet_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).Get(context.Background(), GetRequest{TemplateID: 168})
+	got, err := New(c).Get(context.Background(), GetRequest{TemplateID: "168"})
 	if err != nil {
 		t.Fatalf("Get: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestListRecords_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).ListRecords(context.Background(), ListRecordsRequest{TemplateID: 12})
+	got, err := New(c).ListRecords(context.Background(), ListRecordsRequest{TemplateID: "12"})
 	if err != nil {
 		t.Fatalf("ListRecords: %v", err)
 	}
@@ -174,7 +174,7 @@ func TestCloneTemplate_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).CloneTemplate(context.Background(), CloneTemplateRequest{
-		TemplateID: 1, NewTemplateName: "Clone",
+		TemplateID: "1", NewTemplateName: "Clone",
 	})
 	if err != nil {
 		t.Fatalf("CloneTemplate: %v", err)
@@ -197,7 +197,7 @@ func TestUpdateTemplate_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).UpdateTemplate(context.Background(), UpdateTemplateRequest{
-		TemplateID: 1, NewName: "Renamed",
+		TemplateID: "1", NewName: "Renamed",
 	}); err != nil {
 		t.Fatalf("UpdateTemplate: %v", err)
 	}
@@ -215,7 +215,7 @@ func TestDeleteTemplate_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	if _, err := New(c).DeleteTemplate(context.Background(), DeleteTemplateRequest{TemplateID: 15}); err != nil {
+	if _, err := New(c).DeleteTemplate(context.Background(), DeleteTemplateRequest{TemplateID: "15"}); err != nil {
 		t.Fatalf("DeleteTemplate: %v", err)
 	}
 }
@@ -233,7 +233,7 @@ func TestAddRecord_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).AddRecord(context.Background(), AddRecordRequest{
-		TemplateID: 1, Type: "A", Name: "subdomain", Content: "1.1.1.1",
+		TemplateID: "1", Type: "A", Name: "subdomain", Content: "1.1.1.1",
 	}); err != nil {
 		t.Fatalf("AddRecord: %v", err)
 	}
@@ -252,7 +252,7 @@ func TestUpdateRecord_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).UpdateRecord(context.Background(), UpdateRecordRequest{
-		TemplateID: 1, RecordID: 12, Type: "A", Name: "x", Content: "192.168.1.10",
+		TemplateID: "1", RecordID: 12, Type: "A", Name: "x", Content: "192.168.1.10",
 	}); err != nil {
 		t.Fatalf("UpdateRecord: %v", err)
 	}
@@ -271,7 +271,7 @@ func TestDeleteRecord_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	if _, err := New(c).DeleteRecord(context.Background(), DeleteRecordRequest{
-		TemplateID: 36, RecordID: 12,
+		TemplateID: "36", RecordID: 12,
 	}); err != nil {
 		t.Fatalf("DeleteRecord: %v", err)
 	}
@@ -290,7 +290,7 @@ func TestUpdateDomain_Success(t *testing.T) {
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).UpdateDomain(context.Background(), UpdateDomainRequest{
-		Domain: "example.com", TemplateID: 23,
+		Domain: "example.com", TemplateID: "23",
 	})
 	if err != nil {
 		t.Fatalf("UpdateDomain: %v", err)
@@ -335,7 +335,7 @@ func TestUpdateTemplateDNS_ReturnsJob(t *testing.T) {
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).UpdateTemplateDNS(context.Background(), UpdateTemplateDNSRequest{TemplateID: 9})
+	got, err := New(c).UpdateTemplateDNS(context.Background(), UpdateTemplateDNSRequest{TemplateID: "9"})
 	if err != nil {
 		t.Fatalf("UpdateTemplateDNS: %v", err)
 	}
