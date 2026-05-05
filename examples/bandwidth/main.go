@@ -20,6 +20,7 @@ import (
 
 	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/api/bandwidth"
+	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 func main() {
@@ -41,80 +42,98 @@ func run() error {
 	b := bandwidth.New(c)
 	ctx := context.Background()
 
-	// 1. ListIPAddresses — exercises the empty-array decode path on
-	// accounts with no allocated IPs (return: []).
-	ips, err := b.ListIPAddresses(ctx)
+	ips, err := stepListIPAddresses(ctx, b)
 	if err != nil {
-		return fmt.Errorf("ListIPAddresses: %w", err)
+		return err
 	}
-	log.Printf("✓ ListIPAddresses: %d IP(s)", len(ips.Return))
+	if err := stepGetUsageSummary(ctx, b); err != nil {
+		return err
+	}
+	if err := stepListResources(ctx, b); err != nil {
+		return err
+	}
+	return stepGetUsageByMonth(ctx, b, ips)
+}
 
-	// 2. GetUsageSummary — exercises the empty-array decode path on
-	// accounts with no bandwidth history.
-	sum, err := b.GetUsageSummary(ctx)
+// stepListIPAddresses exercises the empty-array decode path on
+// accounts with no allocated IPs (return: []).
+func stepListIPAddresses(ctx context.Context, b *bandwidth.Client) (map[string]models.IPAddress, error) {
+	resp, err := b.ListIPAddresses(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("ListIPAddresses: %w", err)
+	}
+	log.Printf("✓ ListIPAddresses: %d IP(s)", len(resp.Return))
+	return resp.Return, nil
+}
+
+// stepGetUsageSummary exercises the empty-array decode path on
+// accounts with no bandwidth history.
+func stepGetUsageSummary(ctx context.Context, b *bandwidth.Client) error {
+	resp, err := b.GetUsageSummary(ctx)
 	if err != nil {
 		return fmt.Errorf("GetUsageSummary: %w", err)
 	}
 	periods := 0
-	for _, byPeriod := range sum.Return {
+	for _, byPeriod := range resp.Return {
 		periods += len(byPeriod)
 	}
-	log.Printf("✓ GetUsageSummary: %d IP(s), %d period(s) total", len(sum.Return), periods)
+	log.Printf("✓ GetUsageSummary: %d IP(s), %d period(s) total", len(resp.Return), periods)
+	return nil
+}
 
-	// 3. ListResources — exercises the mixed-type decode path. Any
-	// quota row with zero usage returns used_units as a JSON number
-	// rather than the string used for non-zero rows; the Number type
-	// accepts both.
-	res, err := b.ListResources(ctx)
+// stepListResources exercises the mixed-type decode path. Any quota
+// row with zero usage returns used_units as a JSON number rather than
+// the string used for non-zero rows; the Number type accepts both.
+func stepListResources(ctx context.Context, b *bandwidth.Client) error {
+	resp, err := b.ListResources(ctx)
 	if err != nil {
 		return fmt.Errorf("ListResources: %w", err)
 	}
-	groups := len(res.Return)
-	totalQuotas, zeroQuotas, nonZeroQuotas := 0, 0, 0
-	for _, g := range res.Return {
+	total, zero, nonZero := 0, 0, 0
+	for _, g := range resp.Return {
 		for _, q := range g.Quotas {
-			totalQuotas++
+			total++
 			if q.UsedUnits == 0 {
-				zeroQuotas++
+				zero++
 			} else {
-				nonZeroQuotas++
+				nonZero++
 			}
 		}
 	}
 	log.Printf("✓ ListResources: %d group(s), %d quota(s) total (%d non-zero, %d zero — both decode shapes)",
-		groups, totalQuotas, nonZeroQuotas, zeroQuotas)
+		len(resp.Return), total, nonZero, zero)
+	return nil
+}
 
-	// 4. GetUsageByMonth — sanity check on the per-IP populated-shape
-	// decode for one of the windowed endpoints. Skipped when the
-	// account has no IPs (the empty-array case is already covered by
-	// GetUsageSummary above).
-	// Pick an IPv4 entry. IPv6 strings come back from
-	// /bandwidth/get_ip_list.json with dots in place of colons
-	// (e.g. "2403.7000.8000.300..ce/128") and the API will then
-	// reject them as invalid on the way back into get_usage_by_*.
-	// Separate quirk; not in scope for this PR.
-	var anyIP string
-	for k, info := range ips.Return {
+// stepGetUsageByMonth is a sanity check on the per-IP populated-shape
+// decode. Skipped when the account has no IPv4 IPs.
+//
+// Filters to IPv4 deliberately: /bandwidth/get_ip_list.json mangles
+// IPv6 strings (replaces ':' with '.'), and the API then rejects the
+// mangled form on the way back into get_usage_by_*. Separate quirk,
+// tracked in docs/api-issues/bandwidth-get-ip-list-ipv6-mangling.md.
+func stepGetUsageByMonth(ctx context.Context, b *bandwidth.Client, ips map[string]models.IPAddress) error {
+	var ip string
+	for k, info := range ips {
 		if info.Family == "4" {
-			anyIP = k
+			ip = k
 			break
 		}
 	}
-	if anyIP == "" {
+	if ip == "" {
 		log.Printf("- GetUsageByMonth: skipped (no IPv4 IPs)")
 		return nil
 	}
-	month, err := b.GetUsageByMonth(ctx, bandwidth.UsageOptions{IPAddr: anyIP})
+	resp, err := b.GetUsageByMonth(ctx, bandwidth.UsageOptions{IPAddr: ip})
 	if err != nil {
 		return fmt.Errorf("GetUsageByMonth: %w", err)
 	}
 	rows := 0
-	for _, byPeriod := range month.Return {
+	for _, byPeriod := range resp.Return {
 		for _, byClass := range byPeriod {
 			rows += len(byClass)
 		}
 	}
-	log.Printf("✓ GetUsageByMonth(%s): %d IP(s), %d (period × class) row(s)", anyIP, len(month.Return), rows)
-
+	log.Printf("✓ GetUsageByMonth(%s): %d IP(s), %d (period × class) row(s)", ip, len(resp.Return), rows)
 	return nil
 }
