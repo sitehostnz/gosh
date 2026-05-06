@@ -1,0 +1,49 @@
+package dns
+
+import (
+	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/sitehostnz/gosh/pkg/api"
+)
+
+func TestCreateZone_Success(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Errorf("method = %q, want POST", r.Method)
+		}
+		if r.URL.Path != "/dns/create_domain.json" {
+			t.Errorf("path = %q, want /dns/create_domain.json", r.URL.Path)
+		}
+		if err := r.ParseForm(); err != nil {
+			t.Fatalf("ParseForm: %v", err)
+		}
+		if got := r.Form.Get("domain"); got != testDomain {
+			t.Errorf("domain = %q, want %s", got, testDomain)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"status": true, "msg": "Successful", "return": {"is_migration": false}}`)
+	}))
+	defer server.Close()
+
+	c, err := api.New("k", "1", api.SetBaseURL(server.URL))
+	if err != nil {
+		t.Fatalf("api.New: %v", err)
+	}
+
+	got, err := New(c).CreateZone(context.Background(), CreateZoneRequest{DomainName: testDomain})
+	if err != nil {
+		t.Fatalf("CreateZone: %v", err)
+	}
+
+	if !got.Status {
+		t.Errorf("Status = false, want true")
+	}
+	if got.Return.IsMigration {
+		t.Errorf("IsMigration = true, want false")
+	}
+}
