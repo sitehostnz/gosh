@@ -2,11 +2,11 @@ package srs
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/go-querystring/query"
 	"github.com/sitehostnz/gosh/pkg/models"
-	"github.com/sitehostnz/gosh/pkg/net"
 )
 
 // EmailTemplate is a single registry-email template (renewal
@@ -71,45 +71,53 @@ type GetEmailTemplateResponse struct {
 	models.APIResponse
 }
 
-// GetEmailTemplate returns a single email template via
-// "srs/get_email_templates.json" (GET). Note the docs spell the
-// path with the trailing 's' on "templates" even for a single-
+// ErrEmailTemplateUnsupported is returned by GetEmailTemplate to
+// signal that the underlying API endpoint is not currently usable
+// from this SDK. The lookup-key namespace expected by
+// /srs/get_email_templates.json appears disjoint from anything
+// surfaced by ListEmailTemplates (numeric template_id, type slug,
+// human name — none accepted), and there's no documented form that
+// satisfies it. Use ListEmailTemplates to read template bodies in
+// the meantime.
+//
+// Match with errors.Is so the SDK can lift this to a real
+// implementation later without a breaking change at the call site.
+var ErrEmailTemplateUnsupported = errors.New(
+	"srs.GetEmailTemplate: endpoint not currently usable — " +
+		"every probed input form is rejected by the API with " +
+		"\"The specified template doesnt exist, or you dont have " +
+		"access to it.\" (sic). Use ListEmailTemplates to read " +
+		"template bodies until the expected input form is clarified",
+)
+
+// GetEmailTemplate is the wrapper for "srs/get_email_templates.json"
+// (GET) — note the trailing 's' on "templates" even for a single-
 // template lookup.
 //
-// **Live finding (May 2026, gosh):** every plausible value derived
-// from ListEmailTemplates output — the numeric `template_id`
-// ("11239" or its "-13" prefixed form), the type slug
-// ("AutoRenewReminder"), the lowercase variant, the human name
-// ("Auto-Renew Reminder - 7 Days") — returns
+// **Currently unusable.** Live probing (May 2026) exhausted every
+// plausible value derived from ListEmailTemplates output — the
+// numeric `template_id` ("11239" or its "-13" prefixed form), the
+// type slug ("AutoRenewReminder"), the lowercase variant, the human
+// name ("Auto-Renew Reminder - 7 Days") — and every one was
+// rejected with
 //
 //	200 Error: The specified template doesnt exist, or you dont
 //	have access to it.
 //
 // (sic — API text omits the apostrophes). The lookup-key namespace
-// for this endpoint appears disjoint from ListEmailTemplates'
-// output. Wrapped here for completeness; consumers should expect
-// API-level rejection until the expected input form is clarified.
+// for this endpoint appears disjoint from anything ListEmailTemplates
+// surfaces.
 //
-// The wrapper's own SDK-level guard fires on empty input
-// ("Template is required") before reaching the API — the API's
-// own missing-parameter rejection ("The template name is missing.")
-// isn't normally observable.
-func (s *Client) GetEmailTemplate(ctx context.Context, opt GetEmailTemplateOptions) (response GetEmailTemplateResponse, err error) {
+// To avoid relying on doc-comment-only warnings, the wrapper
+// short-circuits and returns [ErrEmailTemplateUnsupported] without
+// making the API call. Consumers can detect this with errors.Is.
+// When the upstream input shape is clarified, the wrapper can be
+// switched to making the real call without breaking call sites.
+func (s *Client) GetEmailTemplate(_ context.Context, opt GetEmailTemplateOptions) (response GetEmailTemplateResponse, err error) {
 	if opt.Template == "" {
 		return response, fmt.Errorf("srs.GetEmailTemplate: Template is required")
 	}
-	path, err := net.AddOptions("srs/get_email_templates.json", opt)
-	if err != nil {
-		return response, err
-	}
-	req, err := s.client.NewRequest("GET", path, "")
-	if err != nil {
-		return response, err
-	}
-	if err := s.client.Do(ctx, req, &response); err != nil {
-		return response, err
-	}
-	return response, nil
+	return response, ErrEmailTemplateUnsupported
 }
 
 // UpdateEmailTemplateOptions edits a single template.

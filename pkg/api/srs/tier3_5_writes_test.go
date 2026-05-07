@@ -2,6 +2,7 @@ package srs
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -222,23 +223,25 @@ func TestListEmailTemplates_GET(t *testing.T) {
 	}
 }
 
-func TestGetEmailTemplate_Success(t *testing.T) {
+// TestGetEmailTemplate_Unsupported asserts the wrapper short-circuits
+// with ErrEmailTemplateUnsupported (no API round-trip) so callers
+// detect the broken-upstream state via errors.Is. When the API's
+// expected input shape is clarified, switch this test back to the
+// round-trip form.
+func TestGetEmailTemplate_Unsupported(t *testing.T) {
 	t.Parallel()
-	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("template") != testTemplate {
-			t.Errorf("template = %q", r.URL.Query().Get("template"))
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":{"name":"renewal","subject":"S","template":"T","type":"AutoRenewReminder"}}`)
+	called := false
+	srv := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		called = true
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).GetEmailTemplate(context.Background(), GetEmailTemplateOptions{Template: testTemplate})
-	if err != nil {
-		t.Fatalf("GetEmailTemplate: %v", err)
+	_, err := New(c).GetEmailTemplate(context.Background(), GetEmailTemplateOptions{Template: testTemplate})
+	if !errors.Is(err, ErrEmailTemplateUnsupported) {
+		t.Fatalf("err = %v, want errors.Is(_, ErrEmailTemplateUnsupported)", err)
 	}
-	if got.Return.Subject != "S" {
-		t.Errorf("Subject = %q", got.Return.Subject)
+	if called {
+		t.Errorf("expected no HTTP call; the wrapper should short-circuit")
 	}
 }
 
