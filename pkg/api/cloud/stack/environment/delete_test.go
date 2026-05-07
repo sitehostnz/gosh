@@ -32,14 +32,21 @@ func TestDelete_Success(t *testing.T) {
 			t.Errorf("variables = %v", v)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful"}`)
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"job":{"id":"123","type":"scheduler"}}}`)
 	}))
 	defer srv.Close()
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	if _, err := New(c).Delete(context.Background(), DeleteRequest{
+	got, err := New(c).Delete(context.Background(), DeleteRequest{
 		ServerName: "ch-test", Project: "myproj", Service: "web",
 		Names: []string{"FOO", "BAR"},
-	}); err != nil {
+	})
+	if err != nil {
 		t.Fatalf("Delete: %v", err)
+	}
+	if got.Return.ID != "123" {
+		t.Errorf("Return.Job.ID = %q, want \"123\"", got.Return.ID)
+	}
+	if got.Return.Type != "scheduler" {
+		t.Errorf("Return.Job.Type = %q, want \"scheduler\"", got.Return.Type)
 	}
 }

@@ -15,6 +15,9 @@ import (
 // Same param shape as Update — server, project, service — with
 // `variables[N][name]` instead of `variables[N][name]` +
 // `variables[N][content]` pairs.
+//
+// Async: the response carries a scheduler job descriptor; poll via
+// job.Get to confirm the variables were actually removed.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/stack/environment/delete.json"
 	keys := []string{
