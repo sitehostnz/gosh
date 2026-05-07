@@ -8,8 +8,9 @@ type (
 	// is an optional filter restricting the result to specific
 	// containers within the stack.
 	//
-	// Both ServerName and StackName are required by the API; omitting
-	// the stack name returns "The stack name is missing."
+	// Both ServerName and StackName are required by the API;
+	// omitting the stack name returns the API error
+	// "The stack name is missing.".
 	ListRequest struct {
 		ServerName string   `url:"server"`
 		StackName  string   `url:"name"`
