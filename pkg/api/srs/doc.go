@@ -29,10 +29,9 @@
 // identically on .nz / .au / .uk / etc. The wrapper produces the
 // well-formed request; the API enforces TLD policy on top.
 //
-// **Open question for the API team** captured at
-// docs/api-issues/srs-tld-capability-matrix.md: could there be a
-// per-TLD capability endpoint so SDK consumers know upfront which
-// ops will be rejected?
+// **Open question for the API team:** could there be a per-TLD
+// capability endpoint so SDK consumers know upfront which ops will
+// be rejected?
 //
 // # Endpoint surface in this package
 //

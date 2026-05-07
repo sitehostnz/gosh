@@ -5,6 +5,11 @@ import "github.com/sitehostnz/gosh/pkg/models"
 type (
 	// ContactSummary is the brief contact entry returned by
 	// list_contacts and search_contacts.
+	//
+	// DomainCount uses [Number] because the API returns it as a JSON
+	// number for established contacts (`0`) and as a JSON string for
+	// newly-created contacts (`"0"`) within the same shape — see the
+	// Number type documentation.
 	ContactSummary struct {
 		ContactID      string `json:"contact_id"`
 		Name           string `json:"name"`
@@ -14,7 +19,7 @@ type (
 		PhoneArea      string `json:"phone_area"`
 		PhoneLocal     string `json:"phone_local"`
 		PhoneExtension string `json:"phone_extension"`
-		DomainCount    int    `json:"domain_count"`
+		DomainCount    Number `json:"domain_count"`
 	}
 
 	// ListContactsResponse represents the response from list_contacts.

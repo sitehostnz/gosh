@@ -76,18 +76,24 @@ type GetEmailTemplateResponse struct {
 // path with the trailing 's' on "templates" even for a single-
 // template lookup.
 //
-// **Live finding (May 2026, gosh):** the `template` parameter is
-// validated as required ("The template name is missing." when
-// omitted) but no obvious value satisfies it. Probed against a
-// real account, none of the values surfaced by ListEmailTemplates
-// — the human-readable `name` ("Auto-Renew Reminder - 7 Days"),
-// the `type` slug ("AutoRenewReminder"), or the numeric
-// `template_id` ("11239") — were accepted; all returned "The
-// specified template doesn't exist, or you don't have access to
-// it." Use ListEmailTemplates to read template bodies in the
-// meantime; GetEmailTemplate is wrapped for completeness but is
-// effectively unusable until SiteHost clarifies the parameter
-// shape. See docs/api-issues/srs-get-email-template-shape.md.
+// **Live finding (May 2026, gosh):** every plausible value derived
+// from ListEmailTemplates output — the numeric `template_id`
+// ("11239" or its "-13" prefixed form), the type slug
+// ("AutoRenewReminder"), the lowercase variant, the human name
+// ("Auto-Renew Reminder - 7 Days") — returns
+//
+//	200 Error: The specified template doesnt exist, or you dont
+//	have access to it.
+//
+// (sic — API text omits the apostrophes). The lookup-key namespace
+// for this endpoint appears disjoint from ListEmailTemplates'
+// output. Wrapped here for completeness; consumers should expect
+// API-level rejection until the expected input form is clarified.
+//
+// The wrapper's own SDK-level guard fires on empty input
+// ("Template is required") before reaching the API — the API's
+// own missing-parameter rejection ("The template name is missing.")
+// isn't normally observable.
 func (s *Client) GetEmailTemplate(ctx context.Context, opt GetEmailTemplateOptions) (response GetEmailTemplateResponse, err error) {
 	if opt.Template == "" {
 		return response, fmt.Errorf("srs.GetEmailTemplate: Template is required")

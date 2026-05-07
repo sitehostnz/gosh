@@ -17,7 +17,7 @@ import (
 // `srs/domain_available.json`. A bare label without TLD is rejected
 // with "Please specify a valid domain name." If a true multi-TLD
 // fan-out parameter exists it isn't documented and we couldn't
-// surface it via probing — see docs/api-issues/.
+// surface it via probing.
 type TLDsAvailableOptions struct {
 	Domain string `url:"domain"`
 }

@@ -29,17 +29,18 @@ import (
 // errors like "phone country code number is missing" or "phone
 // number is missing".
 //
-// # Required vs optional (per docs)
+// # Required vs optional (live finding — diverges from public docs)
 //
 // Required (server-side validated):
 //   - Name, Email
 //   - PostalAddress, PostalAddress2
+//   - Suburb (live: omitting it returns "The suburb is missing.")
 //   - City, Country (ISO 2-letter, e.g. "NZ")
 //   - PostCode (params[PostCode])
 //   - Phone: Country, Area, Local (Extension optional)
 //
 // Optional but commonly required by registries:
-//   - Suburb, Province, Organisation
+//   - Province, Organisation
 //   - Fax, Mobile (full sub-arrays)
 //
 // # Email TLD constraint (live finding)
@@ -61,7 +62,7 @@ type CreateContactOptions struct {
 	Email          string `url:"email"`
 	PostalAddress  string `url:"postal_address"`
 	PostalAddress2 string `url:"postal_address2"`
-	Suburb         string `url:"suburb,omitempty"`
+	Suburb         string `url:"suburb"`
 	City           string `url:"city"`
 	Country        string `url:"country"`
 	PostCode       string `url:"params[PostCode]"`

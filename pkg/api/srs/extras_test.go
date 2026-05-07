@@ -193,6 +193,39 @@ func TestGetContact_Success(t *testing.T) {
 	}
 }
 
+// TestListContacts_DomainCountString locks down the polymorphic
+// domain_count quirk: established contacts return it as a JSON
+// number, newly-created contacts return it as a JSON string. Both
+// must decode without error.
+func TestListContacts_DomainCountString(t *testing.T) {
+	t.Parallel()
+	c, done := mockSRS(t, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{
+			"total_items":2,"current_items":2,"current_page":1,"total_pages":1,
+			"status":true,"msg":"OK",
+			"return":[
+				{"contact_id":"9001","name":"Established","registrant_name":"E","email":"e@example.co.nz","phone_cntry":"64","phone_area":"09","phone_local":"1234567","phone_extension":"","domain_count":7},
+				{"contact_id":"9002","name":"Newly Created","registrant_name":"N","email":"n@example.co.nz","phone_cntry":"64","phone_area":"09","phone_local":"7654321","phone_extension":"","domain_count":"0"}
+			]
+		}`)
+	})
+	defer done()
+	got, err := New(c).ListContacts(context.Background())
+	if err != nil {
+		t.Fatalf("ListContacts: %v", err)
+	}
+	if len(got.Return) != 2 {
+		t.Fatalf("len(Return) = %d, want 2", len(got.Return))
+	}
+	if got.Return[0].DomainCount != 7 {
+		t.Errorf("Return[0].DomainCount = %d, want 7", got.Return[0].DomainCount)
+	}
+	if got.Return[1].DomainCount != 0 {
+		t.Errorf("Return[1].DomainCount = %d, want 0 (string-form)", got.Return[1].DomainCount)
+	}
+}
+
 func TestSearchContacts_FilterRequired(t *testing.T) {
 	t.Parallel()
 	c, _ := api.New("k", "1")
