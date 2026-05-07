@@ -136,15 +136,20 @@ type (
 	}
 
 	// ResourceQuota is a single quota entry inside a resource group.
-	// TotalUnits and UsedUnits are returned as strings; AvailableUnits
-	// is returned as a number (and may be negative when over-quota).
+	// AvailableUnits is returned as a number (and may be negative
+	// when over-quota).
+	//
+	// TotalUnits and UsedUnits use [Number] because the API mixes
+	// JSON-string and JSON-number forms within a single response —
+	// see the [Number] type documentation. Same quirk as the
+	// parallel /bandwidth/list_resources endpoint addressed in #43.
 	ResourceQuota struct {
 		AttributeID    string   `json:"attribute_id"`
 		AttributeName  string   `json:"attribute_name"`
 		AttributeUnit  string   `json:"attribute_unit"`
 		AttributeType  string   `json:"attribute_type"`
-		TotalUnits     string   `json:"total_units"`
-		UsedUnits      string   `json:"used_units"`
+		TotalUnits     Number   `json:"total_units"`
+		UsedUnits      Number   `json:"used_units"`
 		AvailableUnits int      `json:"available_units"`
 		Objects        []string `json:"objects"`
 	}

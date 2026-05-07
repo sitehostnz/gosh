@@ -67,13 +67,76 @@ func TestListResources_Success(t *testing.T) {
 	if q.AttributeName != "VPS Disk Space" {
 		t.Errorf("AttributeName = %q, want VPS Disk Space", q.AttributeName)
 	}
-	if q.TotalUnits != "1424" {
-		t.Errorf("TotalUnits = %q, want 1424", q.TotalUnits)
+	if q.TotalUnits != 1424 {
+		t.Errorf("TotalUnits = %v, want 1424", q.TotalUnits)
 	}
 	if q.AvailableUnits != -100 {
 		t.Errorf("AvailableUnits = %d, want -100", q.AvailableUnits)
 	}
 	if len(q.Objects) != 2 {
 		t.Errorf("len(Objects) = %d, want 2", len(q.Objects))
+	}
+}
+
+// TestListResources_MixedNumberShapes locks down the polymorphic
+// used_units quirk: same-response mix of JSON-string (non-zero rows)
+// and JSON-number (zero rows). Same quirk as the parallel
+// /bandwidth/list_resources endpoint addressed in #43.
+func TestListResources_MixedNumberShapes(t *testing.T) {
+	t.Parallel()
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{
+			"status": true,
+			"msg": "Successful",
+			"return": [
+				{
+					"client_id": "1234",
+					"group_id": "1",
+					"group_name": "NZ - Linux Servers",
+					"quotas": [
+						{
+							"attribute_id": "1",
+							"attribute_name": "VPS Disk Space (used)",
+							"attribute_unit": "GB",
+							"attribute_type": "0",
+							"total_units": "1424",
+							"used_units": "783",
+							"available_units": 641,
+							"objects": []
+						},
+						{
+							"attribute_id": "2",
+							"attribute_name": "VPS Disk Space (zero)",
+							"attribute_unit": "GB",
+							"attribute_type": "0",
+							"total_units": "1424",
+							"used_units": 0,
+							"available_units": 1424,
+							"objects": []
+						}
+					]
+				}
+			]
+		}`)
+	}))
+	defer srv.Close()
+
+	c, err := api.New("k", "1", api.SetBaseURL(srv.URL))
+	if err != nil {
+		t.Fatalf("api.New: %v", err)
+	}
+	got, err := New(c).ListResources(context.Background())
+	if err != nil {
+		t.Fatalf("ListResources: %v", err)
+	}
+	if len(got.Return) != 1 || len(got.Return[0].Quotas) != 2 {
+		t.Fatalf("unexpected shape: %+v", got.Return)
+	}
+	if got.Return[0].Quotas[0].UsedUnits != 783 {
+		t.Errorf("Quotas[0].UsedUnits = %v, want 783", got.Return[0].Quotas[0].UsedUnits)
+	}
+	if got.Return[0].Quotas[1].UsedUnits != 0 {
+		t.Errorf("Quotas[1].UsedUnits = %v, want 0", got.Return[0].Quotas[1].UsedUnits)
 	}
 }

@@ -17,11 +17,10 @@ import (
 // the request body, which tears down the infra stack and the
 // server in one go.
 //
-// This base wrapper sends only `client_id` and `name`. The Force
-// field on DeleteRequest (added in a later branch) appends
-// `force_delete=1` when set; until that lands here, examples that
-// need to tear down a fresh CCS send the form-body raw — see
-// examples/probe-tls-default and examples/server-upgrade-components.
+// This base wrapper sends only `client_id` and `name`. Tearing
+// down a fresh CCS therefore requires assembling the form body
+// directly with `force_delete=1` until a Force field is added to
+// DeleteRequest in a follow-up.
 //
 // **Cannot delete while in 'Upgrading' state.** If a recent
 // server.Upgrade (plan upgrade) has just been issued, Delete is
