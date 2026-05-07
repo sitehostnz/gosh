@@ -16,4 +16,15 @@ type (
 		} `json:"return"`
 		models.APIResponse
 	}
+
+	// DeleteResponse is returned by environment/delete. Delete is
+	// async: the API queues a job and the response carries its
+	// descriptor. Poll via job.Get to confirm the variables were
+	// actually removed.
+	DeleteResponse struct {
+		Return struct {
+			models.Job `json:"job"`
+		} `json:"return"`
+		models.APIResponse
+	}
 )
