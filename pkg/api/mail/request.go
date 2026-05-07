@@ -137,6 +137,12 @@ type (
 	}
 
 	// AddDomainOptions describes a domain to add to the mail server.
+	//
+	// Domain is validated against a TLD allowlist server-side.
+	// RFC 2606 reserved test TLDs (.example, .test, .localhost,
+	// .invalid) are rejected with "Please specify a valid domain
+	// name." Use a domain on a real public-suffix TLD, or one of
+	// SiteHost's wildcard test domains (sth.nz) for SDK testing.
 	AddDomainOptions struct {
 		ServerOptions
 		Domain string `url:"domain"`
