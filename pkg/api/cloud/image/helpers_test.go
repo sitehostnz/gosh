@@ -37,16 +37,13 @@ func TestForkFromImage_ResolvesParentID(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		switch r.URL.Path {
-		case "/cloud/image/list_all.json":
+		case "/cloud/stack/image/list_all.json":
 			_, _ = io.WriteString(w, `{
 				"status":true,"msg":"Successful",
-				"return":{
-					"total_items":2,"current_items":2,"current_page":1,"total_pages":1,
-					"data":[
-						{"id":"61","label":"PHP 8.0","code":"sitehost-php80","is_public":"1"},
-						{"id":"99","label":"Mine","code":"my-image","is_public":"0"}
-					]
-				}
+				"return":[
+					{"id":"61","label":"PHP 8.0","code":"sitehost-php80","is_public":"1"},
+					{"id":"99","label":"Mine","code":"my-image","is_public":"0"}
+				]
 			}`)
 		case "/cloud/image/create.json":
 			body, _ := io.ReadAll(r.Body)
@@ -71,10 +68,7 @@ func TestForkFromImage_ParentNotFound(t *testing.T) {
 	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{
-			"status":true,"msg":"OK",
-			"return":{"total_items":0,"current_items":0,"current_page":1,"total_pages":1,"data":[]}
-		}`)
+		_, _ = io.WriteString(w, `{"status":true,"msg":"OK","return":[]}`)
 	}))
 	defer srv.Close()
 

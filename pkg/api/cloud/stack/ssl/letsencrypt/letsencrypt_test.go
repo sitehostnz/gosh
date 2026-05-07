@@ -41,6 +41,9 @@ func TestList_Success(t *testing.T) {
 		if got := r.URL.Query().Get("server"); got != "ch-test" {
 			t.Errorf("server = %q (note: not server_name)", got)
 		}
+		if got := r.URL.Query().Get("name"); got != "my-stack" {
+			t.Errorf("name = %q, want my-stack (StackName is required)", got)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
 			"status": true, "msg": "Successful.",
@@ -59,7 +62,10 @@ func TestList_Success(t *testing.T) {
 	defer server.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(server.URL))
-	got, err := New(c).List(context.Background(), ListRequest{ServerName: "ch-test"})
+	got, err := New(c).List(context.Background(), ListRequest{
+		ServerName: "ch-test",
+		StackName:  "my-stack",
+	})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}

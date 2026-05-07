@@ -13,12 +13,14 @@ import (
 //
 // # Gotchas (validated live, May 2026)
 //
-//  1. **Label must be a valid FQDN.** Despite the field name, the
-//     API uses Label as the primary hostname for nginx-proxy
-//     routing — passing a free-text label is rejected with
-//     "Unable to add stack, the hostname is invalid." Use the
-//     same FQDN you intend to put in the compose body's
-//     VIRTUAL_HOST.
+//  1. **Compose body must set `nz.sitehost.container.label` to a
+//     valid FQDN** for any container with type=www or
+//     type=application. The API rejects with "Unable to add stack,
+//     the hostname is invalid." if this label's value isn't a
+//     hostname-shaped string. The Label parameter on AddRequest
+//     is *not* the field being validated here — the check is on
+//     the compose body, not the API param. Set the same FQDN on
+//     both for consistency.
 //
 //  2. **Stack Name must come from cloud.stack.GenerateName.**
 //     The API rejects custom-shaped names with the same generic
@@ -37,11 +39,7 @@ import (
 //     required exceeds the number of available images on this
 //     server." The read-side fields on cloud.server.List
 //     (images_used / images_remaining) don't reliably reflect
-//     the live cap; provision a fresh CCS or free a slot. See
-//     docs/api-issues/ccs-write-time-resource-gate.md.
-//
-// See examples/custom-image and examples/build-a-site for the
-// canonical working compose body shape.
+//     the live cap; provision a fresh CCS or free a slot.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
 	uri := "cloud/stack/add.json"
 	keys := []string{

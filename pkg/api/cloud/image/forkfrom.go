@@ -4,15 +4,27 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+
+	stackimage "github.com/sitehostnz/gosh/pkg/api/cloud/stack/image"
 )
 
 // ForkFromImage creates a new custom image forked from a SiteHost
 // public image identified by parentCode (e.g. "sitehost-php80").
 //
 // This composite helper resolves the public parent's numeric id by
-// listing images and matching on Code+IsPublic, then calls Create
-// with that fork_id. Without this helper, consumers have to do the
-// list-filter-extract-id dance themselves.
+// listing the platform stack-image catalogue and matching on
+// Code+IsPublic, then calls Create with that fork_id. Without this
+// helper, consumers have to do the list-filter-extract-id dance
+// themselves.
+//
+// The parent lookup uses /cloud/stack/image/list_all (the platform
+// catalogue, where public images live) rather than
+// /cloud/image/list_all (the customer-only endpoint, which returns
+// just the calling client's own custom images). That distinction
+// matters on bootstrap accounts: the customer endpoint is empty
+// before the first fork, so a lookup against it would always miss
+// public parents — exactly the case where this helper is most
+// useful.
 //
 // label is required (used as the new image's display label).
 // code is the desired image code (slug used in the GitLab repo URL
@@ -32,13 +44,13 @@ func (s *Client) ForkFromImage(ctx context.Context, parentCode, label, code stri
 		return response, fmt.Errorf("cloud.image.ForkFromImage: label is required")
 	}
 
-	listing, err := s.List(ctx)
+	catalogue, err := stackimage.New(s.client).List(ctx)
 	if err != nil {
-		return response, fmt.Errorf("listing images to resolve fork target %q: %w", parentCode, err)
+		return response, fmt.Errorf("listing stack-image catalogue to resolve fork target %q: %w", parentCode, err)
 	}
 
 	var forkID int
-	for _, img := range listing.Return.Images {
+	for _, img := range catalogue.Return {
 		if img.Code == parentCode && bool(img.IsPublic) {
 			id, perr := strconv.Atoi(img.ID)
 			if perr != nil {
@@ -49,7 +61,7 @@ func (s *Client) ForkFromImage(ctx context.Context, parentCode, label, code stri
 		}
 	}
 	if forkID == 0 {
-		return response, fmt.Errorf("public SiteHost image with code %q not found in cloud.image.list_all", parentCode)
+		return response, fmt.Errorf("public SiteHost image with code %q not found in cloud.stack.image.list_all", parentCode)
 	}
 
 	return s.Create(ctx, CreateRequest{

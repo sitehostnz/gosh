@@ -20,9 +20,6 @@ import (
 // "Unable to remove SSH user, there is a job already running on
 // this user." Sleep ~10s between phases (or poll the first
 // phase's job to Completed) before issuing the second.
-//
-// See examples/build-a-site and examples/custom-image cleanup
-// loops for the canonical pattern.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	uri := "cloud/ssh/user/delete.json"
 	keys := []string{

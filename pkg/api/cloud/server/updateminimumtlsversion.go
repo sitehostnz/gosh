@@ -19,9 +19,7 @@ import (
 //
 // **There's no corresponding read endpoint.** Once set, the value
 // is observable only via TLS handshake against a service running on
-// the CCS, or by tracking the value in your own state. See
-// examples/probe-tls-default for the handshake-observation
-// approach.
+// the CCS, or by tracking the value in your own state.
 //
 // **Affects all stacks on the CCS.** This is a server-wide setting
 // that controls TLS termination at nginx-proxy for every customer

@@ -27,8 +27,8 @@ type (
 	// values like "1.2" or "TLS_1_2" are rejected.
 	//
 	// Note: there's no corresponding read endpoint. Consumers must
-	// either track the value they set or observe via TLS handshake
-	// (see examples/probe-tls-default).
+	// either track the value they set or observe it via a TLS
+	// handshake against a service running on the CCS.
 	UpdateMinimumTLSVersionRequest struct {
 		ServerName        string `url:"server_name"`
 		MinimumTLSVersion string `url:"minimum_tls_version"`

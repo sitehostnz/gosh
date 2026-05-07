@@ -8,8 +8,8 @@ import (
 
 type (
 	// CertInfo is a single LE cert's metadata as returned by
-	// list_all. Per-stack info is keyed by the stack name in the
-	// outer Return map of ListResponse.
+	// list_all. Per-container info is keyed by container name in
+	// the outer Return map of ListResponse.
 	//
 	// String-typed boolean fields (Expired, IsMissing) reflect the
 	// API's actual response — values arrive as strings ("0"/"1")
@@ -24,8 +24,9 @@ type (
 	}
 
 	// ListResponse represents the response from list_all. Return is
-	// a map keyed by stack name to that stack's cert metadata. A
-	// stack with no LE cert simply doesn't appear in the map.
+	// a map keyed by container name (within the queried stack) to
+	// that container's cert metadata. A container with no LE cert
+	// simply doesn't appear in the map.
 	ListResponse struct {
 		Return map[string]CertInfo `json:"return"`
 		models.APIResponse

@@ -1,11 +1,19 @@
 package letsencrypt
 
 type (
-	// ListRequest identifies the cloud server whose stacks' LE certs
-	// to enumerate. ServerName is the CCS name (the unprefixed
+	// ListRequest identifies a stack on a CCS whose Let's Encrypt
+	// certs to list. ServerName is the CCS name (the unprefixed
 	// "server" parameter that cloud/stack/* uses, not "server_name").
+	// StackName is the stack's name within that server. Containers
+	// is an optional filter restricting the result to specific
+	// containers within the stack.
+	//
+	// Both ServerName and StackName are required by the API; omitting
+	// the stack name returns "The stack name is missing."
 	ListRequest struct {
-		ServerName string `url:"server"`
+		ServerName string   `url:"server"`
+		StackName  string   `url:"name"`
+		Containers []string `url:"containers,omitempty"`
 	}
 
 	// CreateRequest queues an LE-cert issuance for the named stack.
