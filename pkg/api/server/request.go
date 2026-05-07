@@ -7,8 +7,15 @@ type (
 	}
 
 	// DeleteRequest represents a request to delete a Server.
+	//
+	// Force, when set, appends `force_delete=1` to the form body.
+	// Required to tear down a fresh CCS that still has its
+	// auto-deployed `infra` stack present (collectd, nginx-proxy,
+	// LE companion); without Force the API rejects with "the
+	// server has containers." See the doc comment on Delete.
 	DeleteRequest struct {
-		Name string `json:"name"`
+		Name  string `json:"name"`
+		Force bool   `json:"-"`
 	}
 
 	// UpgradeRequest represents a request to upgrade a Server's plan
@@ -149,10 +156,37 @@ type (
 	}
 
 	// AddIPOptions describes an IP address to add to a server.
-	// The API uses "param" (not "address") for the IP value.
+	//
+	// Set exactly one of IP or IPVersion:
+	//
+	//   - IP: a real IPv4 or IPv6 address already allocated to the
+	//     calling client_id.
+	//   - IPVersion: 4 or 6 to auto-allocate a free address of that
+	//     family from the location's pool.
+	//
+	// At the wire level the API takes a single `param` field whose
+	// value is either the address or the family number — that
+	// magic-string convention is awkward to expose, so the wrapper
+	// splits it into two typed fields and assembles `param` itself.
+	//
+	// Note: "auto" works on Create but is rejected here. The two
+	// endpoints use different conventions:
+	//
+	//   - Create: params[ipv4][0]=auto (string "auto")
+	//   - AddIP:  param=4 or param=6   (family number)
+	//
+	// Live evidence (May 2026): AddIP{IP:"auto"} returns
+	// "Error: The ip address is invalid, please specify a valid
+	// ip address." AddIP{IPVersion:4} successfully allocates an
+	// IPv4 from the pool; AddIP{IPVersion:6} an IPv6.
+	//
+	// The API uses "param" (not "address") for this field — the
+	// inconsistency with RemoveIPOptions ("address") is the API's,
+	// not gosh's.
 	AddIPOptions struct {
-		Name string `url:"name"`
-		IP   string `url:"param"`
+		Name      string `url:"name"`
+		IP        string `url:"-"`
+		IPVersion int    `url:"-"`
 	}
 
 	// RemoveIPOptions describes an IP address to remove from a
