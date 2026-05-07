@@ -49,8 +49,8 @@ type (
 	// distinguishes the kind:
 	//
 	//   0  mailbox      Username + EmailAddr + Label populated
-	//   1  alias        EmailAddr + Destination populated
-	//   2  forward      EmailAddr + Destination populated
+	//   1  forward      EmailAddr + Destination populated
+	//   2  alias        EmailAddr + Destination populated
 	//
 	// Fields not relevant to a row's Type deserialise to empty.
 	EmailRecord struct {
