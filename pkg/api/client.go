@@ -1,4 +1,19 @@
 // Package api provides the functions to work with SiteHost API.
+//
+// # Rate limiting
+//
+// The SiteHost API enforces a per-second rate limit at roughly
+// 1 request/sec per API key. Bursts are rejected with HTTP 500 and
+// the body
+//
+//	You have exceeded the number of requests per second for this key.
+//
+// (sic — 500 rather than the more conventional 429). Consumers
+// running batched workloads — example programs, migrations,
+// reconciliation loops — should pace calls accordingly. ~1.1s
+// between calls completes round-trips cleanly in practice. The SDK
+// itself does not throttle; back-off and retry are the caller's
+// responsibility.
 package api
 
 import (
