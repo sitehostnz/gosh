@@ -48,6 +48,88 @@ func TestAddIP_Success(t *testing.T) {
 	}
 }
 
+// TestAddIP_AutoAllocateByVersion exercises the IPVersion path:
+// the wrapper sends `param=4` (or `=6`) so the API allocates a
+// fresh address from the family pool. Live evidence: this is how
+// add_ip's auto-allocation actually works (see [AddIPOptions]).
+func TestAddIP_AutoAllocateByVersion(t *testing.T) {
+	t.Parallel()
+	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if got := r.Form.Get("param"); got != "4" {
+			t.Errorf("param = %q, want \"4\" (family number)", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"job":{"id":1,"type":"scheduler"},"ip_addr":"203.0.113.21"}}`)
+	})
+	defer done()
+	if _, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo", IPVersion: 4}); err != nil {
+		t.Fatalf("AddIP: %v", err)
+	}
+}
+
+func TestAddIP_RejectsNeitherIPNorVersion(t *testing.T) {
+	t.Parallel()
+	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
+	_, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo"})
+	if err == nil || !strings.Contains(err.Error(), "exactly one of") {
+		t.Errorf("expected exactly-one-of error, got: %v", err)
+	}
+}
+
+func TestAddIP_RejectsBothIPAndVersion(t *testing.T) {
+	t.Parallel()
+	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
+	_, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo", IP: testIP, IPVersion: 4})
+	if err == nil || !strings.Contains(err.Error(), "exactly one of") {
+		t.Errorf("expected exactly-one-of error, got: %v", err)
+	}
+}
+
+func TestAddIP_RejectsBadIPVersion(t *testing.T) {
+	t.Parallel()
+	c, _ := api.New("k", "1", api.SetBaseURL("http://example.invalid"))
+	_, err := New(c).AddIP(context.Background(), AddIPOptions{Name: "ch-foo", IPVersion: 5})
+	if err == nil || !strings.Contains(err.Error(), "must be 4 or 6") {
+		t.Errorf("expected family-number error, got: %v", err)
+	}
+}
+
+// TestDelete_ForceFlag locks down DeleteRequest.Force=true emitting
+// `force_delete=1` in the form body, required for tearing down a
+// fresh CCS that still has its auto-deployed infra stack present.
+func TestDelete_ForceFlag(t *testing.T) {
+	t.Parallel()
+	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if got := r.Form.Get("force_delete"); got != "1" {
+			t.Errorf("force_delete = %q, want \"1\"", got)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"job":{"id":1,"type":"scheduler"}}}`)
+	})
+	defer done()
+	if _, err := New(c).Delete(context.Background(), DeleteRequest{Name: "ch-foo", Force: true}); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+}
+
+func TestDelete_NoForceFlagByDefault(t *testing.T) {
+	t.Parallel()
+	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
+		_ = r.ParseForm()
+		if _, present := r.Form["force_delete"]; present {
+			t.Errorf("force_delete should not be present when Force=false; got %q", r.Form.Get("force_delete"))
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"job":{"id":1,"type":"scheduler"}}}`)
+	})
+	defer done()
+	if _, err := New(c).Delete(context.Background(), DeleteRequest{Name: "ch-foo"}); err != nil {
+		t.Fatalf("Delete: %v", err)
+	}
+}
+
 func TestRemoveIP_Success(t *testing.T) {
 	t.Parallel()
 	c, done := mockClient(t, func(w http.ResponseWriter, r *http.Request) {
