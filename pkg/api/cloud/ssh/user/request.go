@@ -14,7 +14,7 @@ type (
 		Containers     []string `url:"containers[],omitempty"`
 		SSHKeys        []string `url:"ssh_keys[],omitempty"`
 		ReadOnlyConfig bool     `url:"read_only_config,omitempty"`
-		Volumes        []string `url:"read_only_config,omitempty"`
+		Volumes        []string `url:"volumes[],omitempty"`
 	}
 
 	// DeleteRequest a request to delete the database.

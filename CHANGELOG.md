@@ -1,6 +1,27 @@
 # Changelog
 All notable changes to this project will be documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+### Added
+- Support for SRS domain registry endpoints (lookup, lifecycle, contacts, nameservers, WHOIS, transfers, renewals).
+- Support for mail endpoints (domains, aliases, accounts, forwards) and a combined list view.
+- Support for cloud stacks, databases, SSH users, server config, images, volumes, and Let's Encrypt SSL.
+- Support for server snapshots, IP allocation, and lifecycle endpoints.
+- Support for DNS templates, reverse DNS, and SOA endpoints.
+- Support for SSL certificate endpoints.
+- Support for bandwidth usage endpoints.
+- Support for the redirect listing endpoint.
+- Support for sub-account discovery for resellers.
+- `NewClientWithDiscovery` helper on the info client.
+
+### Fixed
+- Canonicalise mangled IPv6 addresses returned by the API.
+- Bandwidth response decoding bugs.
+- Corrected endpoint paths referenced in image package doc comments.
+
+### Changed
+- `GetEmailTemplate` now returns a sentinel error when unsupported.
+
 ## [v0.6.0] - 2025-06-17
 ### Fixed
 - Made the core Client prepend client and api key to url, avoiding a resort of parameters.

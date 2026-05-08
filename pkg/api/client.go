@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	defaultBaseURL   = "https://api.sitehost.nz"
-	defaultVersion   = "1.5"
-	userAgent        = "gosh"
-	defaultMediaType = "application/x-www-form-urlencoded"
+	defaultBaseURL            = "https://api.sitehost.nz"
+	defaultVersion            = "1.5"
+	userAgent                 = "gosh"
+	defaultMediaType          = "application/x-www-form-urlencoded"
+	defaultCustomImageGitHost = "gitlab-clients.sitehost.co.nz"
 )
 
 type (
@@ -144,10 +145,11 @@ func NewClient(apiKey, clientID string) *Client {
 	c := &Client{
 		client: &http.Client{},
 		ClientBase: models.ClientBase{
-			BaseURL:   baseURL,
-			APIKey:    apiKey,
-			ClientID:  clientID,
-			UserAgent: userAgent,
+			BaseURL:            baseURL,
+			APIKey:             apiKey,
+			ClientID:           clientID,
+			UserAgent:          userAgent,
+			CustomImageGitHost: defaultCustomImageGitHost,
 		},
 	}
 
@@ -162,6 +164,16 @@ func SetBaseURL(bu string) ClientOpt {
 			return err
 		}
 		c.BaseURL = u
+		return nil
+	}
+}
+
+// SetCustomImageGitHost overrides the GitLab host used by custom
+// image helpers when constructing repository clone URLs. Default
+// is "gitlab-clients.sitehost.co.nz".
+func SetCustomImageGitHost(host string) ClientOpt {
+	return func(c *Client) error {
+		c.CustomImageGitHost = host
 		return nil
 	}
 }

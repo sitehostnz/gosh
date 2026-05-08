@@ -1,0 +1,89 @@
+package image
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/sitehostnz/gosh/pkg/api/cloud/image/version"
+)
+
+// BuildStatus values returned by the platform CI for a custom image
+// version. Compared as strings; not exhaustive — surface unknowns
+// to the caller verbatim.
+const (
+	BuildStatusSuccess = "success"
+	BuildStatusFailed  = "failed"
+	BuildStatusRunning = "running"
+)
+
+// WaitForBuild polls cloud/image/version/list_all for the named
+// image (by numeric image_id) until the most-recent version reports
+// a terminal build status (success or failed), or the timeout is
+// reached. interval controls poll cadence.
+//
+// Returns the terminating Version. If the build failed, the caller
+// should fetch the trace via cloud.image.version.GetBuild(code,
+// build_id) to surface the failure to the user.
+//
+// Why a helper: the API doesn't expose a build-watching endpoint,
+// so consumers always have to poll. Doing it consistently here also
+// protects against the platform's "Only the last successfully built
+// version is available to be deployed" rule — we always look at the
+// latest version, never an older success.
+//
+//nolint:cyclop // poll-loop with terminal/timeout/cancel branches; further extraction hurts readability
+func (s *Client) WaitForBuild(ctx context.Context, imageID int, timeout, interval time.Duration) (version.Version, error) {
+	if imageID == 0 {
+		return version.Version{}, fmt.Errorf("cloud.image.WaitForBuild: imageID is required")
+	}
+	if interval <= 0 {
+		interval = 10 * time.Second
+	}
+
+	versionClient := version.New(s.client)
+	deadline := time.Now().Add(timeout)
+
+	for {
+		latest, hasVersion, err := pollLatestVersion(ctx, versionClient, imageID)
+		if err != nil {
+			return version.Version{}, err
+		}
+		if hasVersion && (latest.BuildStatus == BuildStatusSuccess || latest.BuildStatus == BuildStatusFailed) {
+			return latest, nil
+		}
+		if time.Now().After(deadline) {
+			return version.Version{}, deadlineErr(timeout, imageID, latest, hasVersion)
+		}
+		select {
+		case <-ctx.Done():
+			return version.Version{}, ctx.Err()
+		case <-time.After(interval):
+		}
+	}
+}
+
+func pollLatestVersion(ctx context.Context, vc *version.Client, imageID int) (version.Version, bool, error) {
+	resp, err := vc.ListAll(ctx, version.ListAllRequest{
+		ImageID:  imageID,
+		SortBy:   "date_added",
+		SortDir:  "DESC",
+		PageSize: 1,
+	})
+	if err != nil {
+		return version.Version{}, false, fmt.Errorf("listing versions for image %d: %w", imageID, err)
+	}
+	if len(resp.Return.Versions) == 0 {
+		return version.Version{}, false, nil
+	}
+	return resp.Return.Versions[0], true, nil
+}
+
+func deadlineErr(timeout time.Duration, imageID int, latest version.Version, hasVersion bool) error {
+	status := "no versions yet"
+	if hasVersion {
+		status = latest.BuildStatus
+	}
+	return fmt.Errorf("timed out after %s waiting for image %d build (last status: %s)",
+		timeout, imageID, status)
+}

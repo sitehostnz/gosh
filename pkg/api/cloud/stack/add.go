@@ -10,6 +10,36 @@ import (
 )
 
 // Add creates a new cloud stack.
+//
+// # Gotchas (validated live, May 2026)
+//
+//  1. **Compose body must set `nz.sitehost.container.label` to a
+//     valid FQDN** for any container with type=www or
+//     type=application. The API rejects with "Unable to add stack,
+//     the hostname is invalid." if this label's value isn't a
+//     hostname-shaped string. The Label parameter on AddRequest
+//     is *not* the field being validated here — the check is on
+//     the compose body, not the API param. Set the same FQDN on
+//     both for consistency.
+//
+//  2. **Stack Name must come from cloud.stack.GenerateName.**
+//     The API rejects custom-shaped names with the same generic
+//     "hostname is invalid" message; only platform-generated
+//     "cc<hex>" names are accepted.
+//
+//  3. **Compose image references need an explicit version tag.**
+//     `image: registry-clients.sitehost.co.nz/g_<id>/<code>` is
+//     rejected with "There was no image version provided."; you
+//     must include the `:1.0-<build_id>` tag from
+//     cloud.image.version.list_all (or use the WaitForBuild
+//     helper which surfaces it).
+//
+//  4. **Per-CCS write-time resource gate.** When the target CCS
+//     is at capacity the API returns "the number of new images
+//     required exceeds the number of available images on this
+//     server." The read-side fields on cloud.server.List
+//     (images_used / images_remaining) don't reliably reflect
+//     the live cap; provision a fresh CCS or free a slot.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
 	uri := "cloud/stack/add.json"
 	keys := []string{

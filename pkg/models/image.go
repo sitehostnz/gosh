@@ -6,7 +6,7 @@ import (
 
 type (
 
-	// CloudImage represents an image in the /cloud/images.
+	// CloudImage represents an image in the /cloud/image.
 	CloudImage struct {
 		ID       string `json:"id"`
 		ClientID string `json:"client_id"`
@@ -33,7 +33,7 @@ type (
 		BuildStatus    string            `json:"build_status"`
 	}
 
-	// StackImage represents an image in the /cloud/stack/images.
+	// StackImage represents an image in the /cloud/stack/image.
 	StackImage struct {
 		ID             string                 `json:"id"`
 		ClientID       string                 `json:"client_id"`
