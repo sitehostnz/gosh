@@ -3,6 +3,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [v0.7.1] - 2026-08-20
+
 ### Added
 
 - `shtypes.IsEmptyMapShape` reports whether a raw JSON payload is one of
