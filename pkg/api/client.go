@@ -4,6 +4,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -84,6 +85,16 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 func (c *Client) Do(_ context.Context, req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
+		// Transport errors (*url.Error: timeouts, DNS, TLS, resets) embed
+		// the full request URL, query string included — and the API key
+		// travels as a query parameter. net/http strips userinfo
+		// passwords, never query parameters, so without this every
+		// transport failure logs the caller's credential. These are the
+		// errors most likely to reach a log aggregator.
+		var uerr *url.Error
+		if errors.As(err, &uerr) {
+			uerr.URL = models.RedactURL(req.URL)
+		}
 		return err
 	}
 
