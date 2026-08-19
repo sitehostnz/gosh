@@ -3,6 +3,15 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+
+### Fixed
+
+- `models.ErrorResponse.Error()` and transport errors no longer include
+  the caller's API key; the key is replaced with `REDACTED` while every
+  other query parameter is preserved verbatim (order and duplicates
+  included). `models.RedactURL` is exported for callers building their
+  own error text. Matching is case-insensitive. A response with no
+  request now reports its status code instead of dropping it.
 ## [v0.7.0] - 2026-07-24
 ### Added
 - Support for SRS domain registry endpoints (lookup, lifecycle, contacts, nameservers, WHOIS, transfers, renewals).

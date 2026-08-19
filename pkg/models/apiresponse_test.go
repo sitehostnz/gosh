@@ -81,3 +81,44 @@ func TestRedactURLNil(t *testing.T) {
 		t.Errorf("RedactURL(nil) = %q, want empty", got)
 	}
 }
+
+// TestRedactURLCaseInsensitive — the point of exporting RedactURL is
+// that callers building their own requests get the same treatment, and
+// a caller spelling it APIKey= must not sail through.
+func TestRedactURLCaseInsensitive(t *testing.T) {
+	t.Parallel()
+	for _, raw := range []string{
+		"https://api.sitehost.nz/1.5/x.json?APIKey=SECRET1&a=1",
+		"https://api.sitehost.nz/1.5/x.json?Api_Key=SECRET1",
+		"https://api.sitehost.nz/1.5/x.json?APIKEY=SECRET1&b=2",
+	} {
+		u, _ := url.Parse(raw)
+		got := RedactURL(u)
+		if strings.Contains(got, "SECRET1") {
+			t.Errorf("mis-cased key survived redaction: %s", got)
+		}
+	}
+}
+
+// TestRedactURLPreservesQueryVerbatim — a redacted error should differ
+// from the real URL by exactly one value. No re-sorting, no dropped
+// duplicates, no normalised valueless keys.
+func TestRedactURLPreservesQueryVerbatim(t *testing.T) {
+	t.Parallel()
+	u, _ := url.Parse("https://h/x?z=1&apikey=SECRET&a=2&a=3&flag&z=4")
+	got := RedactURL(u)
+	want := "https://h/x?z=1&apikey=REDACTED&a=2&a=3&flag&z=4"
+	if got != want {
+		t.Errorf("query not preserved verbatim:\n got  %s\n want %s", got, want)
+	}
+}
+
+// TestErrorKeepsStatusWithoutRequest — a nil Request must not throw away
+// a status code the response already carries.
+func TestErrorKeepsStatusWithoutRequest(t *testing.T) {
+	t.Parallel()
+	e := &ErrorResponse{Response: &http.Response{StatusCode: 502}, Message: "Bad Gateway"}
+	if got := e.Error(); got != "502 Bad Gateway" {
+		t.Errorf("Error() = %q, want %q", got, "502 Bad Gateway")
+	}
+}
