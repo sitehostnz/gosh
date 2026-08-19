@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. The format 
 - `shtypes.IsEmptyMapShape` reports whether a raw JSON payload is one of
   the shapes PHP produces for "no rows": absent, `null`, or `[]`. The
   previously private `pkg/api/server` helper now delegates to it.
+  
 ### Fixed
 
 - `models.ErrorResponse.Error()` and transport errors no longer include
@@ -16,6 +17,11 @@ All notable changes to this project will be documented in this file. The format 
   included). `models.RedactURL` is exported for callers building their
   own error text. Matching is case-insensitive. A response with no
   request now reports its status code instead of dropping it.
+- `shtypes.MaybeString` now decodes through `encoding/json`: string
+  escapes are handled, `null` and PHP's `[]`-for-empty decode to `""`,
+  and non-scalar values (`bool`, populated arrays, objects) error with a
+  type description rather than being silently stringified. Adds
+  `String()` and `Int()` accessors.
   
 ## [v0.7.0] - 2026-07-24
 ### Added
