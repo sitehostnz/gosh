@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/sitehostnz/gosh/pkg/models"
+	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
 type (
@@ -309,7 +310,7 @@ type (
 // the forms the API uses for an empty map: omitted/zero-length, JSON
 // null, or the empty array `[]` it serialises in place of `{}`.
 func isEmptyMapShape(raw json.RawMessage) bool {
-	return len(raw) == 0 || string(raw) == "null" || string(raw) == "[]"
+	return shtypes.IsEmptyMapShape(raw)
 }
 
 // UnmarshalJSON tolerates the empty-array form the API returns when
