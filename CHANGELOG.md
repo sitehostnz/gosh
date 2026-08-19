@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+
+### Fixed
+
+- `shtypes.MaybeString` now decodes through `encoding/json`: string
+  escapes are handled, `null` and PHP's `[]`-for-empty decode to `""`,
+  and non-scalar values (`bool`, populated arrays, objects) error with a
+  type description rather than being silently stringified. Adds
+  `String()` and `Int()` accessors.
 ## [v0.7.0] - 2026-07-24
 ### Added
 - Support for SRS domain registry endpoints (lookup, lifecycle, contacts, nameservers, WHOIS, transfers, renewals).

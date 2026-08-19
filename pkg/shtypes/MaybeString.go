@@ -20,7 +20,14 @@ type MaybeString string
 // stdlib, so the stored value is the unescaped Go string.
 func (fi *MaybeString) UnmarshalJSON(b []byte) error {
 	b = bytes.TrimSpace(b)
-	if len(b) == 0 || string(b) == "null" {
+	// "null", absent — and "[]", which is PHP's json_encode emitting an
+	// empty associative array for "no value". A wire that says "nothing"
+	// must decode as empty rather than fail the whole response; several
+	// downstream optional fields arrive exactly this way. "{}" is
+	// deliberately NOT here, matching IsEmptyMapShape's definition: this
+	// serialiser does not produce it for an empty value, so meeting one
+	// means the shape genuinely is not scalar and should error.
+	if len(b) == 0 || string(b) == "null" || string(b) == "[]" {
 		*fi = ""
 		return nil
 	}
@@ -36,7 +43,19 @@ func (fi *MaybeString) UnmarshalJSON(b []byte) error {
 		*fi = MaybeString(num.String())
 		return nil
 	}
-	return &json.UnmarshalTypeError{Value: string(b), Type: reflect.TypeOf(MaybeString(""))}
+	// Describe the payload's TYPE, never its content — error strings get
+	// logged and forwarded, and echoing rejected bytes would put wire
+	// content into them (the same rule as the API-key redaction).
+	kind := "invalid JSON"
+	switch b[0] {
+	case 't', 'f':
+		kind = "bool"
+	case '[':
+		kind = "array"
+	case '{':
+		kind = "object"
+	}
+	return &json.UnmarshalTypeError{Value: kind, Type: reflect.TypeOf(MaybeString(""))}
 }
 
 // String returns the underlying string value.

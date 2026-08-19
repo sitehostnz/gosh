@@ -1,6 +1,9 @@
 package shtypes
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // TestMaybeStringUnmarshal covers both wire forms, the null/empty cases,
 // escape handling, and the shapes that must be REJECTED rather than
@@ -19,8 +22,9 @@ func TestMaybeStringUnmarshal(t *testing.T) {
 		{"float keeps textual form", `1.50`, "1.50"},
 		{"null", `null`, ""},
 		{"empty input", ``, ""},
+		{"php empty assoc array", `[]`, ""},
 		{"escaped quote", `"a\"b"`, `a"b`},
-		{"unicode escape", `"é"`, "é"},
+		{"unicode escape", `"\u00e9"`, "é"},
 	}
 	for _, tc := range ok {
 		var v MaybeString
@@ -32,11 +36,19 @@ func TestMaybeStringUnmarshal(t *testing.T) {
 			t.Errorf("%s: got %q, want %q", tc.name, v, tc.want)
 		}
 	}
-	for _, raw := range []string{`true`, `false`, `[1]`, `{"a":1}`} {
+	for _, raw := range []string{`true`, `false`, `[1]`, `{"a":1}`, `{}`} {
 		var v MaybeString
 		if err := v.UnmarshalJSON([]byte(raw)); err == nil {
 			t.Errorf("%q: want an error, got %q — a non-scalar silently stringified", raw, v)
 		}
+	}
+	// The error must describe the TYPE, never echo the content — same
+	// rule as the API-key redaction on the error path.
+	var v MaybeString
+	if err := v.UnmarshalJSON([]byte(`{"pw":"hunter2"}`)); err == nil {
+		t.Error("object accepted")
+	} else if strings.Contains(err.Error(), "hunter2") {
+		t.Errorf("error echoes wire content: %v", err)
 	}
 }
 
