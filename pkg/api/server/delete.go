@@ -17,11 +17,29 @@ import (
 // `force_delete=1` to the request body, which tears down the
 // infra stack and the server in one go.
 //
-// **Cannot delete while in 'Upgrading' state.** If a recent
-// server.Upgrade (plan upgrade) has just been issued, Delete is
-// rejected with "The specified server cannot be deleted while in
-// the 'Upgrading' state." Poll server.Get(name) until State is
-// On or Off before issuing Delete.
+// # Deletable states
+//
+// A server can only be deleted while it is **On**, **Off**, or in an
+// **Unknown** state. Any other state is rejected with:
+//
+//	The specified server cannot be deleted while in the '<state>' state.
+//
+// Transitional states seen in practice include 'Provisioning' (after a
+// build), 'Shutting Down' (after a reboot) and 'Upgrading' (after a plan
+// change). The set is not documented upstream, so match on the shape of
+// that message rather than on a list of state names — treating an
+// unlisted state as a permanent failure leaks a server, which is the
+// more expensive mistake.
+//
+// The rejection is a pre-flight check: nothing is queued when it fires,
+// so the server still exists and a retry is required. Poll
+// server.GetState until the state settles, then delete. Note that the
+// reported state can lag reality — a server observed answering SSH was
+// refused a moment later as 'Shutting Down'.
+//
+// A server may also be refused because it is locked, missing, in rescue
+// mode, or has an active snapshot; those are not transitional and
+// retrying will not help.
 func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response DeleteResponse, err error) {
 	u := "server/delete.json"
 

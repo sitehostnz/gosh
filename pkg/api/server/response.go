@@ -25,15 +25,30 @@ type (
 	}
 
 	// UpgradeComponentsResponse represents a result of an
-	// /server/upgrade.json call. Returns a scheduler job plus
-	// per-component bool flags indicating which upgrades were
-	// accepted (true) versus rejected (false / missing).
+	// /server/upgrade.json call. Cores and RAM are per-component
+	// flags; Disk is keyed by disk label.
+	//
+	// Disk is a map, not a bool. The endpoint answers per disk,
+	// because the request is per disk:
+	//
+	//	{"return": {"disk": {"scsi0": true}}}
+	//
+	// Verified live against a high-performance server, August 2026. It
+	// was previously declared as a bool here, which made every disk
+	// upgrade fail to decode with "cannot unmarshal object into Go
+	// struct field .return.disk of type bool" — so disk upgrades did
+	// not work through this SDK at all.
+	//
+	// Note also that a response may carry no job: on high-performance
+	// products a disk grow is applied online and immediately, so
+	// models.Job is zero and there is nothing to poll. See
+	// [Client.UpgradeComponents].
 	UpgradeComponentsResponse struct {
 		Return struct {
 			models.Job `json:"job"`
-			Cores      bool `json:"cores"`
-			RAM        bool `json:"ram"`
-			Disk       bool `json:"disk"`
+			Cores      bool            `json:"cores"`
+			RAM        bool            `json:"ram"`
+			Disk       map[string]bool `json:"disk"`
 		} `json:"return"`
 		models.APIResponse
 	}
@@ -171,9 +186,18 @@ type (
 	}
 
 	// QuotaUsage is a total/used pair returned within UpgradeQuota.
+	//
+	// Both are float64 because the RAM quota is fractional — a live
+	// response reported total 67.5 and used 67.5 gigabytes. Declaring
+	// these as int made [Client.ListUpgrades] fail to decode entirely
+	// ("cannot unmarshal number 67.5 into ... of type int"), so that
+	// endpoint had never worked. Corrected August 2026.
+	//
+	// Used can exceed Total when an account is over quota; that is a
+	// reportable state, not a decode problem.
 	QuotaUsage struct {
-		Total int `json:"total"`
-		Used  int `json:"used"`
+		Total float64 `json:"total"`
+		Used  float64 `json:"used"`
 	}
 
 	// UpgradeQuota is the overall quota / usage block from list_upgrades.
@@ -197,12 +221,49 @@ type (
 		Extra    []int `json:"extra"`
 	}
 
-	// Upgrades is the upgrade-availability information for a server.
-	// The Disk map is keyed by disk slot identifier (e.g. "scsi0").
+	// Upgrades is the upgrade-availability information for a server,
+	// returned by [Client.ListUpgrades].
+	//
+	// This is the endpoint that says what an upgrade may legally ask
+	// for, and [Client.UpgradeComponents] validates against exactly
+	// these values. Read it first rather than guessing: a request
+	// outside these sets is rejected with "Please specify a valid cores
+	// value." (or ram, or disk label, or disk size), which does not say
+	// what would have been valid.
 	Upgrades struct {
-		Quota     UpgradeQuota                  `json:"quota"`
-		ExtraDisk ExtraDiskOption               `json:"extra-disk"`
-		Disk      map[string]DiskUpgradeOptions `json:"disk"`
+		Quota     UpgradeQuota    `json:"quota"`
+		ExtraDisk ExtraDiskOption `json:"extra-disk"`
+
+		// Disk lists the sizes each disk may be grown to, keyed by disk
+		// label (e.g. "scsi0").
+		//
+		// Only resizable disks appear. A server's swap partition is
+		// absent from this map rather than present with empty options,
+		// so treat a missing label as "not resizable" — do not assume
+		// every label from models.Server.Partitions has an entry here.
+		Disk map[string]DiskUpgradeOptions `json:"disk"`
+
+		// Cores lists the core counts this server may be set to. It
+		// contains only the current value when no change is available,
+		// which is why a cores upgrade can be rejected on a server
+		// whose platform supports them in general — the constraint is
+		// per server, not per product family.
+		Cores []int `json:"cores"`
+
+		// RAM lists the memory sizes in gigabytes this server may be set
+		// to. Fractional values occur, so this is a float slice. As with
+		// Cores, it may contain only the current value.
+		RAM []float64 `json:"ram"`
+
+		// Plan lists the product codes this server can be moved to with
+		// [Client.Upgrade]. This is the authoritative answer to "what
+		// can this server become" — server-specific, and not derivable
+		// from ListProducts, which answers what a *location* offers.
+		//
+		// It can include products that are not generally orderable, so
+		// treat it as what the platform will accept rather than as a
+		// customer-facing menu.
+		Plan []string `json:"plan"`
 	}
 
 	// ListUpgradesResponse represents the response from list_upgrades.

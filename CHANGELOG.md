@@ -3,6 +3,103 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- `server.ListImagesOptions` gives `server.ListImages` the filters the
+  API already supported: `Type`, `Location`, `IncludeDisabled`,
+  `PageSize`/`PageNumber` and `SortBy`/`SortDir`. This makes the
+  high-performance (HPVS) image catalogue reachable for the first
+  time — it sits behind `Type: server.ImageTypeHPVMDistro` plus a
+  mandatory `Location`, and every code in the default listing is
+  rejected by HPVS product codes. HPVS image codes carry a build date
+  (`ubuntu-2404-20260727`), so they must be discovered, not hardcoded.
+- `server.ImageTypeDistro`, `ImageTypeHPVMDistro`, `ImageTypeContainer`
+  and `ImageTypeApp` name the closed set the type filter accepts.
+- `server.Location*` constants for the location codes known at the time
+  of writing. `server.ListLocations` remains authoritative.
+- `server.ListProducts` wraps `server/products.json`, which lists every
+  product orderable at a location with its cores, RAM, disk, bandwidth,
+  price and disk labels. The endpoint is undocumented rather than
+  absent — it is missing from the public API docs and their endpoint
+  listing, though the platform changelog records it as public — which is
+  why product codes have had to be hardcoded until now. `Location` is
+  required, because products are scoped to a location's product group;
+  `Types` and `Codes` filter the result.
+  Two wire shapes are handled: `attributes` arrives as `[]` rather than
+  `{}` for some products, and `partitions[].size` arrives as either a
+  number or a string within one response. Attributes with no typed field
+  are kept in `ProductAttributes.Extra` rather than dropped.
+- `server.LoginUserFor` returns the account to log in as, which the API
+  does not expose anywhere. It depends on the product family as well as
+  the distro: the same Ubuntu image is `ubuntu` on high-performance and
+  `root` on standard-performance. Determined empirically; the doc
+  comment records what was not verified.
+- `server.ProductTypeHPVS`, `ProductTypeLINVPS` and `ProductTypeWINVPS`
+  name the product families `models.Server.ProductType` reports.
+- `examples/server`: the server lifecycle as a numbered journey —
+  register a key, discover an image, provision a pair, optionally
+  resize or change plan, swap their addresses, complete the cutover
+  inside the guests, delete everything. The file numbering encodes the
+  API's ordering constraints, which are otherwise undocumented. Every
+  step runs standalone against existing servers as well as in sequence.
+  Provisions real servers, so it does nothing without
+  `SH_EXAMPLE_ALLOW_PROVISION=1`; run with no arguments it prints the
+  journey map and exits zero.
+
+### Fixed
+
+- `server.ListUpgrades` decodes at all. `QuotaUsage.Total` and `Used`
+  were `int` where the API sends a fractional RAM quota (67.5 GB
+  observed live), so the call failed with "cannot unmarshal number 67.5
+  into ... of type int" — the endpoint had never worked. They are now
+  `float64`. The test fixture that enshrined integer quotas is corrected
+  against the wire.
+- `server.Upgrades` gained the three fields the response carries and the
+  SDK discarded: `Cores` and `RAM` list the values
+  `UpgradeComponents` validates against, and `Plan` lists the product
+  codes this server can be moved to with `Upgrade`. Without them a
+  caller cannot choose a legal value, which is why a cores upgrade
+  looked categorically impossible when it was simply outside the
+  allowed set for that plan. Also documented that only resizable disks
+  appear in `Disk` — a swap partition is absent rather than present and
+  empty.
+- `server.Create` honours `ParamsOptions` instead of discarding it. It
+  previously hardcoded `params[ipv4]=auto` and silently dropped `IPv4`,
+  `IPv6`, `Name`, `ContactID`, `Backup` and `SendEmail`, so two of the
+  three IP-allocation paths its own documentation described were
+  unreachable. Array fields now use the bracket form the API expects.
+  An empty `Params.IPv4` still requests automatic allocation, so
+  existing callers are unaffected.
+- `UpgradeComponentsResponse.Return.Disk` is `map[string]bool`, not
+  `bool`. The API answers per disk label (`{"disk":{"scsi0":true}}`), so
+  every disk upgrade previously failed to decode with "cannot unmarshal
+  object into Go struct field .return.disk of type bool" — disk
+  upgrades did not work through this SDK at all. The test fixture that
+  enshrined the wrong shape is corrected too.
+
+### Changed
+
+- **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
+  argument. Pass the zero value for the previous behaviour.
+- **Breaking:** `UpgradeComponentsResponse.Return.Disk` changed type,
+  as above.
+- `server.UpgradeComponents` documents what each product family
+  accepts. An earlier note claimed high-performance and CCS products
+  reject component upgrades outright, generalising from a cores/RAM
+  test; disk upgrades work fine on high-performance. Disk growth is
+  applied online and immediately there, while standard-performance
+  stages it as the partition's `NewSize` for `CommitDiskChanges` to
+  apply.
+- Package documentation for `server`, `server/firewall` and
+  `server/firewall/securitygroups` records what a caller has to know up
+  front: that product codes are not discoverable and `CanProvision`
+  distinguishes "not offered here" from "offered but full"; that a
+  server's name is not the label it was given; that SSH keys must be
+  registered *and* passed as content at provision time; the per-second
+  rate limit and that it surfaces as HTTP 500; that a server cannot be
+  deleted while provisioning; and that the firewall endpoints exist
+  only for high-performance products.
+
 ## [v0.7.1] - 2026-08-20
 
 ### Added
