@@ -19,6 +19,16 @@ All notable changes to this project will be documented in this file. The format 
   for the type filter.
 - `server.Location*` constants for the location codes known at the time
   of writing. `server.ListLocations` remains authoritative.
+- `examples/ip-swap`: end-to-end validation of swapping IPv4 addresses
+  between two servers. Provisions a high-performance pair, discovers
+  the image at run time, shows why moving one address at a time is
+  refused on standard-performance products when the servers sit in
+  different networks, performs the swap the way the platform supports
+  (release both, then cross-assign), promotes each address with
+  `SetPrimaryIP`, and reports the guest network configuration each
+  server then needs. Provisions real servers, so it does nothing unless
+  `SH_EXAMPLE_ALLOW_PROVISION=1` is set; without it it prints the rules
+  and exits zero.
 
 ### Changed
 
