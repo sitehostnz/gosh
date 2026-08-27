@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- `server.ListImagesOptions` gives `server.ListImages` the filters the
+  API already supported: `Type`, `Location`, `IncludeDisabled`,
+  `PageSize`/`PageNumber` and `SortBy`/`SortDir`. This makes the
+  high-performance (HPVS) image catalogue reachable for the first
+  time — it lives behind `Type: server.ImageTypeHPVMDistro` plus a
+  mandatory `Location`, and every code in the default listing is
+  rejected by HPVS product codes. HPVS image codes carry a build date
+  (`ubuntu-2404-20260727`), so they must be discovered rather than
+  hardcoded.
+- `server.ImageTypeDistro`, `ImageTypeHPVMDistro`, `ImageTypeContainer`
+  and `ImageTypeApp` name the closed set of values the endpoint accepts
+  for the type filter.
+- `server.Location*` constants for the location codes known at the time
+  of writing. `server.ListLocations` remains authoritative.
+
+### Changed
+
+- **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
+  argument. Pass the zero value for the previous behaviour.
+
 ## [v0.7.1] - 2026-08-20
 
 ### Added

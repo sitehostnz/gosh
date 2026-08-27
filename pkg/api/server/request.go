@@ -229,6 +229,45 @@ type (
 		Location string `url:"location"`
 	}
 
+	// ListImagesOptions filters the image catalogue returned by
+	// server/list_images.json.
+	//
+	// The zero value returns the default standard-performance
+	// listing. To reach the high-performance catalogue set Type to
+	// [ImageTypeHPVMDistro] and Location to the location code — that
+	// pairing is mandatory, and gosh rejects it locally rather than
+	// letting the API return the error.
+	//
+	// The API's filters[os] parameter is not exposed: it rejects the
+	// same values the endpoint returns. See [Client.ListImages].
+	ListImagesOptions struct {
+		// Type is one of the ImageType* constants. Empty returns the
+		// default catalogue.
+		Type string
+
+		// Location is a code from [Client.ListLocations]. Required
+		// when Type is [ImageTypeHPVMDistro]; ignored for the default
+		// catalogue.
+		Location string
+
+		// IncludeDisabled also returns images that are not currently
+		// offered for provisioning (28 rows becomes 105).
+		IncludeDisabled bool
+
+		// PageSize is ignored by the API unless PageNumber is also
+		// set.
+		PageSize int
+
+		// PageNumber selects the page, 1-based.
+		PageNumber int
+
+		// SortBy names a field to sort on, e.g. "code".
+		SortBy string
+
+		// SortDir is "ASC" or "DESC".
+		SortDir string
+	}
+
 	// ListStatisticTypesOptions identifies the server whose metric
 	// types to enumerate. The parameter is "server_name" — distinct
 	// from siblings that use plain "name".
