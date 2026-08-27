@@ -148,6 +148,26 @@ All notable changes to this project will be documented in this file. The format 
 - `examples/server`: a failure mid-swap left a server holding no
   address with no rollback. Released addresses are now restored on the
   way out, best-effort and loudly.
+- `api.Client` retries requests the API rejects for exceeding its
+  per-second rate limit. The limit is signalled with HTTP 500 rather
+  than 429, so it is indistinguishable from a server error by status
+  code — a client that treats it as a failed operation can report a
+  build as failed when it never started, or retry a create and make two.
+  Retrying is safe even for writes: the limit is applied after the key
+  is authenticated but before the request is dispatched, so a throttled
+  call never reaches the handler.
+- `api.RateLimitError` reports that every attempt was throttled, and
+  wraps the last API error so existing `*models.ErrorResponse`
+  inspection keeps working through `errors.As`.
+- `api.IsRateLimited` tests for a rate-limit rejection, whether retries
+  were exhausted or switched off.
+- `api.SetRateLimitRetries` and `api.SetRateLimitBackoff` configure the
+  behaviour; the defaults are 4 attempts and a 250ms initial backoff,
+  doubling to a 1s cap. Retrying honours context cancellation, so a
+  caller that gives up is not held by a pending backoff.
+- The `api` package documentation now records the limit: it applies per
+  reseller rather than per key, defaults to 10 requests per second, and
+  is configurable — so clients should not hardcode the default.
 
 ## [v0.7.1] - 2026-08-20
 

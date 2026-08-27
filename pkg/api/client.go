@@ -1,4 +1,35 @@
 // Package api provides the functions to work with SiteHost API.
+//
+// # Rate limiting
+//
+// The API limits requests per **reseller** — the owner of the API key,
+// not the individual key. The default allowance is 10 requests per
+// second, held as a counter over a rolling second, and it is
+// configurable per reseller: internal resellers are unlimited, and a
+// reseller can be set to zero to block them entirely. So a client
+// should not hardcode the default.
+//
+// Exceeding the limit returns **HTTP 500** with:
+//
+//	You have exceeded the number of requests per second for this key.
+//	Please try again soon.
+//
+// The status code is the problem. A rate limit is indistinguishable
+// from a server error by status alone, so a client that treats 500 as
+// "the operation failed" draws the wrong conclusion — and in a
+// provisioning flow that means reporting a failed build that never
+// started, or retrying a create and making two.
+//
+// [Client.Do] therefore retries throttled requests with a short
+// backoff, and reports [RateLimitError] if every attempt is throttled.
+// Retrying is sound even for requests that create things: the limit is
+// applied after the key is authenticated but before the request is
+// dispatched, so a throttled call never reaches the handler.
+//
+// Tune it with [SetRateLimitRetries] and [SetRateLimitBackoff], and test
+// for it with [IsRateLimited].
+//
+// Polling a job in a tight loop is the usual way to trip the limit.
 package api
 
 import (
@@ -10,6 +41,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/net"
@@ -28,6 +60,11 @@ type (
 	Client struct {
 		client *http.Client
 		models.ClientBase
+
+		// rateLimitAttempts and rateLimitBackoff control retrying of
+		// throttled requests. See SetRateLimitRetries.
+		rateLimitAttempts int
+		rateLimitBackoff  time.Duration
 	}
 
 	// ClientOpt function parameters to configure a Client.
@@ -83,9 +120,81 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 
 // Do sends an API Request and returns the response.
 //
-// The API response is checked  to see if it was a successful call.
+// The API response is checked to see if it was a successful call.
 // A successful call is then checked to see if we have a Status true.
-func (c *Client) Do(_ context.Context, req *http.Request, v interface{}) error {
+//
+// # Throttled requests are retried
+//
+// The API rate-limits per reseller and signals it with HTTP 500 and a
+// "you have exceeded the number of requests per second" message, which
+// is indistinguishable from a server error by status code alone. Left
+// alone, a client reads that as "the operation failed" — and in a
+// provisioning flow that means concluding a build failed when it never
+// started.
+//
+// So a throttled response is retried with a short backoff. This is safe
+// even for requests that create things: the limit is applied after the
+// key is authenticated but before the request is dispatched, so a
+// throttled call never reached the handler.
+//
+// Retrying needs the request body to be replayable. Bodies built by
+// NewRequest are, because net/http populates GetBody for the reader
+// types it uses; a request carrying a body it cannot replay is attempted
+// once and returned as-is rather than silently sending a truncated
+// second copy.
+//
+// When every attempt is throttled the result is a [RateLimitError]
+// wrapping the last API error. Use [IsRateLimited] to test for it.
+// Configure with [SetRateLimitRetries] and [SetRateLimitBackoff].
+func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error {
+	attempts := c.rateLimitAttempts
+	if attempts < 1 {
+		attempts = 1
+	}
+
+	var lastErr error
+	for attempt := 1; attempt <= attempts; attempt++ {
+		if attempt > 1 {
+			if err := c.rewindBody(req, attempt); err != nil {
+				return lastErr
+			}
+			if err := rateLimitWait(ctx, attempt-1, c.rateLimitBackoff); err != nil {
+				return err
+			}
+		}
+
+		err := c.do(req, v)
+		if err == nil {
+			return nil
+		}
+		if !isRateLimitMessage(err.Error()) {
+			return err
+		}
+		lastErr = err
+	}
+
+	return &RateLimitError{Attempts: attempts, Err: lastErr}
+}
+
+// rewindBody restores a request body for another attempt, reporting an
+// error when it cannot be replayed.
+func (c *Client) rewindBody(req *http.Request, attempt int) error {
+	if req.Body == nil && req.GetBody == nil {
+		return nil // nothing to replay
+	}
+	if req.GetBody == nil {
+		return fmt.Errorf("api: cannot retry attempt %d, request body is not replayable", attempt)
+	}
+	body, err := req.GetBody()
+	if err != nil {
+		return err
+	}
+	req.Body = body
+	return nil
+}
+
+// do performs a single request.
+func (c *Client) do(req *http.Request, v interface{}) error {
 	resp, err := c.client.Do(req)
 	if err != nil {
 		// Transport errors (*url.Error: timeouts, DNS, TLS, resets) embed
@@ -157,7 +266,9 @@ func NewClient(apiKey, clientID string) *Client {
 	baseURL, _ := url.Parse(fmt.Sprintf("%s/%s/", defaultBaseURL, defaultVersion))
 
 	c := &Client{
-		client: &http.Client{},
+		client:            &http.Client{},
+		rateLimitAttempts: defaultRateLimitAttempts,
+		rateLimitBackoff:  defaultRateLimitBackoff,
 		ClientBase: models.ClientBase{
 			BaseURL:            baseURL,
 			APIKey:             apiKey,
