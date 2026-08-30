@@ -15,10 +15,10 @@ import (
 // Nothing in the public API documentation mentions it — requesting its
 // docs page returns "the page you are trying to access does not exist" —
 // and it is missing from the endpoint listing. It is nonetheless part of
-// the public API: it has a generated sapi class, and the platform
-// changelog records it as "added new /server/products/ endpoint to the
-// public API which lists products available to a client in the provided
-// location".
+// the public API: it is present in the platform's own API definition,
+// and its changelog records it as "added new /server/products/ endpoint
+// to the public API which lists products available to a client in the
+// provided location".
 //
 // Being undocumented has a cost worth knowing about: the Knowledge Base
 // product-code page is maintained by hand, and every client that needs
