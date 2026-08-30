@@ -253,7 +253,18 @@ type (
 		// which is why a cores upgrade can be rejected on a server
 		// whose platform supports them in general — the constraint is
 		// per server, not per product family.
-		Cores []int `json:"cores"`
+		// Sent as quoted strings — ["8"] — while the neighbouring
+		// ram is sent as bare numbers in the same object. Declaring
+		// this []int made ListUpgrades fail to decode entirely with
+		// "cannot unmarshal string into Go struct field
+		// Upgrades.return.cores of type int".
+		//
+		// That was missed the first time this endpoint was fixed:
+		// the quota fields were corrected from int to float and the
+		// call was never re-run, so it was documented as working
+		// while still failing. Verified against a live response,
+		// August 2026.
+		Cores []shtypes.MaybeBigInt `json:"cores"`
 
 		// RAM lists the memory sizes in gigabytes this server may be set
 		// to. Fractional values occur, so this is a float slice. As with

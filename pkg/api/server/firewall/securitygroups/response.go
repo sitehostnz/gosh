@@ -3,20 +3,32 @@ package securitygroups
 import "github.com/sitehostnz/gosh/pkg/models"
 
 type (
+	// AttachedServer is a server a security group is applied to.
+	//
+	// The listing endpoint used to declare this position as a plain
+	// string, so ListResponse never decoded at all — "cannot unmarshal
+	// object into Go struct field .return.data.servers of type string".
+	// The get endpoint had the shape right, which is why the mistake
+	// survived: the two were written from different responses and only
+	// one of them was ever run.
+	AttachedServer struct {
+		// Name is the server's name, which is what every other
+		// endpoint takes. Label is the display name.
+		Name  string `json:"name"`
+		Label string `json:"label"`
+	}
+
 	// GetResponse represents a result of a get security group call.
 	GetResponse struct {
 		Return struct {
-			Label       string `json:"label"`
-			Name        string `json:"name"`
-			Pending     string `json:"pending"`
-			IsMissing   bool   `json:"is_missing"`
-			DateAdded   string `json:"date_added"`
-			DateUpdated string `json:"date_updated"`
-			Servers     []struct {
-				Name  string `json:"name"`
-				Label string `json:"label"`
-			} `json:"servers"`
-			Rules struct {
+			Label       string           `json:"label"`
+			Name        string           `json:"name"`
+			Pending     string           `json:"pending"`
+			IsMissing   bool             `json:"is_missing"`
+			DateAdded   string           `json:"date_added"`
+			DateUpdated string           `json:"date_updated"`
+			Servers     []AttachedServer `json:"servers"`
+			Rules       struct {
 				In  []Rule `json:"in"`
 				Out []Rule `json:"out"`
 			} `json:"rules"`
@@ -52,13 +64,13 @@ type (
 		Return struct {
 			models.Pagination
 			Data []struct {
-				Name        string   `json:"name"`
-				Label       string   `json:"label"`
-				Version     int      `json:"version"`
-				Servers     []string `json:"servers"`
-				DateUpdated string   `json:"date_updated"`
-				Pending     string   `json:"pending"`
-				IsMissing   bool     `json:"is_missing"`
+				Name        string           `json:"name"`
+				Label       string           `json:"label"`
+				Version     int              `json:"version"`
+				Servers     []AttachedServer `json:"servers"`
+				DateUpdated string           `json:"date_updated"`
+				Pending     string           `json:"pending"`
+				IsMissing   bool             `json:"is_missing"`
 			} `json:"data"`
 		} `json:"return"`
 		models.APIResponse

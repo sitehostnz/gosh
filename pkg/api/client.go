@@ -67,8 +67,11 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 		return nil, err
 	}
 
+	// Every body this SDK sends is form-encoded, not JSON. The line
+	// setting application/json here was immediately overwritten by the
+	// next one, so it never had an effect — but it read as though the
+	// SDK sometimes sends JSON, which it does not.
 	if body != "" {
-		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("Content-Type", defaultMediaType)
 	}
 

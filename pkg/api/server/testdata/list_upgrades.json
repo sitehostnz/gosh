@@ -1,0 +1,47 @@
+{
+  "return": {
+    "quota": {
+      "ram": {
+        "total": 67,
+        "used": 65.5
+      },
+      "disk": {
+        "total": 2149,
+        "used": 2186
+      },
+      "cores": {
+        "total": 45,
+        "used": 121
+      }
+    },
+    "extra-disk": {
+      "price": 2.5,
+      "size": 5
+    },
+    "disk": {
+      "scsi0": {
+        "included": [
+          200
+        ],
+        "extra": [
+          205,
+          210
+        ]
+      }
+    },
+    "cores": [
+      "8"
+    ],
+    "ram": [
+      4
+    ],
+    "plan": [
+      "LHPVS2",
+      "LHPVS8",
+      "LHPVS15",
+      "LHPVS30"
+    ]
+  },
+  "msg": "scrubbed",
+  "status": true
+}

@@ -51,6 +51,22 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- `server.ListUpgrades` still did not decode. `Return.Cores` was
+  `[]int` while the API sends quoted integers — `["8"]` — so every call
+  failed with "cannot unmarshal string into Go struct field
+  Upgrades.return.cores of type int". This endpoint had two type
+  errors; the first was fixed, the call was not re-run, and it was
+  documented as corrected while still failing. Note `ram` arrives as
+  bare numbers in the same object.
+- `securitygroups.List` had never decoded. `servers` was declared
+  `[]string` while the API sends objects carrying a name and a label.
+  The shared shape is now `securitygroups.AttachedServer`, which
+  `GetResponse` — which had it right all along — also uses.
+- `api.Client.NewRequest` set `Content-Type` twice, the first being
+  overwritten. Every body this SDK sends is form-encoded; the dead line
+  read as though it sometimes sends JSON.
+
+
 - `examples/server`: the `delete` step deleted servers it did not
   create. When nothing had been provisioned it fell back to
   `SH_SERVER_A`/`SH_SERVER_B` — the variables the README tells you to
