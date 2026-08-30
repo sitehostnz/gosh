@@ -14,6 +14,7 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api/server"
 	"github.com/sitehostnz/gosh/pkg/api/server/firewall"
 	"github.com/sitehostnz/gosh/pkg/api/server/firewall/securitygroups"
+	"github.com/sitehostnz/gosh/pkg/api/server/snapshot"
 	sshkey "github.com/sitehostnz/gosh/pkg/api/ssh/key"
 	"github.com/sitehostnz/gosh/pkg/models"
 )
@@ -40,6 +41,7 @@ type clients struct {
 	fw     *firewall.Client
 	sg     *securitygroups.Client
 	key    *sshkey.Client
+	snap   *snapshot.Client
 }
 
 // config holds the journey's inputs. Everything is env-overridable so
@@ -136,6 +138,7 @@ func newClients() (clients, error) {
 		fw:     firewall.New(c),
 		sg:     securitygroups.New(c),
 		key:    sshkey.New(c),
+		snap:   snapshot.New(c),
 	}, nil
 }
 

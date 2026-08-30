@@ -51,6 +51,25 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- `server.ListStatisticTypes` had never returned a metric name.
+  `Return` was `[]string`; the API answers with an object keyed by
+  metric name, and only answers `[]` on a server that has no metrics.
+  So it decoded exactly the empty case and failed on every server with
+  something to report. It is now `server.StatisticTypes`, which takes
+  both shapes. The existing test asserted a flat list of names the API
+  never sends.
+- `server.GetStatistics` could not be called successfully at all.
+  `type` is required and `GetStatisticsOptions` had no field for it, so
+  every call was rejected with "The type is missing." The options now
+  carry `Type`, plus `Item`, `Start`, `End` and `Compacted`. `Item` —
+  which partition or interface to report on — travels as
+  `options[item]`; sending a `partition` or `iface` parameter instead
+  is refused with a message that does not hint at the real problem.
+- `examples/server` gained an `inventory` step covering the eight
+  account-level read endpoints no step called, which is how both of the
+  above were found.
+
+
 - `server.ListUpgrades` still did not decode. `Return.Cores` was
   `[]int` while the API sends quoted integers — `["8"]` — so every call
   failed with "cannot unmarshal string into Go struct field
@@ -119,6 +138,11 @@ All notable changes to this project will be documented in this file. The format 
   enshrined the wrong shape is corrected too.
 
 ### Changed
+
+- **Breaking:** `ListStatisticTypesResponse.Return` is
+  `server.StatisticTypes` (a map) rather than `[]string`, and
+  `GetStatisticsOptions` gained required and optional fields.
+
 
 - **Breaking:** `server.LocationSYD1` is renamed `server.LocationLINSYD1`
   so the two Sydney constants follow one scheme.

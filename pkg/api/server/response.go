@@ -365,10 +365,20 @@ type (
 	}
 
 	// ListStatisticTypesResponse is the response for
-	// list_statistic_types. Return enumerates the metric type IDs
-	// the named server currently exposes.
+	// list_statistic_types.
+	//
+	// Return maps each metric the named server exposes to the
+	// parameter sets it can be requested with — which partition, which
+	// interface. It was previously declared []string, which decoded
+	// only the empty case: a server with no metrics answers "[]", and
+	// a server with some answers an object. So this endpoint had never
+	// once returned a metric name, and the failure was invisible
+	// because the servers it was tried against had nothing to report.
+	//
+	// Verified against a live Xen server, August 2026. See
+	// [StatisticTypes].
 	ListStatisticTypesResponse struct {
-		Return []string `json:"return"`
+		Return StatisticTypes `json:"return"`
 		models.APIResponse
 	}
 

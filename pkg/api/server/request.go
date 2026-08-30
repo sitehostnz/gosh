@@ -297,10 +297,44 @@ type (
 		ServerName string `url:"server_name"`
 	}
 
-	// GetStatisticsOptions identifies the server whose metric values
-	// to fetch. Like ListStatisticTypesOptions, the parameter is
-	// "server_name".
+	// GetStatisticsOptions selects which metric values to fetch.
+	//
+	// ServerName and Type are both required. Type was missing from
+	// this struct entirely, so every call was rejected with "The type
+	// is missing." and the endpoint could not be used at all.
+	//
+	// Like ListStatisticTypesOptions, the server parameter is
+	// "server_name" rather than the plain "name" its siblings use.
 	GetStatisticsOptions struct {
-		ServerName string `url:"server_name"`
+		// ServerName is the server's name. The API constrains it to
+		// 2-13 characters, which is why provisioning truncates a long
+		// label into a shorter name.
+		ServerName string
+
+		// Type is a metric name from [Client.ListStatisticTypes],
+		// e.g. "XenCpu". An unknown value is rejected with "Please
+		// specify a valid type."
+		Type string
+
+		// Item selects which partition or interface to report on, for
+		// the metrics that need one. Take the value from the
+		// [StatisticParameter] entries ListStatisticTypes returns
+		// against the same type.
+		//
+		// Omitting it where the metric needs one is rejected with
+		// "Partition Not Set". Note it travels as options[item], not
+		// as a partition or iface parameter of its own — sending
+		// either of those is refused with "One of the specified
+		// parameters is invalid".
+		Item string
+
+		// Start and End bound the window, as Unix timestamps. Both
+		// optional; the API picks a recent window when they are
+		// omitted.
+		Start string
+		End   string
+
+		// Compacted asks for a reduced series.
+		Compacted bool
 	}
 )

@@ -115,6 +115,11 @@ func setupSteps() []journeyStep {
 			describe: "check the product has capacity at the location",
 		},
 		{
+			order: 25, name: "inventory", inTour: true, run: stepInventory,
+			needs:    "nothing; read-only",
+			describe: "read every account-level listing the SDK exposes",
+		},
+		{
 			order: 30, name: "provision", mutates: true, inTour: true, run: stepProvision,
 			needs:    "steps 10 and 20",
 			describe: "create two servers and wait for both jobs",

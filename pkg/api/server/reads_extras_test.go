@@ -81,6 +81,20 @@ func TestListAllocatedIPs_Success(t *testing.T) {
 	}
 }
 
+// TestListStatisticTypes_Success was written against a fixture the API
+// does not send.
+//
+// It asserted {"return":["cpu","mem","disk"]} — a flat list of names —
+// and passed for as long as the response type was []string. The API
+// sends an object keyed by metric name, or "[]" when the server has no
+// metrics at all. So the test confirmed the belief that produced it
+// while the endpoint failed to decode against every server that had
+// anything to report.
+//
+// The body below is a real response from a Xen server.
+// testPartition is the disk label used by the statistics fixtures.
+const testPartition = "a-disk"
+
 func TestListStatisticTypes_Success(t *testing.T) {
 	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +105,7 @@ func TestListStatisticTypes_Success(t *testing.T) {
 			t.Errorf("server_name = %q (note: not 'name')", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":["cpu","mem","disk"]}`)
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"XenCpu":[[]],"XenDiskIO":[{"partition":"a-disk"}],"XenNetwork":[{"iface":"e0"}]}}`)
 	}))
 	defer srv.Close()
 
@@ -101,7 +115,10 @@ func TestListStatisticTypes_Success(t *testing.T) {
 		t.Fatalf("ListStatisticTypes: %v", err)
 	}
 	if len(got.Return) != 3 {
-		t.Errorf("Return = %v", got.Return)
+		t.Errorf("Return has %d metric(s), want 3: %v", len(got.Return), got.Return.Names())
+	}
+	if got.Return["XenDiskIO"][0].Partition != testPartition {
+		t.Errorf("XenDiskIO partition = %q, want %s", got.Return["XenDiskIO"][0].Partition, testPartition)
 	}
 }
 
@@ -114,13 +131,24 @@ func TestGetStatistics_Success(t *testing.T) {
 		if got := r.URL.Query().Get("server_name"); got != "ch-test" {
 			t.Errorf("server_name = %q", got)
 		}
+		// type is required, and the item travels nested under options.
+		// Sending it as a partition or iface parameter of its own is
+		// refused by the API.
+		if got := r.URL.Query().Get("type"); got != "XenDiskIO" {
+			t.Errorf("type = %q, want XenDiskIO", got)
+		}
+		if got := r.URL.Query().Get("options[item]"); got != testPartition {
+			t.Errorf("options[item] = %q, want %s", got, testPartition)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"cpu":[1.0,2.0,3.0]}}`)
 	}))
 	defer srv.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).GetStatistics(context.Background(), GetStatisticsOptions{ServerName: "ch-test"})
+	got, err := New(c).GetStatistics(context.Background(), GetStatisticsOptions{
+		ServerName: "ch-test", Type: "XenDiskIO", Item: testPartition,
+	})
 	if err != nil {
 		t.Fatalf("GetStatistics: %v", err)
 	}
