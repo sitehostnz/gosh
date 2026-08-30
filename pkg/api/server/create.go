@@ -25,6 +25,16 @@ import (
 // platform allocate one. Pass explicit addresses only if they are
 // already allocated to the calling client; see [ParamsOptions].
 //
+// The two paths go on the wire differently, and the difference is not
+// cosmetic. Automatic allocation is params[ipv4]=auto, a scalar;
+// explicit addresses are params[ipv4][], repeated. Sending "auto" in
+// the bracket form is rejected with
+//
+//	Error: The ip address is invalid, please specify a valid ip address
+//
+// which names an address the caller never supplied. This method sends
+// the right form for each, so callers do not need to know.
+//
 // Array fields go on the wire in the bracket form the API expects
 // (params[ipv4][], params[ipv6][], params[ssh_keys][]).
 //
@@ -53,6 +63,7 @@ func (s *Client) Create(ctx context.Context, opts CreateRequest) (response Creat
 		"product_code",
 		"image",
 		"params[name]",
+		"params[ipv4]",
 		"params[ipv4][]",
 		"params[ipv6][]",
 		"params[ssh_keys][]",
@@ -74,12 +85,29 @@ func (s *Client) Create(ctx context.Context, opts CreateRequest) (response Creat
 
 	// An empty IPv4 means "allocate one", which is what the vast
 	// majority of callers want and what this method used to hardcode.
+	//
+	// "auto" goes on the wire as a SCALAR, params[ipv4], not as
+	// params[ipv4][]. The bracket form is rejected:
+	//
+	//	Error: The ip address is invalid, please specify a valid
+	//	       ip address
+	//
+	// Explicit pre-allocated addresses still use the bracket form,
+	// since more than one may be passed. So the single most common
+	// path — the one the public docs recommend and the one this
+	// method uses when a caller sets nothing — was the only one that
+	// could not work, and every provision through this method failed
+	// with an error about an address the caller never supplied.
 	ipv4 := opts.Params.IPv4
 	if len(ipv4) == 0 {
 		ipv4 = []string{"auto"}
 	}
-	for _, addr := range ipv4 {
-		values.Add("params[ipv4][]", addr)
+	if len(ipv4) == 1 && ipv4[0] == "auto" {
+		values.Add("params[ipv4]", "auto")
+	} else {
+		for _, addr := range ipv4 {
+			values.Add("params[ipv4][]", addr)
+		}
 	}
 	for _, addr := range opts.Params.IPv6 {
 		values.Add("params[ipv6][]", addr)

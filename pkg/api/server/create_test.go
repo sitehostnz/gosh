@@ -47,8 +47,16 @@ func TestCreate_DefaultsToAutoIPv4(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	if v := got["params[ipv4][]"]; len(v) != 1 || v[0] != "auto" {
-		t.Errorf("params[ipv4][] = %v, want [auto]", v)
+	// Scalar, not the bracket form. The API rejects
+	// params[ipv4][]=auto with "The ip address is invalid, please
+	// specify a valid ip address", so every provision that let this
+	// method choose the address failed — while this test passed,
+	// because it asserted what we sent rather than what is accepted.
+	if v := got["params[ipv4]"]; len(v) != 1 || v[0] != "auto" {
+		t.Errorf("params[ipv4] = %v, want [auto]", v)
+	}
+	if v := got["params[ipv4][]"]; len(v) != 0 {
+		t.Errorf("params[ipv4][] = %v, want it unset for auto-allocation", v)
 	}
 	if resp.Return.Name != "web" {
 		t.Errorf("Return.Name = %q, want web", resp.Return.Name)
