@@ -18,19 +18,28 @@ import (
 //
 // # What each product accepts
 //
+// # Cores and RAM are constrained per server, not per product family
+//
+// Do not decide from the product family whether a cores or RAM change
+// is available. Read [Client.ListUpgrades] and pick a value from the
+// sets it returns in Return.Cores and Return.RAM; anything outside
+// them is rejected with "Please specify a valid cores value." (or
+// "ram"), which does not say what would have been valid.
+//
+// A plan with no component headroom returns a set holding only the
+// current value. That is why an LHPVS1 looks as though it refuses
+// cores outright — its allowed set is [1] — while a larger
+// high-performance plan accepts them. The constraint is the server's,
+// not the platform's.
+//
 // Verified live, August 2026:
 //
-//	                      cores / RAM              disk
-//	High performance      rejected                 accepted
-//	Standard performance  accepted                 accepted
-//	Cloud Container       rejected                 (not tested)
-//
-// On high-performance products cores and RAM are fixed by the product
-// code and this endpoint rejects them with "Please specify a valid
-// cores value." / "Please specify a valid ram value." — change them
-// with Upgrade (plan change) instead. Disk is different: it grows
-// happily on high performance, so this endpoint is not simply
-// unavailable there.
+//	                      cores / RAM                    disk
+//	High performance      per-server set from            accepted
+//	                      ListUpgrades; often the
+//	                      current value alone
+//	Legacy Xen (LINVPS)   accepted                       accepted
+//	Cloud Container       rejected                       (not tested)
 //
 // Naming note: this wraps /server/upgrade.json (component upgrade).
 // The existing server.Upgrade method historically wraps
@@ -40,7 +49,9 @@ import (
 // An earlier note here said component upgrades were rejected by
 // high-performance and CCS products outright, generalising from a
 // cores/RAM test on CLDCON4-P. That is too broad: disk upgrades work on
-// high performance. Corrected August 2026.
+// high performance, and cores/RAM are a per-server allowance rather
+// than a platform capability. Corrected August 2026.
+//
 // Disk growth behaves differently by platform, verified live in
 // August 2026:
 //

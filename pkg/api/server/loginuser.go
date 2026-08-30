@@ -39,8 +39,8 @@ const (
 //
 // LINVPS is the oldest platform, being migrated away from; prefer HPVS
 // for new deployments unless there is a reason not to. See
-// [Client.CanProvision] for checking a code against a location, since
-// no endpoint lists them.
+// [Client.ListProducts] to enumerate the codes a location offers, and
+// [Client.CanProvision] to check a specific code against a location.
 const (
 	// ProductTypeHPVS is the high-performance (KVM) family.
 	ProductTypeHPVS = "HPVS"

@@ -5,8 +5,8 @@
 // # What you need before you can provision
 //
 // Most of what a provisioning flow needs is discoverable through this
-// package. Two things are not, and they are the usual reason a first
-// attempt fails.
+// package. One thing is not — the login account — and the rest are the
+// usual reason a first attempt fails.
 //
 //  1. **Location** — discoverable. ListLocations returns the code, the
 //     product families the location carries (ProductTypes) and current

@@ -9,9 +9,10 @@ package server
 // families a location carries. Call [Client.ListLocations] when the
 // answer has to be current, and treat these constants as hints.
 //
-// Note that several locations share a datacenter label while being
-// distinct codes (LocationAKLCity and LocationAKLNCT both report
-// "NZ - AKL01"/"NZ - AKL02" style labels), so match on the code.
+// Note that distinct codes can share a data centre label
+// ([LocationAKLCity] and [LocationWINCity] are both AKL01, differing
+// in which product families they carry), so match on the code and
+// never on the label.
 const (
 	// LocationAKLCity is NZ - AKL01.
 	LocationAKLCity = "AKLCITY"
@@ -25,8 +26,8 @@ const (
 	// LocationWINNCT is the Windows-capable AKL02 pool.
 	LocationWINNCT = "WINNCT"
 
-	// LocationSYD1 is AU - SYD01 (Linux).
-	LocationSYD1 = "LINSYD1"
+	// LocationLINSYD1 is AU - SYD01 (Linux).
+	LocationLINSYD1 = "LINSYD1"
 
 	// LocationWINSYD1 is AU - SYD01 (Windows).
 	LocationWINSYD1 = "WINSYD1"

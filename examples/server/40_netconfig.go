@@ -18,7 +18,7 @@ import (
 // carries its own netmask and gateway, so until these files are written
 // inside the server and it is rebooted, a swapped server does not come
 // back. generate_network_config returns the files, keyed by path;
-// getting them onto the guest is step 60's job.
+// getting them onto the guest is step 50's job.
 func stepNetConfig(ctx context.Context, c clients, st *state) error {
 	if err := st.resolveServers(); err != nil {
 		return err

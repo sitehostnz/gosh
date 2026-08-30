@@ -35,6 +35,19 @@ func TestLoginUserFor(t *testing.T) {
 		{ProductTypeHPVS, "win2022", "", false},
 		{ProductTypeHPVS, "windows-server-2025", "", false},
 
+		// Standard performance (SVS) is the contract that matters most
+		// here: it was never tested, so the function must decline
+		// rather than guess. A later change that folded SVS into the
+		// high-performance table would hand a caller an account the
+		// server may not have, and this is what stops it landing with
+		// green tests.
+		{ProductTypeSVS, "ubuntu-noble", "", false},
+		{ProductTypeSVS, "debian-bookworm", "", false},
+		{"svs", "ubuntu-noble", "", false},
+
+		// Windows on legacy Xen is still RDP, not SSH.
+		{ProductTypeLINVPS, "win2019", "", false},
+
 		// Unrecognised families and products are not guessed.
 		{ProductTypeHPVS, "gentoo", "", false},
 		{"DVS", "ubuntu-noble", "", false},

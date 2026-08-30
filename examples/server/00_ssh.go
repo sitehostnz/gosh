@@ -26,7 +26,10 @@ var journeyLoginUser string
 //
 // The API does not report this, and it depends on both the product
 // family and the distro — the same Ubuntu image logs in as "ubuntu" on
-// high-performance and "root" on standard-performance. Step 30 resolves
+// high-performance and "root" on legacy Xen (LINVPS). The
+// standard-performance (SVS) tier was not tested, and
+// server.LoginUserFor deliberately returns not-ok for it rather than
+// guessing. Step 30 resolves
 // it through server.LoginUserFor from what the API reports about the
 // server it just created. SH_SSH_USER overrides.
 func sshUser() string {
@@ -88,6 +91,27 @@ func sshRun(addr, script string) (string, error) {
 // 10. It is package-level because the ssh helpers are called from steps
 // that do not thread state through.
 var journeyKey ed25519.PrivateKey
+
+// requireKey checks a key is reachable and installs the in-process one
+// when there is one.
+//
+// Either source will do: the key this process generated at step 10, or
+// one the operator points at with SH_SSH_KEY_FILE. Rejecting on the
+// first alone made the second unreachable — the error told you to set
+// a variable that was never consulted, so following its own advice
+// produced the identical error. Steps 50 and 80 are the two that need
+// SSH, so that made them the two that could not run standalone at all.
+func requireKey(st *state, what string) error {
+	if len(st.privateKey) == 0 && os.Getenv("SH_SSH_KEY_FILE") == "" {
+		return fmt.Errorf("no SSH key available: %s needs the key from step 10 in the same process, or SH_SSH_KEY_FILE pointing at a key the servers already trust", what)
+	}
+	// Only overwrite the package-level key when this process has one;
+	// assigning an empty key here would mask the file fallback.
+	if len(st.privateKey) > 0 {
+		journeyKey = st.privateKey
+	}
+	return nil
+}
 
 // signerFor builds an ssh.Signer from the journey's key.
 func signerFor() (ssh.Signer, error) {

@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/sitehostnz/gosh/pkg/models"
 	"github.com/sitehostnz/gosh/pkg/shtypes"
@@ -126,8 +127,16 @@ func (a *ProductAttributes) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &all); err != nil {
 		return fmt.Errorf("server: decoding product attributes: %w", err)
 	}
+	// Delete case-insensitively, because encoding/json matches struct
+	// fields that way: a response spelling a key "Cores" decodes into
+	// the typed field, and deleting only the lower-case spelling would
+	// leave the same value in Extra as well.
 	for _, k := range []string{"cores", "ram", "disk", "bandwidth", "partitions"} {
-		delete(all, k)
+		for present := range all {
+			if strings.EqualFold(present, k) {
+				delete(all, present)
+			}
+		}
 	}
 	if len(all) > 0 {
 		a.Extra = all

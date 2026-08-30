@@ -7,13 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sitehostnz/gosh/pkg/api/job"
 	"github.com/sitehostnz/gosh/pkg/api/server"
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
 // addressSpaceFragment identifies the refusal returned when a
-// standard-performance target still holds an address from another
+// legacy Xen (LINVPS) target still holds an address from another
 // network.
 const addressSpaceFragment = "address space cannot be used"
 
@@ -25,7 +24,7 @@ const addressSpaceFragment = "address space cannot be used"
 // still holds its own. Whether that works depends on the product
 // family, which is the part nobody documents:
 //
-//	Standard performance (LINVPS)  refused, when the two servers are
+//	Legacy Xen (LINVPS)            refused, when the two servers are
 //	                               in different networks
 //	High performance (HPVS)        accepted (suspected bug — see below)
 //
@@ -35,7 +34,7 @@ const addressSpaceFragment = "address space cannot be used"
 //
 // which reads as "addresses cannot cross subnets". They can. The
 // constraint is not on the address, it is on the *target server's
-// existing addresses*: a standard-performance server will not accept an
+// existing addresses*: a legacy Xen (LINVPS) server will not accept an
 // address from one network while it still holds an address of the same
 // family from a different one. Release the target first and the same
 // call succeeds.
@@ -73,11 +72,25 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 
 	sameNetwork := st.ipA.NetworkID == st.ipB.NetworkID
 
+	// held tracks what has been taken away and not yet given back, so
+	// that a failure part-way through can put it back.
+	//
+	// The window this opens is real and deliberate: between releasing
+	// an address and assigning its replacement, a server holds nothing
+	// and is reachable only by console. Inside the journey that is
+	// contained, because cleanup deletes both servers. Standalone
+	// against SH_SERVER_A / SH_SERVER_B it is somebody's production
+	// server, so leaving it stranded is not acceptable and neither is
+	// an error that fails to say which address to put back.
+	held := map[string]string{}
+	defer restoreHeld(ctx, c, held)
+
 	// Release A only. Its address is now free, but B still holds its
 	// own — the state that triggers the refusal on standard performance.
 	if err := release(ctx, c, st.nameA, st.ipA.IPAddr); err != nil {
 		return err
 	}
+	held[st.nameA] = st.ipA.IPAddr
 	log.Printf("✓ %s released %s and holds nothing", st.nameA, st.ipA.IPAddr)
 
 	if err := assertOccupiedTarget(ctx, c, st.nameB, st.ipA, sameNetwork, st.productType); err != nil {
@@ -87,16 +100,25 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 	if err := release(ctx, c, st.nameB, st.ipB.IPAddr); err != nil {
 		return err
 	}
+	held[st.nameB] = st.ipB.IPAddr
 	log.Printf("✓ %s released %s and holds nothing", st.nameB, st.ipB.IPAddr)
 
 	// Cross-assign: the calls refused a moment ago, now accepted
-	// because each target is empty.
+	// because each target is empty. Each server is given the other's
+	// address, so what it is owed changes rather than being cleared.
 	if err := assign(ctx, c, st.nameB, st.ipA.IPAddr); err != nil {
 		return err
 	}
+	// B is whole again, and what A is owed has changed: its original
+	// address now belongs to B, so the address to give it back is the
+	// free one B just gave up.
+	delete(held, st.nameB)
+	held[st.nameA] = st.ipB.IPAddr
+
 	if err := assign(ctx, c, st.nameA, st.ipB.IPAddr); err != nil {
 		return err
 	}
+	delete(held, st.nameA)
 
 	time.Sleep(throttle)
 	if err := assertHolds(ctx, c.server, st.nameB, st.ipA.IPAddr); err != nil {
@@ -118,7 +140,7 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 	})
 }
 
-// assertOccupiedTarget checks that a standard-performance server
+// assertOccupiedTarget checks that a legacy Xen (LINVPS) server
 // refuses a free address from another network while it still holds its
 // own.
 //
@@ -136,7 +158,7 @@ func assertOccupiedTarget(
 	case sameNetwork:
 		log.Printf("  skipped: occupied-target refusal (both servers are in one network, nothing to refuse)")
 		return nil
-	case productType == productTypeHPVS:
+	case productType == server.ProductTypeHPVS:
 		log.Printf("  skipped: occupied-target refusal (%s does not enforce it; not exercised here)", productType)
 		return nil
 	}
@@ -144,7 +166,7 @@ func assertOccupiedTarget(
 	time.Sleep(throttle)
 	_, err := c.server.AddIP(ctx, server.AddIPOptions{Name: target, IP: addr.IPAddr})
 	if err == nil {
-		return fmt.Errorf("AddIP(%s, %s): a standard-performance server accepted an address from another network while occupied; the constraint this example documents no longer holds", target, addr.IPAddr)
+		return fmt.Errorf("AddIP(%s, %s): a legacy Xen (LINVPS) server accepted an address from another network while occupied; the constraint this example documents no longer holds", target, addr.IPAddr)
 	}
 	if !strings.Contains(strings.ToLower(err.Error()), addressSpaceFragment) {
 		return fmt.Errorf("AddIP(%s, %s): expected an address-space refusal, got: %w", target, addr.IPAddr, err)
@@ -217,7 +239,6 @@ func setPrimaries(ctx context.Context, c clients, want map[string]string) error 
 }
 
 // unused keeps the job import referenced if the file is trimmed.
-var _ = job.SchedulerType
 
 // reportMACMovement records whether an address's MAC followed it to the
 // new server.
@@ -256,4 +277,22 @@ func reportMACMovement(ctx context.Context, c clients, st *state) error {
 		log.Printf("    the MAC did NOT travel with the address; a config matched on the old MAC will not apply")
 	}
 	return nil
+}
+
+// restoreHeld gives back any address released but not yet replaced.
+//
+// Best-effort by nature — if the API is refusing calls, it will refuse
+// this one too — so it logs loudly and never touches the error being
+// returned. A restore that swallowed the cause would be worse than
+// none.
+func restoreHeld(ctx context.Context, c clients, held map[string]string) {
+	for name, addr := range held {
+		log.Printf("! %s is holding no address; restoring %s", name, addr)
+		if err := assign(ctx, c, name, addr); err != nil {
+			log.Printf("! could not restore %s to %s: %v", addr, name, err)
+			log.Printf("!   fix by hand: server.AddIP(%s, %s)", name, addr)
+			continue
+		}
+		log.Printf("✓ restored %s to %s", addr, name)
+	}
 }

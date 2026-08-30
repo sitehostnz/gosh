@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/sitehostnz/gosh/pkg/api/server"
@@ -29,9 +30,10 @@ func stepDiscover(ctx context.Context, c clients, st *state) error {
 	}
 	if st.cfg.image != "" {
 		log.Printf("✓ image pinned by SH_IMAGE: %s", st.cfg.image)
-		return nil
+	} else if err := resolveImage(ctx, c, st); err != nil {
+		return err
 	}
-	return resolveImage(ctx, c, st)
+	return describeProduct(ctx, c, st)
 }
 
 // checkLocation confirms the configured location exists and has
@@ -105,8 +107,11 @@ func resolveImage(ctx context.Context, c clients, st *state) error {
 //	                           wrong for this location
 //
 // So it is a genuine existence-and-capacity check for a
-// product/location pair, and the cheapest way to validate a product
-// code without a products endpoint to list them.
+// product/location pair. It is not how you find out what the codes
+// are — [server.Client.ListProducts] does that, and stepDiscover calls
+// it first. The two answer different questions: ListProducts says what
+// exists and what it is made of, CanProvision says whether this one
+// can be built here right now.
 //
 // What it does NOT validate is the image. It returns success for image
 // codes that provision then rejects as unknown, so it cannot confirm a
@@ -126,5 +131,62 @@ func stepPreflight(ctx context.Context, c clients, st *state) error {
 	}
 	log.Printf("✓ %s is offered at %s and has capacity", st.cfg.product, st.cfg.location)
 	log.Printf("  note: this validates the product and capacity, not the image")
+	return nil
+}
+
+// describeProduct reads the configured product out of the location's
+// catalogue and reports what it is made of.
+//
+// This is the endpoint that removes the need to hardcode a product
+// code, so an example that hardcodes one and never calls it would be
+// teaching the opposite of what it documents. It also produces a
+// better failure than CanProvision's "Products not found": the codes
+// that ARE offered here.
+//
+// The partitions are the practical payoff. They name the disk labels
+// ("scsi0" on high performance, "xvda1" on Xen) that
+// server.UpgradeComponents requires, so a caller can know them before
+// a server exists rather than only by reading Get afterwards.
+func describeProduct(ctx context.Context, c clients, st *state) error {
+	time.Sleep(throttle)
+	prods, err := c.server.ListProducts(ctx, server.ListProductsOptions{
+		Location: st.cfg.location,
+	})
+	if err != nil {
+		return fmt.Errorf("ListProducts: %w", err)
+	}
+
+	codes := make([]string, 0, len(prods.Return))
+	var found *server.Product
+	for i, p := range prods.Return {
+		codes = append(codes, p.Code)
+		if p.Code == st.cfg.product {
+			found = &prods.Return[i]
+		}
+	}
+	if len(codes) == 0 {
+		return fmt.Errorf("ListProducts: %s offers no products at all", st.cfg.location)
+	}
+	if found == nil {
+		return fmt.Errorf("product %s is not offered at %s; that location offers %d code(s): %s",
+			st.cfg.product, st.cfg.location, len(codes), strings.Join(codes, ", "))
+	}
+
+	log.Printf("✓ %s at %s: %d core(s), %.1fGB RAM, %dGB disk",
+		found.Code, st.cfg.location,
+		found.Attributes.Cores, found.Attributes.RAM, found.Attributes.Disk)
+
+	// A loop over an empty list would log nothing and look like a pass,
+	// so say which case this is.
+	if len(found.Attributes.Partitions) == 0 {
+		log.Printf("  no partitions reported; UpgradeComponents disk labels must come from server.Get")
+		return nil
+	}
+	labels := make([]string, 0, len(found.Attributes.Partitions))
+	for _, part := range found.Attributes.Partitions {
+		labels = append(labels, part.Name)
+	}
+	log.Printf("✓ disk labels for UpgradeComponents, known before the server exists: %s",
+		strings.Join(labels, ", "))
 	return nil
 }

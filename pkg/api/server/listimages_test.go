@@ -96,6 +96,8 @@ func TestListImages_HPVMFiltersOnWire(t *testing.T) {
 		IncludeDisabled: true,
 		PageSize:        50,
 		PageNumber:      2,
+		SortBy:          "name",
+		SortDir:         "desc",
 	})
 	if err != nil {
 		t.Fatalf("ListImages: %v", err)

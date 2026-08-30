@@ -33,9 +33,11 @@ type (
 	//
 	// Disk is the upgrade path most consumers actually want — VPS
 	// products commonly grow disk independently of their plan, where
-	// Cores/RAM are tied to the product code. CCS products reject
-	// component upgrades entirely (use the Upgrade method against
-	// /server/upgrade_plan.json for CCS resizing instead).
+	// Cores/RAM are constrained per server rather than per product
+	// family: read the allowed sets from [Client.ListUpgrades] and
+	// pick from them, since a plan with no headroom returns only the
+	// current value. Cloud Container cores/RAM are rejected; CCS disk
+	// was not tested. See [Client.UpgradeComponents].
 	UpgradeComponentsRequest struct {
 		Name  string `json:"name"`
 		Cores int    `json:"upgrade[cores],omitempty"`
@@ -172,7 +174,7 @@ type (
 	// Note: "auto" works on Create but is rejected here. The two
 	// endpoints use different conventions:
 	//
-	//   - Create: params[ipv4][0]=auto (string "auto")
+	//   - Create: params[ipv4]=auto    (scalar string "auto")
 	//   - AddIP:  param=4 or param=6   (family number)
 	//
 	// Live evidence (May 2026): AddIP{IP:"auto"} returns

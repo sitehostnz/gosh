@@ -60,13 +60,12 @@ import (
 // to have happened, rather than rendering the whole thing. Everything
 // else in the file is the platform's own output.
 func stepPrestage(ctx context.Context, c clients, st *state) error {
-	if len(st.privateKey) == 0 {
-		return fmt.Errorf("no SSH key in state: run step 10 (sshkey) in the same process, or set SH_SSH_KEY_FILE to a key the servers already trust")
+	if err := requireKey(st, "prestage"); err != nil {
+		return err
 	}
 	if err := st.requirePair(ctx, c, "prestage"); err != nil {
 		return err
 	}
-	journeyKey = st.privateKey
 
 	// Fetch each server's current configuration; each is what the other
 	// server will need once the addresses move.

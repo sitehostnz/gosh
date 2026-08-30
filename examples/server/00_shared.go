@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/sitehostnz/gosh/pkg/api"
@@ -29,10 +30,6 @@ const (
 	// jobTimeout bounds a single job. Provisioning is the slow one;
 	// address moves complete in seconds.
 	jobTimeout = 15 * time.Minute
-
-	// productTypeHPVS is the product family reported by server.Get for
-	// high-performance products. Standard performance reports LINVPS.
-	productTypeHPVS = "HPVS"
 )
 
 // clients bundles every API client the journey needs, so step
@@ -115,10 +112,24 @@ func newClients() (clients, error) {
 	if apiKey == "" || clientID == "" {
 		return clients{}, fmt.Errorf("SH_API_KEY and SH_CLIENT_ID required — see README.md for how to create a key")
 	}
-	c, err := api.New(apiKey, clientID)
+	// SH_BASE_URL is read here rather than merely documented. An
+	// unrecognised variable that is silently ignored is the worst
+	// outcome available: someone pointing this journey at a sandbox
+	// before letting it loose would have provisioned, swapped and
+	// deleted two billable servers on production instead.
+	var opts []api.ClientOpt
+	if base := os.Getenv("SH_BASE_URL"); base != "" {
+		opts = append(opts, api.SetBaseURL(base))
+	}
+
+	c, err := api.New(apiKey, clientID, opts...)
 	if err != nil {
 		return clients{}, fmt.Errorf("api.New: %w", err)
 	}
+
+	// Say where this run is pointed, always. A journey that mutates
+	// real infrastructure should never leave that implicit.
+	log.Printf("  API base: %s", c.BaseURL)
 	return clients{
 		server: server.New(c),
 		job:    job.New(c),
@@ -143,20 +154,42 @@ func (s *state) resolveServers() error {
 	return nil
 }
 
-// deletable lists what this run should clean up. When nothing was
-// recorded — a single step run rather than a journey — it falls back to
-// the environment rather than silently doing nothing.
+// deletable lists what this run should clean up.
+//
+// It returns only what this process provisioned. That restriction is
+// the whole point, and it is worth stating why, because the convenient
+// version of this function is dangerous.
+//
+// The convenient version falls back to SH_SERVER_A / SH_SERVER_B when
+// nothing was recorded, so that a standalone `delete` has something to
+// act on. But runJourney calls cleanup unconditionally, including when
+// the tour failed — which is correct, since that is exactly when a
+// freshly provisioned server would otherwise be leaked. Put those two
+// together and a journey that fails before stepProvision records
+// anything, at ssh/key.Create, or a preflight refusal, or a rate-limit
+// burst, will find st.created empty and delete whatever SH_SERVER_A
+// and SH_SERVER_B happen to name. Those are the variables the README
+// tells you to export for standalone runs, so having them set
+// alongside SH_EXAMPLE_ALLOW_PROVISION=1 is the normal working state,
+// not an exotic one. Deletion is forced and not recoverable.
+//
+// Naming a server for a read-only step must never be reinterpreted as
+// consent to destroy it. Deleting something this process did not create
+// therefore needs its own opt-in, SH_DELETE_SERVERS, which exists for
+// no other purpose and cannot be set by accident.
 func (s *state) deletable() []string {
 	if len(s.created) > 0 {
 		return s.created
 	}
-	var names []string
-	if err := s.resolveServers(); err == nil {
-		for _, n := range []string{s.nameA, s.nameB} {
-			if n != "" {
-				names = append(names, n)
-			}
+	names := make([]string, 0, 2)
+	for _, n := range strings.Split(os.Getenv("SH_DELETE_SERVERS"), ",") {
+		if n = strings.TrimSpace(n); n != "" {
+			names = append(names, n)
 		}
+	}
+	if len(names) > 0 {
+		log.Printf("  SH_DELETE_SERVERS names %d server(s) this process did not create: %s",
+			len(names), strings.Join(names, ", "))
 	}
 	return names
 }

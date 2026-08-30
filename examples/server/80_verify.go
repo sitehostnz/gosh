@@ -40,10 +40,9 @@ const (
 // reboot is requested through the API and takes a moment to begin, and
 // polling into that gap tests the previous state.
 func stepVerify(ctx context.Context, c clients, st *state) error {
-	if len(st.privateKey) == 0 {
-		return fmt.Errorf("no SSH key in state: verification needs the key from step 10, or SH_SSH_KEY_FILE")
+	if err := requireKey(st, "verify"); err != nil {
+		return err
 	}
-	journeyKey = st.privateKey
 	if err := st.resolveServers(); err != nil {
 		return err
 	}

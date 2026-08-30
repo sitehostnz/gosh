@@ -39,6 +39,11 @@ type (
 	// struct field .return.disk of type bool" — so disk upgrades did
 	// not work through this SDK at all.
 	//
+	// It tolerates a scalar in that position as well — see
+	// [shtypes.MaybeBoolMap] — because declaring it as a map alone
+	// would trade one decode failure for another pointing the other
+	// way, hiding the API's real message behind a JSON type error.
+	//
 	// Note also that a response may carry no job: on high-performance
 	// products a disk grow is applied online and immediately, so
 	// models.Job is zero and there is nothing to poll. See
@@ -46,9 +51,9 @@ type (
 	UpgradeComponentsResponse struct {
 		Return struct {
 			models.Job `json:"job"`
-			Cores      bool            `json:"cores"`
-			RAM        bool            `json:"ram"`
-			Disk       map[string]bool `json:"disk"`
+			Cores      bool                 `json:"cores"`
+			RAM        bool                 `json:"ram"`
+			Disk       shtypes.MaybeBoolMap `json:"disk"`
 		} `json:"return"`
 		models.APIResponse
 	}

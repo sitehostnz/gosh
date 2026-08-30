@@ -34,8 +34,11 @@ All notable changes to this project will be documented in this file. The format 
   the distro: the same Ubuntu image is `ubuntu` on high-performance and
   `root` on standard-performance. Determined empirically; the doc
   comment records what was not verified.
-- `server.ProductTypeHPVS`, `ProductTypeLINVPS` and `ProductTypeWINVPS`
-  name the product families `models.Server.ProductType` reports.
+- `server.ProductTypeHPVS`, `ProductTypeSVS`, `ProductTypeLINVPS` and
+  `ProductTypeWINVPS` name the product families
+  `models.Server.ProductType` reports. `ProductTypeSVS` matters most:
+  it is the family `server.LoginUserFor` deliberately does not cover,
+  so a caller needs the constant in order to write that check.
 - `examples/server`: the server lifecycle as a numbered journey —
   register a key, discover an image, provision a pair, optionally
   resize or change plan, swap their addresses, complete the cutover
@@ -47,6 +50,28 @@ All notable changes to this project will be documented in this file. The format 
   journey map and exits zero.
 
 ### Fixed
+
+- `examples/server`: the `delete` step deleted servers it did not
+  create. When nothing had been provisioned it fell back to
+  `SH_SERVER_A`/`SH_SERVER_B` — the variables the README tells you to
+  export for standalone runs — and the journey runs cleanup even after
+  a failed tour, so a run that failed before provisioning would
+  force-delete two servers the operator already owned. Deleting a
+  server this process did not create now requires `SH_DELETE_SERVERS`,
+  which exists for no other purpose.
+- `examples/server`: `SH_BASE_URL` was documented in two places and
+  read nowhere, so pointing the journey at a sandbox silently ran it
+  against production.
+- `examples/server`: `SH_SSH_KEY_FILE` was unreachable — steps 50 and
+  80 rejected before consulting it, so following the error message's
+  own advice produced the identical error.
+- `examples/server`: a failure mid-swap left a server holding no
+  address with no rollback. Released addresses are now restored on the
+  way out, best-effort and loudly.
+- `server.ProductAttributes` retained a typed field in `Extra` when the
+  API spelled the key with different case, since `encoding/json`
+  matches case-insensitively but the cleanup did not.
+
 
 - `server.ListUpgrades` decodes at all. `QuotaUsage.Total` and `Used`
   were `int` where the API sends a fractional RAM quota (67.5 GB
@@ -78,6 +103,22 @@ All notable changes to this project will be documented in this file. The format 
   enshrined the wrong shape is corrected too.
 
 ### Changed
+
+- **Breaking:** `server.LocationSYD1` is renamed `server.LocationLINSYD1`
+  so the two Sydney constants follow one scheme.
+- `UpgradeComponentsResponse.Return.Disk` is `shtypes.MaybeBoolMap`,
+  which accepts the observed object form and a bare bool. Declaring it
+  as a map alone traded one decode failure for another pointing the
+  other way, hiding the API's real message behind a JSON type error.
+- `server.UpgradeComponents` documents cores and RAM as constrained
+  **per server** rather than per product family: read the allowed sets
+  from `ListUpgrades`. A plan with no headroom returns only the current
+  value, which is why an LHPVS1 looks as though it refuses cores
+  outright.
+- Doc comments no longer claim product codes are undiscoverable, which
+  `ListProducts` made false, and no longer use "standard performance"
+  for observations made on legacy Xen (LINVPS). The standard-performance
+  (SVS) tier was not tested and is now said to be so.
 
 - **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
   argument. Pass the zero value for the previous behaviour.

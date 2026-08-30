@@ -27,7 +27,7 @@ func (fi *MaybeString) UnmarshalJSON(b []byte) error {
 	// deliberately NOT here, matching IsEmptyMapShape's definition: this
 	// serialiser does not produce it for an empty value, so meeting one
 	// means the shape genuinely is not scalar and should error.
-	if len(b) == 0 || string(b) == "null" || string(b) == "[]" {
+	if len(b) == 0 || string(b) == jsonNull || string(b) == "[]" {
 		*fi = ""
 		return nil
 	}

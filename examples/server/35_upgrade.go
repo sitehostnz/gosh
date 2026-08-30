@@ -23,10 +23,12 @@ const diskGrowthGB = 10
 //
 // # Stage, then commit
 //
-// UpgradeComponents does not resize anything. It records the intended
-// size, which shows up on the server as Partition.NewSize alongside the
-// unchanged Partition.Size. CommitDiskChanges is what actually applies
-// it. This step asserts both halves separately, because a caller that
+// On legacy Xen (LINVPS), UpgradeComponents does not resize anything.
+// It records the intended size, which shows up on the server as
+// Partition.NewSize alongside the unchanged Partition.Size, and
+// CommitDiskChanges is what actually applies it. High performance
+// differs — the resize is online and immediate, with nothing to
+// commit; see "On high performance the resize is online" below. This step asserts both halves separately, because a caller that
 // only makes the first call sees a successful response and no resize,
 // which is a confusing place to end up.
 //

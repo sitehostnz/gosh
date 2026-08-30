@@ -18,6 +18,7 @@ to happen, in what order, and which steps write.
 20  discover / preflight     before provisioning, any order
 30  provision the pair       needs 10 and 20
 40  firewall / netconfig     after provisioning, any order
+35  upgrade disk / plan      needs a provisioned server
 50  prestage the guests      needs 10's key; MUST precede 60
 60  swap the addresses       needs a provisioned pair
 70  reboot via the API       needs 50 and 60
@@ -55,6 +56,10 @@ to run without `SH_EXAMPLE_ALLOW_PROVISION=1`.
 | `SH_SSH_USER` | resolved from product family + distro; see `server.LoginUserFor` |
 | `SH_LABEL_A` / `SH_LABEL_B` | `gosh-journey-a` / `-b` |
 | `SH_SERVER_A` / `SH_SERVER_B` | — (single-step runs) |
+| `SH_SSH_KEY_FILE` | — (a private key the servers already trust, for standalone 50 and 80) |
+| `SH_DISK_LABEL` | discovered from the server (`upgrade-disk`) |
+| `SH_UPGRADE_PLAN` | — (required by `upgrade-plan`) |
+| `SH_DELETE_SERVERS` | — (comma-separated; the only way `delete` touches a server this run did not create) |
 | `SH_BASE_URL` | the public API |
 
 ## Getting an API key
@@ -126,9 +131,13 @@ the step that meets it:
 
 ## Safety
 
-- Nothing runs without `SH_EXAMPLE_ALLOW_PROVISION=1`.
+- Read-only steps need no opt-in; every step marked `WRITES` refuses to
+  run without `SH_EXAMPLE_ALLOW_PROVISION=1`.
 - Step 90 always runs, even when an earlier step fails, and reports
-  loudly if a delete did not succeed.
+  loudly if a delete did not succeed. It deletes only what this process
+  provisioned. To delete a server it did not create, name it explicitly
+  in `SH_DELETE_SERVERS` — setting `SH_SERVER_A`/`SH_SERVER_B` for a
+  read-only step is never taken as consent to destroy anything.
 - The SSH key is generated per run, registered, and deleted at the end.
   The private half never touches disk.
 - Host keys are not verified — the servers are created and destroyed
