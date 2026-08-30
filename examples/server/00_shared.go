@@ -90,6 +90,12 @@ type state struct {
 	// nameA and nameB are the names the platform assigned. These are
 	// NOT the labels: the platform truncates the label and appends a
 	// digit on collision.
+	// subject is the server the read-only inventory step looks at. It
+	// is deliberately separate from nameA/nameB, which the write steps
+	// use: a read-only step must never redirect what a later write step
+	// acts on.
+	subject string
+
 	nameA string
 	nameB string
 

@@ -59,15 +59,18 @@ func readServers(ctx context.Context, c clients, st *state) error {
 	}
 	log.Printf("✓ %d server(s) on this account", len(list.Return.Servers))
 
-	// Choose the subject for the per-server reads below. SH_SERVER_A
-	// wins when it is set, so a caller can point this at a server that
-	// actually has something to report; otherwise take the first
-	// listed, so the step still does something on its own.
-	if st.nameA == "" {
-		st.nameA = os.Getenv("SH_SERVER_A")
-	}
-	if st.nameA == "" && len(list.Return.Servers) > 0 {
-		st.nameA = list.Return.Servers[0].Name
+	// Choose the subject for the per-server reads below, and keep it
+	// local.
+	//
+	// This step must not write to shared state. It ran before
+	// provisioning in the journey, set state.nameA to the first server
+	// on the account, and a later step then attached a security group
+	// to somebody's real server instead of the one the journey had
+	// made. A read-only step that quietly redirects the write steps
+	// after it is worse than one that does nothing.
+	st.subject = os.Getenv("SH_SERVER_A")
+	if st.subject == "" && len(list.Return.Servers) > 0 {
+		st.subject = list.Return.Servers[0].Name
 		log.Printf("  no SH_SERVER_A; using the first listed for the per-server reads")
 	}
 
@@ -152,12 +155,12 @@ func readSecurityGroups(ctx context.Context, c clients, _ *state) error {
 
 // readSnapshots lists the snapshots of the subject server.
 func readSnapshots(ctx context.Context, c clients, st *state) error {
-	if st.nameA == "" {
+	if st.subject == "" {
 		log.Printf("  no server to read snapshots for; skipping")
 		return nil
 	}
 	time.Sleep(throttle)
-	snaps, err := c.snap.List(ctx, snapshot.ListOptions{Name: st.nameA})
+	snaps, err := c.snap.List(ctx, snapshot.ListOptions{Name: st.subject})
 	if err != nil {
 		return fmt.Errorf("snapshot.List: %w", err)
 	}
@@ -171,13 +174,13 @@ func readSnapshots(ctx context.Context, c clients, st *state) error {
 // siblings take plain "name". Getting it wrong is rejected in a way
 // that reads like the server is missing rather than the parameter.
 func readStatistics(ctx context.Context, c clients, st *state) error {
-	if st.nameA == "" {
+	if st.subject == "" {
 		log.Printf("  no server to read statistics for; skipping")
 		return nil
 	}
 
 	time.Sleep(throttle)
-	types, err := c.server.ListStatisticTypes(ctx, server.ListStatisticTypesOptions{ServerName: st.nameA})
+	types, err := c.server.ListStatisticTypes(ctx, server.ListStatisticTypesOptions{ServerName: st.subject})
 	if err != nil {
 		return fmt.Errorf("ListStatisticTypes: %w", err)
 	}
@@ -207,7 +210,7 @@ func readStatistics(ctx context.Context, c clients, st *state) error {
 
 	time.Sleep(throttle)
 	stats, err := c.server.GetStatistics(ctx, server.GetStatisticsOptions{
-		ServerName: st.nameA,
+		ServerName: st.subject,
 		Type:       metric,
 		Item:       item,
 	})

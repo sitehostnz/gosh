@@ -158,6 +158,21 @@ func cutoverSteps() []journeyStep {
 			describe: "fetch the guest network configuration files",
 		},
 		{
+			order: 45, name: "secgroup", mutates: true, inTour: true, run: stepSecGroup,
+			needs:    "a provisioned server; high-performance only",
+			describe: "create a security group, attach, change rules, remove",
+		},
+		{
+			order: 47, name: "snapshot", mutates: true, inTour: true, run: stepSnapshot,
+			needs:    "a server this run provisioned",
+			describe: "take a snapshot, set its lifetime, restore from it",
+		},
+		{
+			order: 48, name: "label", mutates: true, inTour: true, run: stepLabel,
+			needs:    "a server this run provisioned",
+			describe: "change a server's label and put it back",
+		},
+		{
 			order: 50, name: "prestage", mutates: true, inTour: true, run: stepPrestage,
 			needs:    "step 10's key and a provisioned pair",
 			describe: "stage each guest's post-swap config, unapplied",

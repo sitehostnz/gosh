@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- `examples/server` now exercises all 36 methods in the server
+  namespace, up from 17. New steps: `inventory` (the account-level
+  listings), `secgroup` (a security group's whole life, and a
+  packet-level check that it filters), `snapshot` (take, set lifetime,
+  restore, delete, with a disk-level check that the restore reverted
+  anything) and `label`.
+
+
 - `server.ListImagesOptions` gives `server.ListImages` the filters the
   API already supported: `Type`, `Location`, `IncludeDisabled`,
   `PageSize`/`PageNumber` and `SortBy`/`SortDir`. This makes the
