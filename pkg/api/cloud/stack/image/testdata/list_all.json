@@ -1,0 +1,172 @@
+{
+  "msg": "scrubbed",
+  "return": [
+    {
+      "changelog": "scrubbed",
+      "client_id": "1",
+      "code": "scrubbed",
+      "date_added": "2026-01-01 00:00:00",
+      "date_updated": "2026-01-01 00:00:00",
+      "forked_from": null,
+      "id": "1",
+      "is_missing": "1",
+      "is_public": "1",
+      "label": "scrubbed",
+      "labels": {
+        "nz.sitehost.image.label": "scrubbed",
+        "nz.sitehost.image.ports": {
+          "80": {
+            "exposed": true,
+            "protocol": "scrubbed",
+            "publish": false
+          }
+        },
+        "nz.sitehost.image.provider": "scrubbed",
+        "nz.sitehost.image.type": "scrubbed",
+        "nz.sitehost.image.volumes": {
+          "hash": "scrubbed",
+          "source": "scrubbed",
+          "volumes": {
+            "application": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "config": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "crontabs": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "logs": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            }
+          }
+        }
+      },
+      "pending": null,
+      "project_id": "1",
+      "registry_id": "1",
+      "versions": [
+        {
+          "build_id": "1",
+          "build_status": "scrubbed",
+          "client_id": "1",
+          "date_added": "2026-01-01 00:00:00",
+          "date_updated": "2026-01-01 00:00:00",
+          "docker_size": "1",
+          "force_config": "1",
+          "id": "1",
+          "image_id": "1",
+          "is_missing": "1",
+          "labels": "scrubbed",
+          "pending": null,
+          "public": "1",
+          "version": "scrubbed"
+        },
+        {
+          "build_id": "1",
+          "build_status": "scrubbed",
+          "client_id": "1",
+          "date_added": "2026-01-01 00:00:00",
+          "date_updated": "2026-01-01 00:00:00",
+          "docker_size": "1",
+          "force_config": "1",
+          "id": "1",
+          "image_id": "1",
+          "is_missing": "1",
+          "labels": "scrubbed",
+          "pending": null,
+          "public": "1",
+          "version": "scrubbed"
+        }
+      ]
+    },
+    {
+      "changelog": "scrubbed",
+      "client_id": "1",
+      "code": "scrubbed",
+      "date_added": "2026-01-01 00:00:00",
+      "date_updated": "2026-01-01 00:00:00",
+      "forked_from": null,
+      "id": "1",
+      "is_missing": "1",
+      "is_public": "1",
+      "label": "scrubbed",
+      "labels": {
+        "nz.sitehost.image.label": "scrubbed",
+        "nz.sitehost.image.ports": {
+          "80": {
+            "exposed": true,
+            "protocol": "scrubbed",
+            "publish": false
+          }
+        },
+        "nz.sitehost.image.provider": "scrubbed",
+        "nz.sitehost.image.type": "scrubbed",
+        "nz.sitehost.image.volumes": {
+          "hash": "scrubbed",
+          "source": "scrubbed",
+          "volumes": {
+            "application": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "config": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "crontabs": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            },
+            "logs": {
+              "dest": "scrubbed",
+              "mode": "scrubbed"
+            }
+          }
+        }
+      },
+      "pending": null,
+      "project_id": "1",
+      "registry_id": "1",
+      "versions": [
+        {
+          "build_id": "1",
+          "build_status": "scrubbed",
+          "client_id": "1",
+          "date_added": "2026-01-01 00:00:00",
+          "date_updated": "2026-01-01 00:00:00",
+          "docker_size": "1",
+          "force_config": "1",
+          "id": "1",
+          "image_id": "1",
+          "is_missing": "1",
+          "labels": "scrubbed",
+          "pending": null,
+          "public": "1",
+          "version": "scrubbed"
+        },
+        {
+          "build_id": "1",
+          "build_status": "scrubbed",
+          "client_id": "1",
+          "date_added": "2026-01-01 00:00:00",
+          "date_updated": "2026-01-01 00:00:00",
+          "docker_size": "1",
+          "force_config": "1",
+          "id": "1",
+          "image_id": "1",
+          "is_missing": "1",
+          "labels": "scrubbed",
+          "pending": null,
+          "public": "1",
+          "version": "scrubbed"
+        }
+      ]
+    }
+  ],
+  "status": true
+}

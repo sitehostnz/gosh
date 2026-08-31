@@ -51,7 +51,6 @@ func (s *Client) Add(ctx context.Context, request AddRequest) (response AddRespo
 	values.Add("server_name", request.ServerName)
 	values.Add("mysql_host", request.MySQLHost)
 	values.Add("database", request.Database)
-	values.Add("database", request.Database)
 	values.Add("container", request.Container)
 
 	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))

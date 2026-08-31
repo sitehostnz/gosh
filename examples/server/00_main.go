@@ -65,6 +65,11 @@
 // Optional env: SH_LOCATION, SH_PRODUCT, SH_IMAGE, SH_DISTRO,
 // SH_LABEL_A, SH_LABEL_B, SH_SERVER_A, SH_SERVER_B, SH_BASE_URL,
 // SH_SSH_KEY_FILE, SH_DISK_LABEL, SH_UPGRADE_PLAN, SH_DELETE_SERVERS.
+//
+// Set SH_RECORD_DIR to capture every call and rejection as JSON. Worth
+// doing while changing anything here: a mock can only confirm what we
+// already believed about the API, so fixtures built from recordings are
+// evidence and fixtures written by hand are restated assumptions.
 package main
 
 import (

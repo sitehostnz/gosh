@@ -22,9 +22,11 @@ func (s *Client) Get(ctx context.Context, request GetRequest) (response GetRespo
 		return response, err
 	}
 
+	// apikey and client_id are already on the query from NewRequest.
+	// Re-adding them sent client_id twice, and "api_key" is not a
+	// parameter this API has — it was absent from the keys list, so
+	// net.Encode dropped it and nothing ever complained.
 	v := req.URL.Query()
-	v.Add("api_key", s.client.APIKey)
-	v.Add("client_id", s.client.ClientID)
 	v.Add("server_name", request.ServerName)
 	v.Add("mysql_host", request.MySQLHost)
 	v.Add("username", request.Username)

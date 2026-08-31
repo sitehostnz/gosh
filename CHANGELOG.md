@@ -39,6 +39,21 @@ All notable changes to this project will be documented in this file. The format 
   `[]`.
 - `securitygroups.AttachedServer` is the shape the security-group
   endpoints report an attached server as.
+- `api.SetTransport` installs any `http.RoundTripper` on the client. It
+  is the seam the recording tooling plugs into, and implies nothing
+  about what is on the other end.
+- `examples/cloud` walks the Cloud Container journey. Its probe step
+  provokes API rejections deliberately, which is the half of a fixture
+  corpus a hand-written mock cannot supply.
+- Recorded-response tests for `cloud/db`, `cloud/db/user`,
+  `cloud/ssh/user`, `cloud/stack`, `cloud/stack/image` and
+  `cloud/server`, four of which had no tests at all.
+- `models.CloudServer` decodes `created`, `date_updated` and `managed`;
+  `models.Container` decodes `image`, `image_id`, `image_details`,
+  `docker_size`, `backups`, `monitored`, `db_socket`, `date_added` and
+  `date_updated`; `models.StackImage` decodes `registry_path`;
+  `models.StackImageVersion` decodes `docker_size` and `public`. Every
+  one of these was being sent by the API and dropped in silence.
 - `examples/server` walks the whole server lifecycle as a numbered
   journey and exercises all 36 methods in the namespace. Two of its
   steps check the result somewhere other than the API that was asked

@@ -1,0 +1,55 @@
+{
+  "msg": "scrubbed",
+  "return": {
+    "current_items": 1,
+    "current_page": 1,
+    "data": [
+      {
+        "client_id": "1",
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "grants": [],
+        "is_missing": "1",
+        "mysql_host": "scrubbed",
+        "password": "",
+        "pending": null,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "username": "scrubbed"
+      },
+      {
+        "client_id": "1",
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "grants": [
+          {
+            "date_added": "2026-01-01 00:00:00",
+            "date_updated": "2026-01-01 00:00:00",
+            "db_name": "scrubbed",
+            "grants": [
+              "scrubbed",
+              "scrubbed"
+            ],
+            "host": "scrubbed",
+            "is_missing": "1",
+            "mysql_host": "scrubbed",
+            "pending": null,
+            "username": "scrubbed"
+          }
+        ],
+        "is_missing": "1",
+        "mysql_host": "scrubbed",
+        "password": "",
+        "pending": null,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "username": "scrubbed"
+      }
+    ],
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "status": true
+}

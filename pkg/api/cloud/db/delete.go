@@ -22,7 +22,6 @@ func (s *Client) Delete(ctx context.Context, request DeleteRequest) (response De
 	values.Add("server_name", request.ServerName)
 	values.Add("mysql_host", request.MySQLHost)
 	values.Add("database", request.Database)
-	values.Add("database", request.Database)
 
 	req, err := s.client.NewRequest("POST", uri, net.Encode(values, keys))
 	if err != nil {
