@@ -8,25 +8,65 @@ import (
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
-// UpgradeComponents upgrades specific hardware components (cores
-// and/or RAM) on a server via /server/upgrade.json. Returns a
-// scheduler job plus per-component bool flags indicating which
-// upgrades were accepted.
+// UpgradeComponents upgrades specific hardware components — cores, RAM
+// and/or disk — on a server via /server/upgrade.json. Returns which
+// components were accepted, and a job when the work happens out of
+// band.
 //
-// At least one of Cores or RAM should be set; passing zero for both
-// is accepted by the API but is a no-op.
+// At least one of Cores, RAM or Disk should be set; passing nothing is
+// accepted by the API but is a no-op.
+//
+// # Cores and RAM are constrained per server, not per product family
+//
+// Do not decide from the product family whether a cores or RAM change
+// is available. Read [Client.ListUpgrades] and pick a value from the
+// sets it returns in Return.Cores and Return.RAM; anything outside
+// them is rejected with "Please specify a valid cores value." (or
+// "ram"), which does not say what would have been valid.
+//
+// A plan with no component headroom returns a set holding only the
+// current value. That is why an LHPVS1 looks as though it refuses
+// cores outright — its allowed set is [1] — while a larger
+// high-performance plan accepts them. The constraint is the server's,
+// not the platform's.
+//
+// Verified live, August 2026:
+//
+//	                      cores / RAM                    disk
+//	High performance      per-server set from            accepted
+//	                      ListUpgrades; often the
+//	                      current value alone
+//	Legacy Xen (LINVPS)   accepted                       accepted
+//	Cloud Container       rejected                       (not tested)
 //
 // Naming note: this wraps /server/upgrade.json (component upgrade).
 // The existing server.Upgrade method historically wraps
 // /server/upgrade_plan.json (plan / product-code upgrade) — its name
 // predates this wrapper, retained for backwards compatibility.
 //
-// **Live finding** (May 2026): the API rejects component upgrades
-// against CCS products (CLDCON4-P tested) with "Please specify a
-// valid cores value." — these products have fixed cores/RAM tied
-// to the product code; component-level scaling appears to be a
-// VPS-only operation. Use server.Upgrade (plan / product-code
-// upgrade) for CCS resizing instead.
+// An earlier note here said component upgrades were rejected by
+// high-performance and CCS products outright, generalising from a
+// cores/RAM test on CLDCON4-P. That is too broad: disk upgrades work on
+// high performance, and cores/RAM are a per-server allowance rather
+// than a platform capability. Corrected August 2026.
+//
+// Disk growth behaves differently by platform, verified live in
+// August 2026:
+//
+//   - **High performance (HPVS).** The resize is applied online and
+//     immediately. The server reports the new Size straight away,
+//     NewSize stays zero, no reboot is needed and there is no job to
+//     poll. CommitDiskChanges is not required.
+//   - **Legacy Xen (LINVPS).** The intended size is staged as the
+//     partition's NewSize and CommitDiskChanges applies it.
+//
+// A caller that wants to work on both should read the partition back
+// after this call: if NewSize is set, commit it; if Size already
+// reflects the request, the resize is done. examples/server does this.
+//
+// The platform may need to migrate a server to another node to find
+// space, in which case the operation takes considerably longer than a
+// local resize.
 func (s *Client) UpgradeComponents(ctx context.Context, request UpgradeComponentsRequest) (response UpgradeComponentsResponse, err error) {
 	u := "server/upgrade.json"
 	keys := []string{"client_id", "name"}

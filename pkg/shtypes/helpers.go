@@ -1,5 +1,10 @@
 package shtypes
 
+// jsonNull is the JSON null literal, checked in several places here
+// because this API uses null, "[]" and absence interchangeably for an
+// empty value.
+const jsonNull = "null"
+
 // BoolToInt simple formatter for mapping a bool to a 1 or a zero.
 func BoolToInt(b bool) int {
 	if b {
@@ -28,5 +33,5 @@ func BoolToInt(b bool) int {
 // wherever a map-shaped return can be empty.
 func IsEmptyMapShape(raw []byte) bool {
 	s := string(raw)
-	return len(raw) == 0 || s == "null" || s == "[]"
+	return len(raw) == 0 || s == jsonNull || s == "[]"
 }

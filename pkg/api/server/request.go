@@ -33,9 +33,11 @@ type (
 	//
 	// Disk is the upgrade path most consumers actually want — VPS
 	// products commonly grow disk independently of their plan, where
-	// Cores/RAM are tied to the product code. CCS products reject
-	// component upgrades entirely (use the Upgrade method against
-	// /server/upgrade_plan.json for CCS resizing instead).
+	// Cores/RAM are constrained per server rather than per product
+	// family: read the allowed sets from [Client.ListUpgrades] and
+	// pick from them, since a plan with no headroom returns only the
+	// current value. Cloud Container cores/RAM are rejected; CCS disk
+	// was not tested. See [Client.UpgradeComponents].
 	UpgradeComponentsRequest struct {
 		Name  string `json:"name"`
 		Cores int    `json:"upgrade[cores],omitempty"`
@@ -172,7 +174,7 @@ type (
 	// Note: "auto" works on Create but is rejected here. The two
 	// endpoints use different conventions:
 	//
-	//   - Create: params[ipv4][0]=auto (string "auto")
+	//   - Create: params[ipv4]=auto    (scalar string "auto")
 	//   - AddIP:  param=4 or param=6   (family number)
 	//
 	// Live evidence (May 2026): AddIP{IP:"auto"} returns
@@ -229,6 +231,65 @@ type (
 		Location string `url:"location"`
 	}
 
+	// ListImagesOptions filters the image catalogue returned by
+	// server/list_images.json.
+	//
+	// The zero value returns the default legacy Xen (LINVPS)
+	// listing. To reach the high-performance catalogue set Type to
+	// [ImageTypeHPVMDistro] and Location to the location code — that
+	// pairing is mandatory, and gosh rejects it locally rather than
+	// letting the API return the error.
+	//
+	// The API's filters[os] parameter is not exposed: it rejects the
+	// same values the endpoint returns. See [Client.ListImages].
+	ListImagesOptions struct {
+		// Type is one of the ImageType* constants. Empty returns the
+		// default catalogue.
+		Type string
+
+		// Location is a code from [Client.ListLocations]. Required
+		// when Type is [ImageTypeHPVMDistro]; ignored for the default
+		// catalogue.
+		Location string
+
+		// IncludeDisabled also returns images that are not currently
+		// offered for provisioning (28 rows becomes 105).
+		IncludeDisabled bool
+
+		// PageSize is ignored by the API unless PageNumber is also
+		// set.
+		PageSize int
+
+		// PageNumber selects the page, 1-based.
+		PageNumber int
+
+		// SortBy names a field to sort on, e.g. "code".
+		SortBy string
+
+		// SortDir is "ASC" or "DESC".
+		SortDir string
+	}
+
+	// ListProductsOptions filters the product list returned by
+	// server/products.json.
+	//
+	// Location is required: products are scoped to a location's product
+	// group, so there is no "everything" listing. See
+	// [Client.ListProducts].
+	ListProductsOptions struct {
+		// Location is a code from [Client.ListLocations]. Required.
+		Location string
+
+		// Types narrows to product families — "HPVS", "SVS", "LINVPS",
+		// "CLDCON" and so on. See the ProductType* constants for the
+		// virtual-server families.
+		Types []string
+
+		// Codes narrows to specific product codes, which is the cheap
+		// way to confirm a configured code still exists at a location.
+		Codes []string
+	}
+
 	// ListStatisticTypesOptions identifies the server whose metric
 	// types to enumerate. The parameter is "server_name" — distinct
 	// from siblings that use plain "name".
@@ -236,10 +297,44 @@ type (
 		ServerName string `url:"server_name"`
 	}
 
-	// GetStatisticsOptions identifies the server whose metric values
-	// to fetch. Like ListStatisticTypesOptions, the parameter is
-	// "server_name".
+	// GetStatisticsOptions selects which metric values to fetch.
+	//
+	// ServerName and Type are both required. Type was missing from
+	// this struct entirely, so every call was rejected with "The type
+	// is missing." and the endpoint could not be used at all.
+	//
+	// Like ListStatisticTypesOptions, the server parameter is
+	// "server_name" rather than the plain "name" its siblings use.
 	GetStatisticsOptions struct {
-		ServerName string `url:"server_name"`
+		// ServerName is the server's name. The API constrains it to
+		// 2-13 characters, which is why provisioning truncates a long
+		// label into a shorter name.
+		ServerName string
+
+		// Type is a metric name from [Client.ListStatisticTypes],
+		// e.g. "XenCpu". An unknown value is rejected with "Please
+		// specify a valid type."
+		Type string
+
+		// Item selects which partition or interface to report on, for
+		// the metrics that need one. Take the value from the
+		// [StatisticParameter] entries ListStatisticTypes returns
+		// against the same type.
+		//
+		// Omitting it where the metric needs one is rejected with
+		// "Partition Not Set". Note it travels as options[item], not
+		// as a partition or iface parameter of its own — sending
+		// either of those is refused with "One of the specified
+		// parameters is invalid".
+		Item string
+
+		// Start and End bound the window, as Unix timestamps. Both
+		// optional; the API picks a recent window when they are
+		// omitted.
+		Start string
+		End   string
+
+		// Compacted asks for a reduced series.
+		Compacted bool
 	}
 )

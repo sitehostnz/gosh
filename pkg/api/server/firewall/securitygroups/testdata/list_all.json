@@ -1,0 +1,26 @@
+{
+  "return": {
+    "total_items": 1,
+    "current_items": 1,
+    "current_page": 1,
+    "total_pages": 1,
+    "data": [
+      {
+        "name": "scrubbed",
+        "label": "scrubbed",
+        "version": 5,
+        "servers": [
+          {
+            "name": "scrubbed",
+            "label": "scrubbed"
+          }
+        ],
+        "date_updated": "2026-01-01 00:00:00",
+        "pending": null,
+        "is_missing": false
+      }
+    ]
+  },
+  "msg": "scrubbed",
+  "status": true
+}

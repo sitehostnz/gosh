@@ -3,6 +3,152 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Added
+
+- `server.ListProducts` wraps `server/products.json`, which lists every
+  product orderable at a location with its cores, RAM, disk, bandwidth
+  and partitions. The endpoint is undocumented rather than absent; it
+  removes the need to hardcode a product code, and its partition list
+  names the disk labels `UpgradeComponents` requires, knowable before a
+  server exists.
+- `server.ListImagesOptions` gives `server.ListImages` the filters the
+  API already supported: `Type`, `Location`, `IncludeDisabled`,
+  `PageSize`/`PageNumber` and `SortBy`/`SortDir`. This makes the
+  high-performance (HPVS) image catalogue reachable for the first
+  time — it sits behind `Type: server.ImageTypeHPVMDistro` plus a
+  mandatory `Location`. HPVS image codes carry a build date
+  (`ubuntu-2404-20260727`), so they must be discovered, not hardcoded.
+- `server.ImageTypeDistro`, `ImageTypeHPVMDistro`, `ImageTypeContainer`
+  and `ImageTypeApp` name the closed set the type filter accepts.
+- `server.ProductTypeHPVS`, `ProductTypeSVS`, `ProductTypeLINVPS` and
+  `ProductTypeWINVPS` name the product families
+  `models.Server.ProductType` reports. `ProductTypeSVS` matters most:
+  it is the family `server.LoginUserFor` deliberately does not cover,
+  so a caller needs the constant in order to write that check.
+- `server.Location*` constants for the location codes known at the time
+  of writing, including `LocationLINSYD1` and `LocationWINSYD1`, which
+  share a scheme. `server.ListLocations` remains authoritative.
+- `server.LoginUserFor` resolves the SSH account for a product family
+  and distro, determined empirically. It declines rather than guesses
+  for families that were not tested.
+- `server.StatisticTypes` and `server.StatisticParameter` describe what
+  `ListStatisticTypes` returns; `GetStatisticsOptions` gained `Type`,
+  `Item`, `Start`, `End` and `Compacted`.
+- `shtypes.MaybeBoolMap`, with `Accepted` and `AcceptedKey`, decodes a
+  per-key flag map that the API may also answer as a bare bool or as
+  `[]`.
+- `securitygroups.AttachedServer` is the shape the security-group
+  endpoints report an attached server as.
+- `examples/server` walks the whole server lifecycle as a numbered
+  journey and exercises all 36 methods in the namespace. Two of its
+  steps check the result somewhere other than the API that was asked
+  to do the work: the security-group step opens a TCP connection to
+  confirm a rule actually filters, and the snapshot step writes a
+  marker file into the guest to confirm a restore actually reverted the
+  disk.
+
+### Changed
+
+- **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
+  argument. Pass the zero value for the previous behaviour.
+- **Breaking:** `UpgradeComponentsResponse.Return.Disk` is
+  `shtypes.MaybeBoolMap` rather than `bool`. The API answers per disk
+  label, and may answer with a bare bool or `[]` when it has no
+  per-label detail to give. Read it through `Accepted` and
+  `AcceptedKey` rather than indexing.
+- **Breaking:** `ListStatisticTypesResponse.Return` is
+  `server.StatisticTypes` rather than `[]string`.
+- `models.Container.DockerSize` and `models.StackImageVersion.DockerSize`
+  are `shtypes.MaybeBigInt`, because the API sends a bare number on a
+  container and a quoted string on a version.
+- `models.Container.ImageDetails` is a `json.RawMessage`. Its keys are
+  `models.StackImage`'s, but its `labels` is a JSON-encoded string
+  where StackImage's is an object, and its `versions` is an object
+  where StackImage's is a list, so it cannot be decoded as one.
+- `server.UpgradeComponents` documents cores and RAM as constrained
+  **per server** rather than per product family: read the allowed sets
+  from `ListUpgrades`. A plan with no headroom returns only the current
+  value, which is why an LHPVS1 looks as though it refuses cores
+  outright.
+- Package documentation for `server`, `server/firewall` and
+  `server/firewall/securitygroups` records what a caller has to know up
+  front: that product codes are discoverable through `ListProducts`
+  while `CanProvision` distinguishes "not offered here" from "offered
+  but full"; that a server's name is not the label it was given, and
+  that nothing renames a server; that SSH keys must be registered *and*
+  passed as content at provision time; the per-second rate limit and
+  that it surfaces as HTTP 500; that a server cannot be deleted while
+  provisioning; and that the firewall endpoints exist only for
+  high-performance products.
+- Doc comments no longer attribute observations made on legacy Xen
+  (LINVPS) to standard performance (SVS). Where the SVS tier was not
+  tested, the documentation says so rather than generalising.
+- Doc comments across `cloud/db`, `cloud/db/user`, `cloud/ssh/user` and
+  `cloud/stack` record observed behaviour: list filters are optional
+  but validated, so an empty page never means a filter was ignored, and
+  `cloud/stack/get.json` takes `server` rather than `server_name`.
+- `dns.GetZone` documents that it is a search, so a name matching
+  nothing returns `status:true` with an empty list rather than an
+  error. Checking `err` alone reports a zone as present when it is not.
+- `dns/template.List` documents that the listing includes SiteHost's
+  shared templates alongside the account's, so `DomainCount` on a
+  shared row is not an account figure.
+
+### Fixed
+
+- `server.Create` ignored `ParamsOptions` entirely, so the IP
+  allocation, backup, contact and SSH-key paths its own documentation
+  described were unreachable.
+- `UpgradeComponentsResponse.Return.Disk` was declared `bool` while the
+  API answers per disk label, so every disk upgrade failed to decode
+  and disk upgrades did not work through this SDK at all. The test
+  fixture that enshrined the wrong shape is corrected too.
+- `server.ListUpgrades` never decoded. `QuotaUsage` fields were `int`
+  where the API sends fractional values, and `Return.Cores` was
+  `[]int` where the API sends quoted integers. Note `ram` arrives as
+  bare numbers in the same object.
+- `server.ListStatisticTypes` had never returned a metric name.
+  `Return` was `[]string`; the API answers with an object keyed by
+  metric name and answers `[]` only on a server with no metrics, so it
+  decoded exactly the empty case. The existing test asserted a flat
+  list of names the API never sends.
+- `server.GetStatistics` could not be called successfully at all.
+  `type` is required and the options struct had no field for it. `Item`
+  — which partition or interface to report on — travels as
+  `options[item]`; sending a `partition` or `iface` parameter instead
+  is refused with a message that does not point at the real problem.
+- `securitygroups.List` had never decoded. `servers` was declared
+  `[]string` while the API sends objects carrying a name and a label.
+- `server.ProductAttributes` retained a typed field in `Extra` when the
+  API spelled the key with different case, since `encoding/json`
+  matches case-insensitively but the cleanup did not.
+- `cloud/db.Get` and `cloud/db/user.Get` each sent `client_id` twice
+  and added an `api_key` parameter this API does not have, which
+  `net.Encode` then dropped for not being in the keys list.
+- `cloud/ssh/user.Update` silently ignored `ReadOnlyConfig`. The value
+  was added as `params[read_only_config]` while the keys list named
+  `params[read_only_config][]`, and `net.Encode` emits only the keys it
+  is given — so the field was dropped and the call still succeeded.
+- `cloud/db.Add` and `cloud/db.Delete` sent `database` twice.
+- `api.Client.NewRequest` set `Content-Type` twice, the first being
+  overwritten. Every body this SDK sends is form-encoded.
+- `models.CloudServer`, `models.Container`, `models.StackImage`,
+  `models.StackImageVersion` and `dns/template.TemplateDetails` now
+  decode fields the API sends that no field received. They were being
+  dropped in silence.
+- `examples/server`: the `delete` step deleted servers it did not
+  create, falling back to `SH_SERVER_A`/`SH_SERVER_B` when nothing had
+  been provisioned. Deleting a server this process did not create now
+  requires `SH_DELETE_SERVERS`.
+- `examples/server`: `SH_BASE_URL` was documented in two places and
+  read nowhere, so pointing the journey at a sandbox silently ran it
+  against production.
+- `examples/server`: `SH_SSH_KEY_FILE` was unreachable — the steps that
+  need SSH rejected before consulting it.
+- `examples/server`: a failure mid-swap left a server holding no
+  address with no rollback. Released addresses are now restored on the
+  way out, best-effort and loudly.
+
 ## [v0.7.1] - 2026-08-20
 
 ### Added

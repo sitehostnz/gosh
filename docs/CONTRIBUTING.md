@@ -59,3 +59,88 @@ When you're finished with the changes, create a pull request, also known as a PR
 
 Congratulations :tada::tada: The SiteHost team thanks you :sparkles:.
 
+
+
+## Examples share the root module
+
+`examples/` lives in the root module rather than carrying its own
+`go.mod`. That makes `golang.org/x/crypto` a direct requirement of
+`github.com/sitehostnz/gosh`, because `examples/server` dials SSH to
+prove an address swap worked from inside the guests.
+
+This has been raised in review twice, so the reasoning is recorded here
+rather than re-argued each time.
+
+### What it actually costs a consumer
+
+Measured, not assumed. A module requiring `gosh` and importing only
+`pkg/api` and `pkg/api/server`:
+
+- `golang.org/x/crypto` is **not** in the consumer's `go.mod`;
+- it is **not in their `go.sum`**, so it is never downloaded or
+  verified and carries no supply-chain or CVE surface for them;
+- nothing from it is compiled into their binary.
+
+It appears only in `go mod graph`, as
+`github.com/sitehostnz/gosh golang.org/x/crypto`. That is module-graph
+pruning (Go 1.17+) working as intended.
+
+So the real cost is dependency-review tooling that reads the module
+graph rather than the build graph. `govulncheck` does reachability
+analysis and does not flag it.
+
+One trap when re-checking this: `go list -deps` in a consumer reports
+several `golang.org/x/crypto/...` paths, which looks conclusive until
+you read them — they are `vendor/golang.org/x/crypto/...`, the standard
+library's own vendored copy behind `crypto/tls`. Unrelated to this
+dependency.
+
+### Why not split the module
+
+The conventional fix is a separate `examples/go.mod`. It does not work
+here as stated: Go's `internal` rule is per-module, so an `examples`
+module could not import `github.com/sitehostnz/gosh/internal/...`, and
+the examples are built on the API recording tooling that lives there.
+
+Making the split work would mean promoting that tooling to exported
+API. That may be worth doing on its own merits — a consumer testing
+against this API would plausibly want a recorder — but it is a decision
+about the SDK's public surface, not a dependency clean-up.
+
+The alternative, dropping the SSH dependency, costs the two steps that
+verify a swap from inside the guest, which are the ones that make the
+example a check rather than a demonstration.
+
+### The standing decision
+
+Keep `examples/` in the root module. `tools.go` already places
+`golangci-lint` and `go-acc` in the same `require` block, so this is
+consistent with existing practice rather than a new departure.
+
+Revisit if either of these changes:
+
+- a consumer reports real friction in dependency review, rather than
+  theoretical friction; or
+- the recording tooling is exported for its own reasons, at which point
+  the module split becomes cheap and should be done.
+
+## Examples are the validation layer
+
+`examples/<package>/main.go`, one per package. They are assertion-style
+rather than demonstration-style: every check must be able to fail, and
+a failed assertion exits non-zero.
+
+Two rules that are easy to get wrong:
+
+- **Never log customer data.** Counts, ids and shapes only.
+- **A check that cannot fail is worse than no check**, because it reads
+  as coverage. Guard loops with a `len(rows) > 0` precondition, or skip
+  explicitly and say so — a loop body that never runs will happily log
+  a tick.
+
+Where an example can verify a result somewhere other than the API that
+was asked to do the work, it should. Asking the control plane whether
+the control plane did what it was told proves a record changed, not
+that anything happened: the security-group step opens a TCP connection
+to confirm a rule filters, and the snapshot step writes a marker file
+into the guest to confirm a restore reverted the disk.
