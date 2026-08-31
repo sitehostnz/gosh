@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -142,7 +143,8 @@ func TestRateLimit_DisabledMakesOneAttempt(t *testing.T) {
 	if calls != 1 {
 		t.Errorf("calls = %d, want 1 when retrying is disabled", calls)
 	}
-	// Recognisable even without the wrapper type.
+	// Do returns *RateLimitError here too, with Attempts of 1;
+	// IsRateLimited recognises it either way.
 	if !IsRateLimited(err) {
 		t.Errorf("IsRateLimited(%v) = false, want true", err)
 	}
@@ -255,4 +257,160 @@ func newTestClient(t *testing.T, baseURL string, opts ...ClientOpt) *Client {
 		t.Fatalf("api.New: %v", err)
 	}
 	return c
+}
+
+// TestRateLimit_BackoffSchedule pins the progression and the ceiling.
+//
+// Nothing asserted this before, which is how two faults in the same
+// four lines went unnoticed: a configured value above the ceiling was
+// silently reduced to it, and a large attempt count overflowed the
+// shift and produced a zero wait — turning "be more patient with a
+// rate limiter" into a hot loop against one.
+func TestRateLimit_BackoffSchedule(t *testing.T) {
+	t.Parallel()
+
+	const base = 250 * time.Millisecond
+
+	cases := []struct {
+		name    string
+		attempt int
+		base    time.Duration
+		want    time.Duration
+	}{
+		{"first attempt waits the configured value", 1, base, base},
+		{"second doubles", 2, base, 500 * time.Millisecond},
+		{"third doubles again", 3, base, time.Second},
+		{"fourth is held at the ceiling", 4, base, time.Second},
+
+		// The caller's own value is honoured rather than clamped. A
+		// batch job that would rather wait five seconds than press a
+		// shared allowance gets five seconds.
+		{"a base above the ceiling is the caller's choice", 1, 5 * time.Second, 5 * time.Second},
+
+		// Overflow. The shift form wrapped negative here, skipped the
+		// cap, and fired the timer immediately.
+		{"a large attempt count stays at the ceiling", 38, base, time.Second},
+		{"and stays there", 59, base, time.Second},
+		{"and at any count", 200, base, time.Second},
+
+		// The loop form is safe for inputs its caller currently
+		// prevents; the shift form panicked on them.
+		{"a zero attempt does not panic", 0, base, base},
+		{"nor a negative one", -3, base, base},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			if got := backoffFor(tc.attempt, tc.base); got != tc.want {
+				t.Errorf("backoffFor(%d, %v) = %v, want %v", tc.attempt, tc.base, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestRateLimit_SetterGuards covers the configuration paths.
+func TestRateLimit_SetterGuards(t *testing.T) {
+	t.Parallel()
+
+	t.Run("zero retries is treated as one", func(t *testing.T) {
+		t.Parallel()
+		c, err := New("k", "1", SetRateLimitRetries(0))
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+		if c.rateLimitAttempts != 1 {
+			t.Errorf("attempts = %d, want 1", c.rateLimitAttempts)
+		}
+	})
+
+	t.Run("a negative backoff is rejected", func(t *testing.T) {
+		t.Parallel()
+		if _, err := New("k", "1", SetRateLimitBackoff(-time.Second)); err == nil {
+			t.Error("expected an error for a negative backoff")
+		}
+	})
+
+	t.Run("a backoff above the ceiling is kept, not silently reduced", func(t *testing.T) {
+		t.Parallel()
+		c, err := New("k", "1", SetRateLimitBackoff(5*time.Second))
+		if err != nil {
+			t.Fatalf("New: %v", err)
+		}
+		if c.rateLimitBackoff != 5*time.Second {
+			t.Errorf("backoff = %v, want 5s — the caller's value must survive", c.rateLimitBackoff)
+		}
+	})
+}
+
+// TestIsRateLimited_Nil checks the obvious input.
+func TestIsRateLimited_Nil(t *testing.T) {
+	t.Parallel()
+	if IsRateLimited(nil) {
+		t.Error("IsRateLimited(nil) = true")
+	}
+}
+
+// TestRateLimit_TransportErrorsAreNotRetried is the safety property.
+//
+// The argument for retrying a request that creates something is that
+// the limit is applied before dispatch, so a throttled call never
+// reached the handler. A transport error is the one case where the
+// request may well have reached the handler and run — so it is exactly
+// where that guarantee is false, and exactly where a retry could make
+// two servers.
+//
+// The earlier implementation matched the phrase against the rendered
+// string of any error, transport errors included.
+func TestRateLimit_TransportErrorsAreNotRetried(t *testing.T) {
+	t.Parallel()
+
+	transport := fmt.Errorf(
+		"Get \"https://api.example/thing.json\": read tcp: exceeded the number of requests per second for this key")
+	if isThrottled(transport) {
+		t.Error("a transport error was treated as a throttle; the pre-dispatch guarantee does not hold for it")
+	}
+
+	// And an API error on some other status is not a throttle either.
+	other := &models.ErrorResponse{
+		Response: &http.Response{StatusCode: http.StatusBadRequest},
+		Message:  "exceeded the number of requests per second for this key",
+	}
+	if isThrottled(other) {
+		t.Error("a 400 carrying the phrase was treated as a throttle")
+	}
+
+	throttle := &models.ErrorResponse{
+		Response: &http.Response{StatusCode: http.StatusInternalServerError},
+		Message:  "You have exceeded the number of requests per second for this key.",
+	}
+	if !isThrottled(throttle) {
+		t.Error("the limiter's own response was not recognised")
+	}
+}
+
+// TestRateLimit_MarkerToleratesCosmeticRewording checks the matcher
+// survives the edits nobody would announce.
+func TestRateLimit_MarkerToleratesCosmeticRewording(t *testing.T) {
+	t.Parallel()
+
+	for _, msg := range []string{
+		"You have exceeded the number of requests per second for this key.",
+		"You have  exceeded  the number of requests per second for this key.",
+		"You have exceeded the number of\nrequests per second for this key.",
+		"YOU HAVE EXCEEDED THE NUMBER OF REQUESTS PER SECOND FOR THIS KEY.",
+	} {
+		if !isRateLimitMessage(msg) {
+			t.Errorf("did not match: %q", msg)
+		}
+	}
+	for _, msg := range []string{
+		"Please specify a valid domain name.",
+		"exceeded your storage quota",
+		"requests per second is the unit we use",
+	} {
+		if isRateLimitMessage(msg) {
+			t.Errorf("matched an unrelated message: %q", msg)
+		}
+	}
 }

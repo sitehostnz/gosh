@@ -2,14 +2,13 @@
 //
 // # Rate limiting
 //
-// The API limits requests per **reseller** — the owner of the API key,
-// not the individual key. The default allowance is 10 requests per
-// second, held as a counter over a rolling second, and it is
-// configurable per reseller: internal resellers are unlimited, and a
-// reseller can be set to zero to block them entirely. So a client
-// should not hardcode the default.
+// The API limits requests per reseller — the owner of the API key,
+// rather than per individual key. The default allowance is 10 requests
+// per second, counted over a rolling second, and it is configurable.
+// So a client should not hardcode the default: the allowance it gets
+// may be higher or lower than 10.
 //
-// Exceeding the limit returns **HTTP 500** with:
+// Exceeding the limit returns HTTP 500 with:
 //
 //	You have exceeded the number of requests per second for this key.
 //	Please try again soon.
@@ -152,10 +151,28 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		attempts = 1
 	}
 
+	// Apply the caller's context to the request, not only to the
+	// backoff. Wiring it into the wait alone left the parameter
+	// half-working: cancelling aborted a pending sleep and did nothing
+	// to an in-flight request, while the doc and a test both said
+	// cancellation was honoured. Visibly ignored would have been more
+	// honest than that.
+	req = req.WithContext(ctx)
+
 	var lastErr error
 	for attempt := 1; attempt <= attempts; attempt++ {
 		if attempt > 1 {
-			if err := c.rewindBody(req, attempt); err != nil {
+			replayable, err := rewindBody(req)
+			switch {
+			case err != nil:
+				// A real I/O failure re-reading the body. Reporting
+				// this as a rate limit sends the caller looking in
+				// entirely the wrong place, so both are surfaced.
+				return errors.Join(lastErr, err)
+			case !replayable:
+				// Documented: a body that cannot be replayed is
+				// attempted once and the throttle error returned
+				// as-is, rather than risking a truncated second copy.
 				return lastErr
 			}
 			if err := rateLimitWait(ctx, attempt-1, c.rateLimitBackoff); err != nil {
@@ -167,7 +184,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 		if err == nil {
 			return nil
 		}
-		if !isRateLimitMessage(err.Error()) {
+		if !isThrottled(err) {
 			return err
 		}
 		lastErr = err
@@ -176,21 +193,28 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	return &RateLimitError{Attempts: attempts, Err: lastErr}
 }
 
-// rewindBody restores a request body for another attempt, reporting an
-// error when it cannot be replayed.
-func (c *Client) rewindBody(req *http.Request, attempt int) error {
+// rewindBody restores a request body for another attempt.
+//
+// It returns whether the request can be attempted again, and separately
+// any error from re-reading the body. The two are different situations
+// and were previously collapsed into one: the caller discarded the
+// error and returned the earlier throttle error, so a genuine I/O
+// failure was reported as a rate limit. The message that was supposed
+// to explain it was formatted and then unconditionally thrown away,
+// which also made its attempt parameter dead.
+func rewindBody(req *http.Request) (replayable bool, err error) {
 	if req.Body == nil && req.GetBody == nil {
-		return nil // nothing to replay
+		return true, nil // nothing to replay
 	}
 	if req.GetBody == nil {
-		return fmt.Errorf("api: cannot retry attempt %d, request body is not replayable", attempt)
+		return false, nil
 	}
 	body, err := req.GetBody()
 	if err != nil {
-		return err
+		return false, err
 	}
 	req.Body = body
-	return nil
+	return true, nil
 }
 
 // do performs a single request.
