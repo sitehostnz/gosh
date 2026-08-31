@@ -52,7 +52,7 @@ type (
 		Cores int `json:"cores"`
 
 		// RAM is in gigabytes, and is not always whole — the smallest
-		// standard-performance plan is 1.5GB — so it is a float rather
+		// smallest plan observed is 1.5GB — so it is a float rather
 		// than an int.
 		RAM float64 `json:"ram"`
 

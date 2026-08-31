@@ -41,6 +41,20 @@ func stepLabel(ctx context.Context, c clients, st *state) error {
 	original := before.Server.Label
 	log.Printf("  %s is labelled %q", name, original)
 
+	// Put the label back whatever happens next, the way the secgroup
+	// and snapshot steps added alongside this one do. A failure
+	// between here and the restore below would otherwise leave the
+	// server labelled "-relabelled" with nothing said about it.
+	defer func() {
+		time.Sleep(throttle)
+		if _, err := c.server.Update(ctx, server.UpdateRequest{Name: name, Label: original}); err != nil {
+			log.Printf("! could not restore the label on %s to %q: %v", name, original, err)
+			log.Printf("!   set it by hand, or the server keeps the name this step gave it")
+			return
+		}
+		log.Printf("✓ restored to %q", original)
+	}()
+
 	changed := original + "-relabelled"
 	time.Sleep(throttle)
 	if _, err := c.server.Update(ctx, server.UpdateRequest{Name: name, Label: changed}); err != nil {
@@ -60,18 +74,6 @@ func stepLabel(ctx context.Context, c clients, st *state) error {
 		return err
 	}
 
-	time.Sleep(throttle)
-	if _, err := c.server.Update(ctx, server.UpdateRequest{Name: name, Label: original}); err != nil {
-		return fmt.Errorf("server.Update restoring the label: %w", err)
-	}
-	restored, err := readLabel(ctx, c, name)
-	if err != nil {
-		return err
-	}
-	if restored != original {
-		return fmt.Errorf("label is %q after restoring, want %q", restored, original)
-	}
-	log.Printf("✓ restored to %q", original)
 	return nil
 }
 

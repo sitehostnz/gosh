@@ -47,11 +47,12 @@ func TestCreate_DefaultsToAutoIPv4(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Create: %v", err)
 	}
-	// Scalar, not the bracket form. The API rejects
-	// params[ipv4][]=auto with "The ip address is invalid, please
-	// specify a valid ip address", so every provision that let this
-	// method choose the address failed — while this test passed,
-	// because it asserted what we sent rather than what is accepted.
+	// Auto-allocation goes on the wire as a scalar, params[ipv4]. The
+	// bracket form params[ipv4][]=auto is rejected with "The ip
+	// address is invalid, please specify a valid ip address", which
+	// names an address the caller never supplied and so does not point
+	// at the real problem. Explicit addresses do use the bracket form,
+	// since more than one may be passed.
 	if v := got["params[ipv4]"]; len(v) != 1 || v[0] != "auto" {
 		t.Errorf("params[ipv4] = %v, want [auto]", v)
 	}

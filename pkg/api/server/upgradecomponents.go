@@ -16,8 +16,6 @@ import (
 // At least one of Cores, RAM or Disk should be set; passing nothing is
 // accepted by the API but is a no-op.
 //
-// # What each product accepts
-//
 // # Cores and RAM are constrained per server, not per product family
 //
 // Do not decide from the product family whether a cores or RAM change
@@ -59,7 +57,7 @@ import (
 //     immediately. The server reports the new Size straight away,
 //     NewSize stays zero, no reboot is needed and there is no job to
 //     poll. CommitDiskChanges is not required.
-//   - **Standard performance.** The intended size is staged as the
+//   - **Legacy Xen (LINVPS).** The intended size is staged as the
 //     partition's NewSize and CommitDiskChanges applies it.
 //
 // A caller that wants to work on both should read the partition back

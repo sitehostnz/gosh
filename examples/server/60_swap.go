@@ -28,7 +28,7 @@ const addressSpaceFragment = "address space cannot be used"
 //	                               in different networks
 //	High performance (HPVS)        accepted (suspected bug — see below)
 //
-// On standard performance the refusal is:
+// On legacy Xen (LINVPS) the refusal is:
 //
 //	Im sorry this address space cannot be used here.
 //
@@ -86,7 +86,7 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 	defer restoreHeld(ctx, c, held)
 
 	// Release A only. Its address is now free, but B still holds its
-	// own — the state that triggers the refusal on standard performance.
+	// own — the state that triggers the refusal on legacy Xen (LINVPS).
 	if err := release(ctx, c, st.nameA, st.ipA.IPAddr); err != nil {
 		return err
 	}
@@ -237,8 +237,6 @@ func setPrimaries(ctx context.Context, c clients, want map[string]string) error 
 	}
 	return nil
 }
-
-// unused keeps the job import referenced if the file is trimmed.
 
 // reportMACMovement records whether an address's MAC followed it to the
 // new server.

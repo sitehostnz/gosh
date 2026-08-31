@@ -5,189 +5,149 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
-- `examples/server` now exercises all 36 methods in the server
-  namespace, up from 17. New steps: `inventory` (the account-level
-  listings), `secgroup` (a security group's whole life, and a
-  packet-level check that it filters), `snapshot` (take, set lifetime,
-  restore, delete, with a disk-level check that the restore reverted
-  anything) and `label`.
-
-
+- `server.ListProducts` wraps `server/products.json`, which lists every
+  product orderable at a location with its cores, RAM, disk, bandwidth
+  and partitions. The endpoint is undocumented rather than absent; it
+  removes the need to hardcode a product code, and its partition list
+  names the disk labels `UpgradeComponents` requires, knowable before a
+  server exists.
 - `server.ListImagesOptions` gives `server.ListImages` the filters the
   API already supported: `Type`, `Location`, `IncludeDisabled`,
   `PageSize`/`PageNumber` and `SortBy`/`SortDir`. This makes the
   high-performance (HPVS) image catalogue reachable for the first
   time — it sits behind `Type: server.ImageTypeHPVMDistro` plus a
-  mandatory `Location`, and every code in the default listing is
-  rejected by HPVS product codes. HPVS image codes carry a build date
+  mandatory `Location`. HPVS image codes carry a build date
   (`ubuntu-2404-20260727`), so they must be discovered, not hardcoded.
 - `server.ImageTypeDistro`, `ImageTypeHPVMDistro`, `ImageTypeContainer`
   and `ImageTypeApp` name the closed set the type filter accepts.
-- `server.Location*` constants for the location codes known at the time
-  of writing. `server.ListLocations` remains authoritative.
-- `server.ListProducts` wraps `server/products.json`, which lists every
-  product orderable at a location with its cores, RAM, disk, bandwidth,
-  price and disk labels. The endpoint is undocumented rather than
-  absent — it is missing from the public API docs and their endpoint
-  listing, though the platform changelog records it as public — which is
-  why product codes have had to be hardcoded until now. `Location` is
-  required, because products are scoped to a location's product group;
-  `Types` and `Codes` filter the result.
-  Two wire shapes are handled: `attributes` arrives as `[]` rather than
-  `{}` for some products, and `partitions[].size` arrives as either a
-  number or a string within one response. Attributes with no typed field
-  are kept in `ProductAttributes.Extra` rather than dropped.
-- `server.LoginUserFor` returns the account to log in as, which the API
-  does not expose anywhere. It depends on the product family as well as
-  the distro: the same Ubuntu image is `ubuntu` on high-performance and
-  `root` on standard-performance. Determined empirically; the doc
-  comment records what was not verified.
 - `server.ProductTypeHPVS`, `ProductTypeSVS`, `ProductTypeLINVPS` and
   `ProductTypeWINVPS` name the product families
   `models.Server.ProductType` reports. `ProductTypeSVS` matters most:
   it is the family `server.LoginUserFor` deliberately does not cover,
   so a caller needs the constant in order to write that check.
-- `examples/server`: the server lifecycle as a numbered journey —
-  register a key, discover an image, provision a pair, optionally
-  resize or change plan, swap their addresses, complete the cutover
-  inside the guests, delete everything. The file numbering encodes the
-  API's ordering constraints, which are otherwise undocumented. Every
-  step runs standalone against existing servers as well as in sequence.
-  Provisions real servers, so it does nothing without
-  `SH_EXAMPLE_ALLOW_PROVISION=1`; run with no arguments it prints the
-  journey map and exits zero.
-
-### Fixed
-
-- `server.ListStatisticTypes` had never returned a metric name.
-  `Return` was `[]string`; the API answers with an object keyed by
-  metric name, and only answers `[]` on a server that has no metrics.
-  So it decoded exactly the empty case and failed on every server with
-  something to report. It is now `server.StatisticTypes`, which takes
-  both shapes. The existing test asserted a flat list of names the API
-  never sends.
-- `server.GetStatistics` could not be called successfully at all.
-  `type` is required and `GetStatisticsOptions` had no field for it, so
-  every call was rejected with "The type is missing." The options now
-  carry `Type`, plus `Item`, `Start`, `End` and `Compacted`. `Item` —
-  which partition or interface to report on — travels as
-  `options[item]`; sending a `partition` or `iface` parameter instead
-  is refused with a message that does not hint at the real problem.
-- `examples/server` gained an `inventory` step covering the eight
-  account-level read endpoints no step called, which is how both of the
-  above were found.
-
-
-- `server.ListUpgrades` still did not decode. `Return.Cores` was
-  `[]int` while the API sends quoted integers — `["8"]` — so every call
-  failed with "cannot unmarshal string into Go struct field
-  Upgrades.return.cores of type int". This endpoint had two type
-  errors; the first was fixed, the call was not re-run, and it was
-  documented as corrected while still failing. Note `ram` arrives as
-  bare numbers in the same object.
-- `securitygroups.List` had never decoded. `servers` was declared
-  `[]string` while the API sends objects carrying a name and a label.
-  The shared shape is now `securitygroups.AttachedServer`, which
-  `GetResponse` — which had it right all along — also uses.
-- `api.Client.NewRequest` set `Content-Type` twice, the first being
-  overwritten. Every body this SDK sends is form-encoded; the dead line
-  read as though it sometimes sends JSON.
-
-
-- `examples/server`: the `delete` step deleted servers it did not
-  create. When nothing had been provisioned it fell back to
-  `SH_SERVER_A`/`SH_SERVER_B` — the variables the README tells you to
-  export for standalone runs — and the journey runs cleanup even after
-  a failed tour, so a run that failed before provisioning would
-  force-delete two servers the operator already owned. Deleting a
-  server this process did not create now requires `SH_DELETE_SERVERS`,
-  which exists for no other purpose.
-- `examples/server`: `SH_BASE_URL` was documented in two places and
-  read nowhere, so pointing the journey at a sandbox silently ran it
-  against production.
-- `examples/server`: `SH_SSH_KEY_FILE` was unreachable — steps 50 and
-  80 rejected before consulting it, so following the error message's
-  own advice produced the identical error.
-- `examples/server`: a failure mid-swap left a server holding no
-  address with no rollback. Released addresses are now restored on the
-  way out, best-effort and loudly.
-- `server.ProductAttributes` retained a typed field in `Extra` when the
-  API spelled the key with different case, since `encoding/json`
-  matches case-insensitively but the cleanup did not.
-
-
-- `server.ListUpgrades` decodes at all. `QuotaUsage.Total` and `Used`
-  were `int` where the API sends a fractional RAM quota (67.5 GB
-  observed live), so the call failed with "cannot unmarshal number 67.5
-  into ... of type int" — the endpoint had never worked. They are now
-  `float64`. The test fixture that enshrined integer quotas is corrected
-  against the wire.
-- `server.Upgrades` gained the three fields the response carries and the
-  SDK discarded: `Cores` and `RAM` list the values
-  `UpgradeComponents` validates against, and `Plan` lists the product
-  codes this server can be moved to with `Upgrade`. Without them a
-  caller cannot choose a legal value, which is why a cores upgrade
-  looked categorically impossible when it was simply outside the
-  allowed set for that plan. Also documented that only resizable disks
-  appear in `Disk` — a swap partition is absent rather than present and
-  empty.
-- `server.Create` honours `ParamsOptions` instead of discarding it. It
-  previously hardcoded `params[ipv4]=auto` and silently dropped `IPv4`,
-  `IPv6`, `Name`, `ContactID`, `Backup` and `SendEmail`, so two of the
-  three IP-allocation paths its own documentation described were
-  unreachable. Array fields now use the bracket form the API expects.
-  An empty `Params.IPv4` still requests automatic allocation, so
-  existing callers are unaffected.
-- `UpgradeComponentsResponse.Return.Disk` is `map[string]bool`, not
-  `bool`. The API answers per disk label (`{"disk":{"scsi0":true}}`), so
-  every disk upgrade previously failed to decode with "cannot unmarshal
-  object into Go struct field .return.disk of type bool" — disk
-  upgrades did not work through this SDK at all. The test fixture that
-  enshrined the wrong shape is corrected too.
+- `server.Location*` constants for the location codes known at the time
+  of writing, including `LocationLINSYD1` and `LocationWINSYD1`, which
+  share a scheme. `server.ListLocations` remains authoritative.
+- `server.LoginUserFor` resolves the SSH account for a product family
+  and distro, determined empirically. It declines rather than guesses
+  for families that were not tested.
+- `server.StatisticTypes` and `server.StatisticParameter` describe what
+  `ListStatisticTypes` returns; `GetStatisticsOptions` gained `Type`,
+  `Item`, `Start`, `End` and `Compacted`.
+- `shtypes.MaybeBoolMap`, with `Accepted` and `AcceptedKey`, decodes a
+  per-key flag map that the API may also answer as a bare bool or as
+  `[]`.
+- `securitygroups.AttachedServer` is the shape the security-group
+  endpoints report an attached server as.
+- `examples/server` walks the whole server lifecycle as a numbered
+  journey and exercises all 36 methods in the namespace. Two of its
+  steps check the result somewhere other than the API that was asked
+  to do the work: the security-group step opens a TCP connection to
+  confirm a rule actually filters, and the snapshot step writes a
+  marker file into the guest to confirm a restore actually reverted the
+  disk.
 
 ### Changed
 
+- **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
+  argument. Pass the zero value for the previous behaviour.
+- **Breaking:** `UpgradeComponentsResponse.Return.Disk` is
+  `shtypes.MaybeBoolMap` rather than `bool`. The API answers per disk
+  label, and may answer with a bare bool or `[]` when it has no
+  per-label detail to give. Read it through `Accepted` and
+  `AcceptedKey` rather than indexing.
 - **Breaking:** `ListStatisticTypesResponse.Return` is
-  `server.StatisticTypes` (a map) rather than `[]string`, and
-  `GetStatisticsOptions` gained required and optional fields.
-
-
-- **Breaking:** `server.LocationSYD1` is renamed `server.LocationLINSYD1`
-  so the two Sydney constants follow one scheme.
-- `UpgradeComponentsResponse.Return.Disk` is `shtypes.MaybeBoolMap`,
-  which accepts the observed object form and a bare bool. Declaring it
-  as a map alone traded one decode failure for another pointing the
-  other way, hiding the API's real message behind a JSON type error.
+  `server.StatisticTypes` rather than `[]string`.
+- `models.Container.DockerSize` and `models.StackImageVersion.DockerSize`
+  are `shtypes.MaybeBigInt`, because the API sends a bare number on a
+  container and a quoted string on a version.
+- `models.Container.ImageDetails` is a `json.RawMessage`. Its keys are
+  `models.StackImage`'s, but its `labels` is a JSON-encoded string
+  where StackImage's is an object, and its `versions` is an object
+  where StackImage's is a list, so it cannot be decoded as one.
 - `server.UpgradeComponents` documents cores and RAM as constrained
   **per server** rather than per product family: read the allowed sets
   from `ListUpgrades`. A plan with no headroom returns only the current
   value, which is why an LHPVS1 looks as though it refuses cores
   outright.
-- Doc comments no longer claim product codes are undiscoverable, which
-  `ListProducts` made false, and no longer use "standard performance"
-  for observations made on legacy Xen (LINVPS). The standard-performance
-  (SVS) tier was not tested and is now said to be so.
-
-- **Breaking:** `server.ListImages` now takes a `ListImagesOptions`
-  argument. Pass the zero value for the previous behaviour.
-- **Breaking:** `UpgradeComponentsResponse.Return.Disk` changed type,
-  as above.
-- `server.UpgradeComponents` documents what each product family
-  accepts. An earlier note claimed high-performance and CCS products
-  reject component upgrades outright, generalising from a cores/RAM
-  test; disk upgrades work fine on high-performance. Disk growth is
-  applied online and immediately there, while standard-performance
-  stages it as the partition's `NewSize` for `CommitDiskChanges` to
-  apply.
 - Package documentation for `server`, `server/firewall` and
   `server/firewall/securitygroups` records what a caller has to know up
-  front: that product codes are not discoverable and `CanProvision`
-  distinguishes "not offered here" from "offered but full"; that a
-  server's name is not the label it was given; that SSH keys must be
-  registered *and* passed as content at provision time; the per-second
-  rate limit and that it surfaces as HTTP 500; that a server cannot be
-  deleted while provisioning; and that the firewall endpoints exist
-  only for high-performance products.
+  front: that product codes are discoverable through `ListProducts`
+  while `CanProvision` distinguishes "not offered here" from "offered
+  but full"; that a server's name is not the label it was given, and
+  that nothing renames a server; that SSH keys must be registered *and*
+  passed as content at provision time; the per-second rate limit and
+  that it surfaces as HTTP 500; that a server cannot be deleted while
+  provisioning; and that the firewall endpoints exist only for
+  high-performance products.
+- Doc comments no longer attribute observations made on legacy Xen
+  (LINVPS) to standard performance (SVS). Where the SVS tier was not
+  tested, the documentation says so rather than generalising.
+- Doc comments across `cloud/db`, `cloud/db/user`, `cloud/ssh/user` and
+  `cloud/stack` record observed behaviour: list filters are optional
+  but validated, so an empty page never means a filter was ignored, and
+  `cloud/stack/get.json` takes `server` rather than `server_name`.
+- `dns.GetZone` documents that it is a search, so a name matching
+  nothing returns `status:true` with an empty list rather than an
+  error. Checking `err` alone reports a zone as present when it is not.
+- `dns/template.List` documents that the listing includes SiteHost's
+  shared templates alongside the account's, so `DomainCount` on a
+  shared row is not an account figure.
+
+### Fixed
+
+- `server.Create` ignored `ParamsOptions` entirely, so the IP
+  allocation, backup, contact and SSH-key paths its own documentation
+  described were unreachable.
+- `UpgradeComponentsResponse.Return.Disk` was declared `bool` while the
+  API answers per disk label, so every disk upgrade failed to decode
+  and disk upgrades did not work through this SDK at all. The test
+  fixture that enshrined the wrong shape is corrected too.
+- `server.ListUpgrades` never decoded. `QuotaUsage` fields were `int`
+  where the API sends fractional values, and `Return.Cores` was
+  `[]int` where the API sends quoted integers. Note `ram` arrives as
+  bare numbers in the same object.
+- `server.ListStatisticTypes` had never returned a metric name.
+  `Return` was `[]string`; the API answers with an object keyed by
+  metric name and answers `[]` only on a server with no metrics, so it
+  decoded exactly the empty case. The existing test asserted a flat
+  list of names the API never sends.
+- `server.GetStatistics` could not be called successfully at all.
+  `type` is required and the options struct had no field for it. `Item`
+  — which partition or interface to report on — travels as
+  `options[item]`; sending a `partition` or `iface` parameter instead
+  is refused with a message that does not point at the real problem.
+- `securitygroups.List` had never decoded. `servers` was declared
+  `[]string` while the API sends objects carrying a name and a label.
+- `server.ProductAttributes` retained a typed field in `Extra` when the
+  API spelled the key with different case, since `encoding/json`
+  matches case-insensitively but the cleanup did not.
+- `cloud/db.Get` and `cloud/db/user.Get` each sent `client_id` twice
+  and added an `api_key` parameter this API does not have, which
+  `net.Encode` then dropped for not being in the keys list.
+- `cloud/ssh/user.Update` silently ignored `ReadOnlyConfig`. The value
+  was added as `params[read_only_config]` while the keys list named
+  `params[read_only_config][]`, and `net.Encode` emits only the keys it
+  is given — so the field was dropped and the call still succeeded.
+- `cloud/db.Add` and `cloud/db.Delete` sent `database` twice.
+- `api.Client.NewRequest` set `Content-Type` twice, the first being
+  overwritten. Every body this SDK sends is form-encoded.
+- `models.CloudServer`, `models.Container`, `models.StackImage`,
+  `models.StackImageVersion` and `dns/template.TemplateDetails` now
+  decode fields the API sends that no field received. They were being
+  dropped in silence.
+- `examples/server`: the `delete` step deleted servers it did not
+  create, falling back to `SH_SERVER_A`/`SH_SERVER_B` when nothing had
+  been provisioned. Deleting a server this process did not create now
+  requires `SH_DELETE_SERVERS`.
+- `examples/server`: `SH_BASE_URL` was documented in two places and
+  read nowhere, so pointing the journey at a sandbox silently ran it
+  against production.
+- `examples/server`: `SH_SSH_KEY_FILE` was unreachable — the steps that
+  need SSH rejected before consulting it.
+- `examples/server`: a failure mid-swap left a server holding no
+  address with no rollback. Released addresses are now restored on the
+  way out, best-effort and loudly.
 
 ## [v0.7.1] - 2026-08-20
 

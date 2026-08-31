@@ -74,6 +74,15 @@ func TestListImages_HPVMFiltersOnWire(t *testing.T) {
 		if got := q.Get("filters[page_number]"); got != "2" {
 			t.Errorf("filters[page_number] = %q, want 2", got)
 		}
+		// Pinned to the wire, not merely passed in the options. A test
+		// that only set them would pass identically if filters()
+		// stopped emitting them.
+		if got := q.Get("filters[sort_by]"); got != "name" {
+			t.Errorf("filters[sort_by] = %q, want name", got)
+		}
+		if got := q.Get("filters[sort_dir]"); got != "desc" {
+			t.Errorf("filters[sort_dir] = %q, want desc", got)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{
 			"status": true,

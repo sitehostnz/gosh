@@ -27,12 +27,20 @@ import (
 // API's own message and leave a caller debugging a JSON type error
 // instead of reading "Please specify a valid disk label."
 //
-// So both shapes decode:
+// So every shape this API is known to emit decodes:
 //
 //   - an object decodes to the map it describes;
 //   - true decodes to an empty non-nil map, meaning accepted with
 //     nothing to enumerate;
+//   - "[]" decodes the same way, because that is PHP's serialisation
+//     of an empty map and this API emits it wherever a map has no
+//     entries — see [IsEmptyMapShape];
 //   - false and null decode to a nil map, meaning not accepted.
+//
+// Note "[]" is deliberately an acceptance rather than a rejection: it
+// is an empty map, and an empty map is what the endpoint returns when
+// it accepted the request and had no per-key detail to report. Reading
+// it as a rejection would be the same mistake in a third direction.
 //
 // Use [MaybeBoolMap.Accepted] rather than testing the map directly, so
 // that the distinction between the two empty cases stays in one place.
@@ -43,6 +51,15 @@ func (m *MaybeBoolMap) UnmarshalJSON(b []byte) error {
 	trimmed := strings.TrimSpace(string(b))
 	if trimmed == jsonNull {
 		*m = nil
+		return nil
+	}
+
+	// "[]" is an empty map, not a list. Handled before the object
+	// branch because it is neither an object nor a bool and would
+	// otherwise fall through to ParseBool and error — which is the
+	// failure this type exists to prevent, pointed a third way.
+	if IsEmptyMapShape(b) {
+		*m = MaybeBoolMap{}
 		return nil
 	}
 

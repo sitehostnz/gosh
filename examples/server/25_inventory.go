@@ -42,10 +42,22 @@ func stepInventory(ctx context.Context, c clients, st *state) error {
 		{"snapshots", readSnapshots},
 		{"statistics", readStatistics},
 	}
+	// A failure here is reported and the walk continues.
+	//
+	// This step runs before provisioning and reads servers the journey
+	// did not create and knows nothing about. Letting a statistics
+	// call against somebody else's pre-existing server abort the whole
+	// journey before it provisions anything would make the run's
+	// outcome depend on account state that has nothing to do with it.
+	var failed int
 	for _, r := range reads {
 		if err := r.run(ctx, c, st); err != nil {
-			return fmt.Errorf("%s: %w", r.what, err)
+			failed++
+			log.Printf("✗ %s: %v", r.what, err)
 		}
+	}
+	if failed > 0 {
+		log.Printf("  %d of %d listings failed; the journey continues, since none of them are its own", failed, len(reads))
 	}
 	return nil
 }
@@ -195,17 +207,19 @@ func readStatistics(ctx context.Context, c clients, st *state) error {
 	// Pick a metric and, where the metric needs one, an item to break
 	// it down by. Both come from the listing above rather than being
 	// guessed, which is the whole point of calling it first.
-	var metric, item string
-	for name, params := range types.Return {
-		metric = name
-		for _, p := range params {
-			if p.Partition != "" {
-				item = p.Partition
-			} else if p.Iface != "" {
-				item = p.Iface
-			}
+	// Names() is sorted, so the same metric is chosen on every run.
+	// Ranging the map directly would pick a different one each time,
+	// exercising a different code path — Item is populated for some
+	// metrics and empty for others — and making a failure
+	// irreproducible.
+	metric := types.Return.Names()[0]
+	var item string
+	for _, p := range types.Return[metric] {
+		if p.Partition != "" {
+			item = p.Partition
+		} else if p.Iface != "" {
+			item = p.Iface
 		}
-		break
 	}
 
 	time.Sleep(throttle)

@@ -92,12 +92,11 @@ func (s *Client) Create(ctx context.Context, opts CreateRequest) (response Creat
 	//	Error: The ip address is invalid, please specify a valid
 	//	       ip address
 	//
-	// Explicit pre-allocated addresses still use the bracket form,
-	// since more than one may be passed. So the single most common
-	// path — the one the public docs recommend and the one this
-	// method uses when a caller sets nothing — was the only one that
-	// could not work, and every provision through this method failed
-	// with an error about an address the caller never supplied.
+	// Explicit pre-allocated addresses use the bracket form instead,
+	// since more than one may be passed. The two are not
+	// interchangeable: sending "auto" in bracket form is rejected with
+	// the message above, which names an address the caller never
+	// supplied and so does not point at the real problem.
 	ipv4 := opts.Params.IPv4
 	if len(ipv4) == 0 {
 		ipv4 = []string{"auto"}

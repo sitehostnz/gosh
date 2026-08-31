@@ -128,3 +128,69 @@ func TestUpgradeComponents_DiskIsKeyedByLabel(t *testing.T) {
 		t.Errorf("Return.ID = %d, want 0 for an inline resize", got.Return.ID)
 	}
 }
+
+// TestUpgradeComponents_ScalarDiskAcceptance covers the shape
+// shtypes.MaybeBoolMap was added to tolerate, from the caller's side.
+//
+// A type-side test proves the value decodes. It does not prove a caller
+// reads it correctly, and the one caller in this repository was
+// indexing the map directly — so the scalar form, which decodes to an
+// empty non-nil map, read as a rejection. That is the shape the type
+// exists for, misread by its only consumer.
+func TestUpgradeComponents_ScalarDiskAcceptance(t *testing.T) {
+	t.Parallel()
+
+	for _, tc := range []struct {
+		name     string
+		body     string
+		accepted bool
+		perKey   bool
+	}{
+		{
+			name:     "the per-disk object form",
+			body:     `{"status":true,"msg":"Successful","return":{"disk":{"scsi0":true},"job":{"id":1,"type":"scheduler"}}}`,
+			accepted: true,
+			perKey:   true,
+		},
+		{
+			name:     "a bare true is an acceptance with nothing to enumerate",
+			body:     `{"status":true,"msg":"Successful","return":{"disk":true,"job":{"id":1,"type":"scheduler"}}}`,
+			accepted: true,
+		},
+		{
+			name:     "the empty-map form PHP writes as a list",
+			body:     `{"status":true,"msg":"Successful","return":{"disk":[],"job":{"id":1,"type":"scheduler"}}}`,
+			accepted: true,
+		},
+		{
+			name: "a bare false is not an acceptance",
+			body: `{"status":true,"msg":"Successful","return":{"disk":false}}`,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+				w.Header().Set("Content-Type", "application/json")
+				_, _ = io.WriteString(w, tc.body)
+			}))
+			defer srv.Close()
+
+			c, err := api.New("k", "1", api.SetBaseURL(srv.URL))
+			if err != nil {
+				t.Fatalf("api.New: %v", err)
+			}
+			got, err := New(c).UpgradeComponents(context.Background(), UpgradeComponentsRequest{
+				Name: "s", Disk: map[string]int{"scsi0": 100},
+			})
+			if err != nil {
+				t.Fatalf("UpgradeComponents: %v", err)
+			}
+			if got.Return.Disk.Accepted() != tc.accepted {
+				t.Errorf("Disk.Accepted() = %t, want %t", got.Return.Disk.Accepted(), tc.accepted)
+			}
+			if got.Return.Disk.AcceptedKey("scsi0") != tc.perKey {
+				t.Errorf("Disk.AcceptedKey(scsi0) = %t, want %t", got.Return.Disk.AcceptedKey("scsi0"), tc.perKey)
+			}
+		})
+	}
+}

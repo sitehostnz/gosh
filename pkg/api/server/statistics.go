@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"sort"
 
 	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
@@ -69,12 +70,17 @@ func (p *StatisticParameter) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Names lists the metric names, so a caller does not have to iterate
-// the map to find out what is available.
+// Names lists the metric names in sorted order.
+//
+// Sorted rather than in map order so that a caller choosing a metric
+// from this list makes the same choice on every run, and so that
+// logged output can be diffed between runs. Go randomises map
+// iteration, which would otherwise make both vary for no reason.
 func (s StatisticTypes) Names() []string {
 	out := make([]string, 0, len(s))
 	for name := range s {
 		out = append(out, name)
 	}
+	sort.Strings(out)
 	return out
 }

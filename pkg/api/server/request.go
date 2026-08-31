@@ -234,7 +234,7 @@ type (
 	// ListImagesOptions filters the image catalogue returned by
 	// server/list_images.json.
 	//
-	// The zero value returns the default standard-performance
+	// The zero value returns the default legacy Xen (LINVPS)
 	// listing. To reach the high-performance catalogue set Type to
 	// [ImageTypeHPVMDistro] and Location to the location code — that
 	// pairing is mandatory, and gosh rejects it locally rather than

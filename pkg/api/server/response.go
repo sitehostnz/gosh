@@ -192,8 +192,9 @@ type (
 
 	// QuotaUsage is a total/used pair returned within UpgradeQuota.
 	//
-	// Both are float64 because the RAM quota is fractional — a live
-	// response reported total 67.5 and used 67.5 gigabytes. Declaring
+	// Both are float64 because the RAM quota is fractional — the
+	// recorded response in testdata/list_upgrades.json reports a total
+	// of 67 and 65.5 used. Declaring
 	// these as int made [Client.ListUpgrades] fail to decode entirely
 	// ("cannot unmarshal number 67.5 into ... of type int"), so that
 	// endpoint had never worked. Corrected August 2026.

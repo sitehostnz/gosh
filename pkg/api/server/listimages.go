@@ -17,7 +17,7 @@ import (
 // "salt-container", but filtering by it is rejected. See the
 // discoverability note on [Client.ListImages].
 const (
-	// ImageTypeDistro is the standard-performance (LINVPS) catalogue.
+	// ImageTypeDistro is the legacy Xen (LINVPS) catalogue.
 	ImageTypeDistro = "distro"
 
 	// ImageTypeHPVMDistro is the high-performance (HPVS) catalogue.
@@ -38,7 +38,7 @@ const (
 // # Two catalogues, and why the default one is not enough
 //
 // The endpoint serves more than one catalogue and the unfiltered call
-// returns only the standard-performance (LINVPS) one. Provisioning a
+// returns only the legacy Xen (LINVPS) one. Provisioning a
 // high-performance server (an HPVS product code such as LHPVS1) with
 // any code from that default listing fails with "The image '<code>'
 // could not be found", because HPVS images live in a separate,

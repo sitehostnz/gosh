@@ -81,6 +81,9 @@ func TestListAllocatedIPs_Success(t *testing.T) {
 	}
 }
 
+// testPartition is the disk label used by the statistics fixtures.
+const testPartition = "a-disk"
+
 // TestListStatisticTypes_Success was written against a fixture the API
 // does not send.
 //
@@ -92,9 +95,6 @@ func TestListAllocatedIPs_Success(t *testing.T) {
 // anything to report.
 //
 // The body below is a real response from a Xen server.
-// testPartition is the disk label used by the statistics fixtures.
-const testPartition = "a-disk"
-
 func TestListStatisticTypes_Success(t *testing.T) {
 	t.Parallel()
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

@@ -16,9 +16,13 @@ to happen, in what order, and which steps write.
 ```
 10  register an SSH key      must precede provisioning
 20  discover / preflight     before provisioning, any order
+25  inventory                read-only; safe anywhere
 30  provision the pair       needs 10 and 20
+35  upgrade disk / plan      needs a provisioned server; opt-in
 40  firewall / netconfig     after provisioning, any order
-35  upgrade disk / plan      needs a provisioned server
+45  security group           creates one, proves it filters, removes it
+47  snapshot                 take, set lifetime, restore, delete
+48  label                    change a label and put it back
 50  prestage the guests      needs 10's key; MUST precede 60
 60  swap the addresses       needs a provisioned pair
 70  reboot via the API       needs 50 and 60
@@ -106,7 +110,7 @@ hand-writing the file and guessing an interface name does not work.
 Behaviour that is not documented elsewhere, each asserted or reported by
 the step that meets it:
 
-- **Moving one address at a time is refused** on standard-performance
+- **Moving one address at a time is refused** on legacy Xen (LINVPS)
   products when the servers sit in different networks:
   `Im sorry this address space cannot be used here.` The constraint is on
   the *target server's existing addresses*, not on the address — release
@@ -126,7 +130,8 @@ the step that meets it:
   rather than leaking it.
 - **The login user is not in the API**, and depends on the product
   family as well as the distro: the same Ubuntu image is `ubuntu` on
-  high-performance and `root` on standard-performance. See
+  high-performance and `root` on legacy Xen (LINVPS). The
+  standard-performance (SVS) tier was not tested. See
   `server.LoginUserFor`.
 
 ## Safety

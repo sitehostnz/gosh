@@ -20,7 +20,7 @@ import (
 // ImageTypeHPVMDistro *and* a location, and omitting the location is an
 // error rather than a wider search.
 //
-// Standard-performance images are in the default catalogue instead, so
+// Legacy Xen (LINVPS) images are in the default catalogue instead, so
 // when SH_PRODUCT names a standard product you must supply SH_IMAGE
 // too — the two catalogues do not share codes, and a code from one is
 // rejected by the other.

@@ -51,6 +51,16 @@ func stepSnapshot(ctx context.Context, c clients, st *state) error {
 	// Put a known file in the guest first, so the restore can be
 	// checked against the disk rather than against the job's own
 	// account of itself.
+	//
+	// A key is required rather than optional. Skipping the marker when
+	// there is no in-process key would silently reduce this step to
+	// the job-status assertion it was written to replace, and report
+	// green — and it would do so in exactly the configuration the
+	// README recommends for standalone runs, where the key comes from
+	// SH_SSH_KEY_FILE. requireKey accepts either source.
+	if err := requireKey(st, "snapshot"); err != nil {
+		return err
+	}
 	if err := st.ensureAddresses(ctx, c); err != nil {
 		return err
 	}
@@ -59,11 +69,7 @@ func stepSnapshot(ctx context.Context, c clients, st *state) error {
 	if err != nil {
 		return err
 	}
-	if marker == "" {
-		log.Printf("  no SSH key in this process; the restore will not be checked against the guest's disk")
-	} else {
-		log.Printf("  wrote %s inside %s", markerPath, name)
-	}
+	log.Printf("  wrote %s inside %s", markerPath, name)
 
 	log.Printf("  taking a snapshot of %s partition %s", name, partition)
 
@@ -119,13 +125,6 @@ const markerPath = "$HOME/.gosh-snapshot-marker"
 // the job completed and nothing happened — which is worth knowing and
 // is invisible from the control plane.
 func writeMarker(st *state, addr string) (string, error) {
-	if len(st.privateKey) == 0 {
-		return "", nil
-	}
-	// Install the key for the ssh helpers. Step 50 does this too, but
-	// it runs later, and this step is the first to need a shell.
-	journeyKey = st.privateKey
-
 	content := "gosh-" + st.cfg.location
 	if _, err := sshRun(addr, fmt.Sprintf("printf %%s %s > %s && sync", content, markerPath)); err != nil {
 		return "", fmt.Errorf("writing the marker into the guest: %w", err)
@@ -203,23 +202,32 @@ func restoreFrom(ctx context.Context, c clients, name, id, marker string) error 
 	// this the check would pass whether or not the restore did
 	// anything, which is the shape of assertion this journey exists to
 	// avoid.
-	addr := ""
-	if marker != "" {
-		var err error
-		addr, err = guestAddress(ctx, c, name)
-		if err != nil {
-			return err
-		}
-		if _, err := sshRun(addr, "rm -f "+markerPath+" && sync"); err != nil {
-			return fmt.Errorf("removing the marker before the restore: %w", err)
-		}
-		if out, err := sshRun(addr, "test -e "+markerPath+" && echo present || echo absent"); err != nil {
-			return fmt.Errorf("checking the marker was removed: %w", err)
-		} else if !strings.Contains(out, "absent") {
-			return fmt.Errorf("the marker is still present after deleting it; the check below would prove nothing")
-		}
-		log.Printf("  removed the marker; it is absent from the running disk")
+	addr, err := guestAddress(ctx, c, name)
+	if err != nil {
+		return err
 	}
+	// Report the resolved path, so a failure here names the file it
+	// was actually looking at.
+	resolved, err := sshRun(addr, "printf %s "+markerPath)
+	if err != nil {
+		return fmt.Errorf("resolving the marker path: %w", err)
+	}
+	resolved = strings.TrimSpace(resolved)
+
+	if _, err := sshRun(addr, "rm -f "+markerPath+"; sync"); err != nil {
+		return fmt.Errorf("removing the marker before the restore: %w", err)
+	}
+
+	// Read the answer from the exit status rather than from stdout.
+	// Parsing output for a word meant reading an empty string as "the
+	// file is still there", which is a third possible answer the check
+	// was not written to expect — and it reported the wrong one of the
+	// two it did expect.
+	if exists(addr, markerPath) {
+		return fmt.Errorf("the marker at %s is still present after deleting it; the check below would prove nothing", resolved)
+	}
+	log.Printf("  removed the marker; it is absent from the running disk")
+
 	return doRestore(ctx, c, name, id, marker, addr)
 }
 
@@ -236,10 +244,8 @@ func doRestore(ctx context.Context, c clients, name, id, marker, addr string) er
 	log.Printf("✓ restore job completed for %s from snapshot %s", name, id)
 
 	// The real check: is the file back?
-	if marker != "" {
-		if err := assertMarkerRestored(addr, marker); err != nil {
-			return err
-		}
+	if err := assertMarkerRestored(addr, marker); err != nil {
+		return err
 	}
 
 	// The snapshot survives a restore — restoring is not consuming it,
@@ -304,3 +310,12 @@ func assertMarkerRestored(addr, want string) error {
 // restoreSettle bounds how long to wait for a restored disk to show the
 // snapshot's contents.
 const restoreSettle = 3 * time.Minute
+
+// exists reports whether a path is present in the guest.
+//
+// It reads the exit status of test(1) rather than any output, so there
+// is no third answer to misinterpret.
+func exists(addr, path string) bool {
+	_, err := sshRun(addr, "test -e "+path)
+	return err == nil
+}

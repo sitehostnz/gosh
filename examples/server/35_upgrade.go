@@ -28,7 +28,8 @@ const diskGrowthGB = 10
 // Partition.NewSize alongside the unchanged Partition.Size, and
 // CommitDiskChanges is what actually applies it. High performance
 // differs — the resize is online and immediate, with nothing to
-// commit; see "On high performance the resize is online" below. This step asserts both halves separately, because a caller that
+// commit; see "On high performance the resize is online" below. This
+// step asserts both halves separately, because a caller that
 // only makes the first call sees a successful response and no resize,
 // which is a confusing place to end up.
 //
@@ -140,7 +141,7 @@ func findDisk(ctx context.Context, c clients, name string) (string, int, error) 
 //   - High performance applies it online and immediately. Size reflects
 //     the new value straight away, NewSize stays zero, and there is no
 //     job to poll.
-//   - Standard performance stages it as NewSize, and CommitDiskChanges
+//   - Legacy Xen (LINVPS) stages it as NewSize, and CommitDiskChanges
 //     applies it.
 //
 // So this reads the partition back rather than assuming either. A
@@ -155,8 +156,13 @@ func requestResize(ctx context.Context, c clients, name, target string, wantGB i
 	if err != nil {
 		return false, fmt.Errorf("UpgradeComponents(%s): %w", name, err)
 	}
-	// Disk is keyed by label: the endpoint answers per disk.
-	if !up.Return.Disk[target] {
+	// Read acceptance through the type's own accessors rather than
+	// indexing the map. The endpoint answers per disk label when it
+	// has detail to give, and a bare true — or "[]", PHP's empty map —
+	// when it accepted with nothing to enumerate. Indexing directly
+	// reads that second form as a rejection, which is the one shape
+	// shtypes.MaybeBoolMap exists to tolerate.
+	if !up.Return.Disk.AcceptedKey(target) && !up.Return.Disk.Accepted() {
 		return false, fmt.Errorf("UpgradeComponents(%s): disk %q was not accepted (disk=%v cores=%v ram=%v)",
 			name, target, up.Return.Disk, up.Return.Cores, up.Return.RAM)
 	}

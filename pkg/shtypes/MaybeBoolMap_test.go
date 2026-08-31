@@ -59,6 +59,14 @@ func TestMaybeBoolMap(t *testing.T) {
 			accepted: true,
 		},
 		{
+			// PHP serialises an empty map as a list, and this API
+			// emits that wherever a map has no entries. Rejecting it
+			// would trade one decode failure for another.
+			name:     "the empty-list form of an empty map is an acceptance",
+			in:       `[]`,
+			accepted: true,
+		},
+		{
 			// A genuine surprise must surface rather than be swallowed;
 			// silently decoding it would be the bug this type exists to
 			// avoid, pointed a third way.

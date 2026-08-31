@@ -4,13 +4,17 @@
 // # Reading the journey
 //
 // The files in this directory are numbered by the order they must run
-// in:
+// in. Files numbered 00 hold shared helpers rather than steps:
 //
 //	10  register an SSH key      must precede provisioning
 //	20  discover and preflight   before provisioning, any order
+//	25  inventory                read-only; safe anywhere
 //	30  provision the pair       needs 10 and 20
 //	35  upgrades (opt-in)        needs 30; not run by "journey"
 //	40  firewall / netconfig     after provisioning, any order
+//	45  security group           creates one, proves it filters, removes it
+//	47  snapshot                 take, restore, delete
+//	48  label                    change a label and put it back
 //	50  prestage the guests      needs the key from 10; MUST precede 60
 //	60  swap the addresses       needs a provisioned pair
 //	70  reboot via the API       needs 50 and 60
@@ -89,7 +93,7 @@ type journeyStep struct {
 // steps is the journey. Order in this slice is the run order for
 // "journey"; the order field is what the map prints.
 func steps() []journeyStep {
-	out := make([]journeyStep, 0, 12)
+	out := make([]journeyStep, 0, 17)
 	out = append(out, setupSteps()...)
 	out = append(out, upgradeSteps()...)
 	out = append(out, cutoverSteps()...)
@@ -159,7 +163,7 @@ func cutoverSteps() []journeyStep {
 		},
 		{
 			order: 45, name: "secgroup", mutates: true, inTour: true, run: stepSecGroup,
-			needs:    "a provisioned server; high-performance only",
+			needs:    "a server this run provisioned; high-performance only",
 			describe: "create a security group, attach, change rules, remove",
 		},
 		{
