@@ -103,14 +103,52 @@ type FormPair struct {
 	Value string `json:"value"`
 }
 
-// redactedKeys are form and query fields blanked at record time.
-// The apikey rides in the query string on every call, so redaction has
-// to be right every time rather than usually.
-var redactedKeys = map[string]bool{"apikey": true, "api_key": true, "password": true}
+// redactTokens are the substrings that mark a field as secret.
+//
+// Matched by containment rather than equality, and that is the whole
+// point. An exact-match denylist held "password" and missed
+// params[password], which is the spelling this API actually uses for
+// every password it accepts — cloud/ssh/user.Add, .Update and the mail
+// endpoints all send it nested. So the one entry that mattered was the
+// one that never matched, and a recording carried the value in
+// plaintext.
+//
+// The test that was supposed to cover this sent password=hunter2: the
+// single spelling on the denylist, and the one spelling the SDK never
+// sends. It asserted the belief that produced the list rather than what
+// goes on the wire, which is the failure this whole package exists to
+// defeat, committed by the package itself.
+var redactTokens = []string{"apikey", "api_key", "password", "passwd", "secret", "token"}
+
+// shouldRedact reports whether a field name marks a secret.
+func shouldRedact(key string) bool {
+	k := strings.ToLower(key)
+	for _, token := range redactTokens {
+		if strings.Contains(k, token) {
+			return true
+		}
+	}
+	return false
+}
 
 // New returns a RoundTripper that records every exchange into dir, one
 // JSON file per call, wrapping next. A nil next uses
 // http.DefaultTransport.
+//
+// # A recording is not safe to share
+//
+// Secret-bearing fields are blanked on the way to disk, on both the
+// request and the response, matched by key rather than by value. That
+// is a reduction in exposure and not a guarantee: a recording still
+// holds live customer data — server names and labels, addresses,
+// database names, usernames, home directories, key material — and a
+// field naming a secret in a way these tokens do not anticipate will
+// go to disk in the clear.
+//
+// So: keep recordings off the repository and off anything shared, and
+// pass them through [Scrub] before committing or attaching anything
+// derived from them. Point dir outside the working tree; the examples
+// use a temporary directory for that reason.
 //
 // Intended for use while implementing against the live API — which is
 // when the interesting rejections happen anyway — so that fixtures can
@@ -118,7 +156,7 @@ var redactedKeys = map[string]bool{"apikey": true, "api_key": true, "password": 
 // what we expected.
 //
 //	c, err := api.New(key, id,
-//		api.SetTransport(recorder.New("testdata/recordings", nil)))
+//		api.SetTransport(recorder.New("/tmp/gosh-recordings", nil)))
 //
 // Recording never fails the call it observes: write errors go to stderr
 // and the request proceeds. A diagnostic that can break what it watches
@@ -170,7 +208,7 @@ func (t *recordingTransport) RoundTrip(req *http.Request) (*http.Response, error
 	resp.Body = io.NopCloser(bytes.NewReader(raw))
 	if readErr == nil {
 		rec.Status = resp.StatusCode
-		rec.Body = string(raw)
+		rec.Body = redactBody(raw)
 		var envelope struct {
 			Status bool   `json:"status"`
 			Msg    string `json:"msg"`
@@ -218,7 +256,7 @@ func parseForm(body string) []FormPair {
 		k, v, _ := strings.Cut(part, "=")
 		key := unescape(k)
 		val := unescape(v)
-		if redactedKeys[strings.ToLower(key)] {
+		if shouldRedact(key) {
 			val = "REDACTED"
 		}
 		out = append(out, FormPair{Key: key, Value: val})
@@ -241,4 +279,63 @@ func unescape(s string) string {
 		b.WriteByte(s[i])
 	}
 	return b.String()
+}
+
+// redactBody blanks secret-bearing values in a response body.
+//
+// The request side was redacted from the start and the response side
+// was not, which had it exactly backwards: the most sensitive value
+// this API ever emits is in a response. server.Create returns the new
+// machine's root password, and the package doc notes it "is returned
+// once and never again" — so a recording of a provision was the only
+// copy of a live credential, sitting in a JSON file, produced by a
+// workflow this repository actively recommends.
+//
+// It walks the decoded body rather than matching text, so a value is
+// redacted because of the key it sits under rather than because of
+// what it looks like. A body that is not JSON is recorded verbatim:
+// this is a diagnostic, and dropping an unparseable response would
+// lose exactly the case worth having.
+//
+// This is a reduction in exposure, not a guarantee. Recordings still
+// contain live customer data — server names, addresses, database
+// names, usernames, home directories, key material — and must be run
+// through [Scrub] before they are committed or shared. That statement
+// is the honest one, and it is in the package doc for the same reason
+// this function exists: a claim of safety is worth nothing without
+// something enforcing it.
+func redactBody(raw []byte) string {
+	var doc any
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		return string(raw)
+	}
+	out, err := json.Marshal(redactValue(doc))
+	if err != nil {
+		return string(raw)
+	}
+	return string(out)
+}
+
+// redactValue walks a decoded body, blanking values under secret keys.
+func redactValue(v any) any {
+	switch t := v.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(t))
+		for k, val := range t {
+			if shouldRedact(k) {
+				out[k] = "REDACTED"
+				continue
+			}
+			out[k] = redactValue(val)
+		}
+		return out
+	case []any:
+		out := make([]any, 0, len(t))
+		for _, el := range t {
+			out = append(out, redactValue(el))
+		}
+		return out
+	default:
+		return v
+	}
 }

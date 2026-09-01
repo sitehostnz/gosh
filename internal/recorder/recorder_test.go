@@ -257,3 +257,81 @@ func TestRecorder_RecordsTransportFailures(t *testing.T) {
 		t.Errorf("Status = %d, want 0 for a call that never got a response", recs[0].Status)
 	}
 }
+
+// TestRecorder_RedactsNestedAndResponseSecrets covers the two gaps the
+// original redaction had.
+//
+// The request side matched field names exactly against a three-entry
+// list, so it caught "password" and missed "params[password]" — which
+// is the only spelling this API actually uses. The test that was meant
+// to cover it sent the one spelling on the list, so it asserted the
+// belief that produced the list rather than what goes on the wire.
+//
+// The response side was not redacted at all, and server.Create returns
+// the new machine's root password, which the API emits once and never
+// again.
+func TestRecorder_RedactsNestedAndResponseSecrets(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// The shape server/provision.json actually returns.
+		_, _ = io.WriteString(w, `{"status":true,"msg":"Successful","return":{"name":"gosh-journey","password":"R00tS3cret!","job":{"id":1}}}`)
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	client := &http.Client{Transport: New(dir, nil)}
+	do(t, client, http.MethodPost, srv.URL+"/1.5/server/provision.json?apikey=REALKEY&client_id=1",
+		"params%5Bpassword%5D=Sup3rS3cret%21&label=web")
+
+	recs := readRecordings(t, dir)
+	if len(recs) != 1 {
+		t.Fatalf("recordings = %d, want 1", len(recs))
+	}
+	raw, err := json.Marshal(recs[0])
+	if err != nil {
+		t.Fatalf("marshal: %v", err)
+	}
+
+	for _, secret := range []string{"Sup3rS3cret!", "REALKEY", "R00tS3cret!"} {
+		if strings.Contains(string(raw), secret) {
+			t.Errorf("recording contains %q; every secret must be redacted at record time", secret)
+		}
+	}
+
+	// The non-secret values must survive, or the recording is useless
+	// as a fixture.
+	if !strings.Contains(recs[0].Body, "gosh-journey") {
+		t.Errorf("body = %q, want the non-secret fields preserved", recs[0].Body)
+	}
+	var sawLabel bool
+	for _, p := range recs[0].Form {
+		if p.Key == "label" && p.Value == "web" {
+			sawLabel = true
+		}
+	}
+	if !sawLabel {
+		t.Errorf("form = %+v, want label=web preserved", recs[0].Form)
+	}
+}
+
+// TestRecorder_KeepsANonJSONBody checks an unparseable response is
+// still recorded. Dropping it would lose exactly the case worth having.
+func TestRecorder_KeepsANonJSONBody(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = io.WriteString(w, "<html>502 Bad Gateway</html>")
+	}))
+	defer srv.Close()
+
+	dir := t.TempDir()
+	client := &http.Client{Transport: New(dir, nil)}
+	do(t, client, http.MethodGet, srv.URL+"/x.json", "")
+
+	recs := readRecordings(t, dir)
+	if len(recs) != 1 || !strings.Contains(recs[0].Body, "502 Bad Gateway") {
+		t.Errorf("body = %q, want the unparseable response kept verbatim", recs[0].Body)
+	}
+}

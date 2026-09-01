@@ -128,7 +128,7 @@ func printMap(all []journeyStep) {
 	}
 	fmt.Println()
 	fmt.Println("Record every call, including the rejections:")
-	fmt.Println("  SH_RECORD_DIR=./testdata/recordings go run ./examples/cloud probe")
+	fmt.Println("  SH_RECORD_DIR=$(mktemp -d) go run ./examples/cloud probe")
 	fmt.Println()
 	fmt.Println("Steps marked WRITES need SH_EXAMPLE_ALLOW_PROVISION=1.")
 }
