@@ -2,13 +2,11 @@
 //
 // # Rate limiting
 //
-// The API limits requests per reseller — the owner of the API key,
-// rather than per individual key. The default allowance is 10 requests
-// per second, counted over a rolling second, and it is configurable.
-// So a client should not hardcode the default: the allowance it gets
-// may be higher or lower than 10.
+// The API applies a per-second request limit. The allowance is not
+// published and varies, so a client must not assume a particular
+// figure.
 //
-// Exceeding the limit returns HTTP 500 with:
+// Exceeding it returns HTTP 500 with:
 //
 //	You have exceeded the number of requests per second for this key.
 //	Please try again soon.
@@ -21,9 +19,9 @@
 //
 // [Client.Do] therefore retries throttled requests with a short
 // backoff, and reports [RateLimitError] if every attempt is throttled.
-// Retrying is sound even for requests that create things: the limit is
-// applied after the key is authenticated but before the request is
-// dispatched, so a throttled call never reaches the handler.
+// Retrying is sound even for requests that create things, because the
+// limit is enforced before the request reaches the handler — so a
+// throttled call cannot have had an effect.
 //
 // Tune it with [SetRateLimitRetries] and [SetRateLimitBackoff], and test
 // for it with [IsRateLimited].
@@ -124,16 +122,16 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 //
 // # Throttled requests are retried
 //
-// The API rate-limits per reseller and signals it with HTTP 500 and a
-// "you have exceeded the number of requests per second" message, which
-// is indistinguishable from a server error by status code alone. Left
+// The API signals a rate limit with HTTP 500 and a message rather than
+// with 429, which makes it indistinguishable from a server error by
+// status code alone. Left
 // alone, a client reads that as "the operation failed" — and in a
 // provisioning flow that means concluding a build failed when it never
 // started.
 //
 // So a throttled response is retried with a short backoff. This is safe
 // even for requests that create things: the limit is applied after the
-// key is authenticated but before the request is dispatched, so a
+// limit is enforced before the request reaches the handler, so a
 // throttled call never reached the handler.
 //
 // Retrying needs the request body to be replayable. Bodies built by
@@ -157,6 +155,13 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 	// to an in-flight request, while the doc and a test both said
 	// cancellation was honoured. Visibly ignored would have been more
 	// honest than that.
+	// A nil context used to be harmless here, because the parameter was
+	// discarded. WithContext panics on nil, so accept it as Background
+	// rather than turning a previously working call into a panic in a
+	// published SDK.
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	req = req.WithContext(ctx)
 
 	var lastErr error
@@ -170,13 +175,21 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) error
 				// entirely the wrong place, so both are surfaced.
 				return errors.Join(lastErr, err)
 			case !replayable:
-				// Documented: a body that cannot be replayed is
-				// attempted once and the throttle error returned
-				// as-is, rather than risking a truncated second copy.
-				return lastErr
+				// A body that cannot be replayed is attempted once
+				// rather than risking a truncated second copy. Still
+				// reported as a RateLimitError, so the documented type
+				// contract holds on every throttled path — with the
+				// attempt count actually made, which is one fewer than
+				// the attempt about to be abandoned.
+				return &RateLimitError{Attempts: attempt - 1, Err: lastErr}
 			}
 			if err := rateLimitWait(ctx, attempt-1, c.rateLimitBackoff); err != nil {
-				return err
+				// Both facts matter: the caller ran out of time, and
+				// the reason it was waiting was a throttle. Returning
+				// only the context error leaves a rate limit
+				// indistinguishable from a hung request, which is the
+				// misdiagnosis this retry exists to prevent.
+				return errors.Join(lastErr, err)
 			}
 		}
 

@@ -18,17 +18,30 @@ import (
 // 500: the status code cannot be used to identify it.
 const rateLimitBody = `{"status":false,"msg":"You have exceeded the number of requests per second for this key. Please try again soon."}`
 
-// TestRateLimit_MarkerIsPinned guards the one fragile part of this
-// feature.
+// TestRateLimit_MarkerIsPinned guards against an undeliberated local
+// edit to the marker constants.
 //
-// The API signals a rate limit with HTTP 500 and a message, so the only
-// thing to match on is the wording. If upstream edits it, the retry
-// silently stops working and throttled calls start surfacing as failed
-// operations again. This test fails loudly instead.
+// It cannot detect an upstream rewording, and it is worth being exact
+// about that: both sides of the comparison live in this repository, so
+// they move together, CI stays green, and the retry silently stops
+// working. Real drift detection needs a contract test against the live
+// API, which does not exist.
+//
+// What it can do that the tolerance test cannot is assert the exact
+// full phrase, so an edit narrowing the tokens fails here specifically.
 func TestRateLimit_MarkerIsPinned(t *testing.T) {
 	t.Parallel()
-	if !isRateLimitMessage("Error: You have exceeded the number of requests per second for this key. Please try again soon.") {
-		t.Fatal("the upstream rate-limit message no longer matches rateLimitMarker; retrying is now disabled")
+
+	const upstream = "Error: You have exceeded the number of requests per second for this key. Please try again soon."
+	if !isRateLimitMessage(upstream) {
+		t.Fatal("rateLimitMarkerA/B no longer match the upstream message; retrying is now disabled")
+	}
+	// The exact phrase, so narrowing either constant is caught here and
+	// not only by the looser tolerance test.
+	for _, want := range []string{rateLimitMarkerA, rateLimitMarkerB} {
+		if !strings.Contains(strings.ToLower(upstream), want) {
+			t.Errorf("marker %q is no longer part of the upstream message", want)
+		}
 	}
 	if isRateLimitMessage("Error: The image 'x' could not be found.") {
 		t.Error("unrelated errors must not be treated as rate limits")
@@ -285,7 +298,13 @@ func TestRateLimit_BackoffSchedule(t *testing.T) {
 		// The caller's own value is honoured rather than clamped. A
 		// batch job that would rather wait five seconds than press a
 		// shared allowance gets five seconds.
+		// The row whose absence let a half-fix look complete. Asserting
+		// only attempt 1 hid that later attempts were still clamped back
+		// to the ceiling, so the schedule decreased: 5s, 1s, 1s.
 		{"a base above the ceiling is the caller's choice", 1, 5 * time.Second, 5 * time.Second},
+		{"and holds on the second attempt", 2, 5 * time.Second, 5 * time.Second},
+		{"and the third", 3, 5 * time.Second, 5 * time.Second},
+		{"and does not decrease at any depth", 10, 5 * time.Second, 5 * time.Second},
 
 		// Overflow. The shift form wrapped negative here, skipped the
 		// cap, and fired the timer immediately.
@@ -412,5 +431,108 @@ func TestRateLimit_MarkerToleratesCosmeticRewording(t *testing.T) {
 		if isRateLimitMessage(msg) {
 			t.Errorf("matched an unrelated message: %q", msg)
 		}
+	}
+}
+
+// TestRateLimit_NonReplayableBodyIsAttemptedOnce covers the path that
+// prevents a truncated second copy.
+//
+// I had said this needed a test seam or a hand-built request. It needs
+// neither: build the request the normal way and clear GetBody, which is
+// the state net/http leaves a request in when its body is an opaque
+// reader.
+func TestRateLimit_NonReplayableBodyIsAttemptedOnce(t *testing.T) {
+	t.Parallel()
+
+	var calls int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, rateLimitBody)
+	}))
+	defer srv.Close()
+
+	c, err := New("k", "1", SetBaseURL(srv.URL))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	req, err := c.NewRequest("POST", "thing.json", "label=web")
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+	req.GetBody = nil
+
+	err = c.Do(context.Background(), req, nil)
+	if calls != 1 {
+		t.Errorf("handler hit %d times, want 1 — an unreplayable body must not be sent twice", calls)
+	}
+
+	// The type contract has no exceptions: every throttled path reports
+	// a *RateLimitError, so a caller told to migrate to errors.As is
+	// not left with one shape that slips through.
+	var rle *RateLimitError
+	if !errors.As(err, &rle) {
+		t.Fatalf("err = %T, want *RateLimitError", err)
+	}
+	if rle.Attempts != 1 {
+		t.Errorf("Attempts = %d, want 1 — one request was actually sent", rle.Attempts)
+	}
+	var apiErr *models.ErrorResponse
+	if !errors.As(err, &apiErr) {
+		t.Error("the underlying API error is no longer reachable")
+	}
+}
+
+// TestRateLimit_BodyReplayFailureIsSurfaced covers the other branch:
+// a GetBody that errors is a real I/O failure, not a rate limit.
+func TestRateLimit_BodyReplayFailureIsSurfaced(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = io.WriteString(w, rateLimitBody)
+	}))
+	defer srv.Close()
+
+	c, err := New("k", "1", SetBaseURL(srv.URL), SetRateLimitBackoff(time.Millisecond))
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	req, err := c.NewRequest("POST", "thing.json", "label=web")
+	if err != nil {
+		t.Fatalf("NewRequest: %v", err)
+	}
+	boom := errors.New("boom")
+	req.GetBody = func() (io.ReadCloser, error) { return nil, boom }
+
+	err = c.Do(context.Background(), req, nil)
+
+	// The actual cause must survive. Relabelling an I/O failure as a
+	// rate limit sends the caller looking in the wrong place.
+	if !errors.Is(err, boom) {
+		t.Errorf("err = %v, want the replay failure to be reachable", err)
+	}
+	// And the throttle stays reachable too, which is what errors.Join
+	// was for.
+	var apiErr *models.ErrorResponse
+	if !errors.As(err, &apiErr) {
+		t.Error("the throttle that caused the retry is no longer reachable")
+	}
+}
+
+// TestRateLimitError_Rendering pins the string a caller sees in a log.
+func TestRateLimitError_Rendering(t *testing.T) {
+	t.Parallel()
+
+	e := &RateLimitError{Attempts: 4, Err: errors.New("500 You have exceeded the number of requests per second")}
+	got := e.Error()
+	if !strings.Contains(got, "4") {
+		t.Errorf("Error() = %q, want the attempt count", got)
+	}
+	if !strings.Contains(got, "exceeded the number of requests") {
+		t.Errorf("Error() = %q, want the wrapped API message", got)
+	}
+	if !errors.Is(e, e.Err) {
+		t.Error("the wrapped error is not reachable through errors.Is")
 	}
 }

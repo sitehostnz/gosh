@@ -11,7 +11,8 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-// rateLimitMarker identifies a throttled response.
+// rateLimitMarkerA and rateLimitMarkerB are the words a throttled
+// response is recognised by.
 //
 // Matching on the message text is unpleasant and deliberate: the API
 // signals a rate limit with HTTP 500, not 429, so the status code
@@ -35,8 +36,8 @@ import (
 // phrase, which a doubled space or a hyphen would break, the two
 // stable words are matched independently after collapsing whitespace.
 //
-// Signalling this with 429 and Retry-After has been raised with the
-// platform team. If that lands, all of this can be removed.
+// Signalling this with 429 and Retry-After would remove the need for
+// any of it.
 const (
 	rateLimitMarkerA = "exceeded"
 	rateLimitMarkerB = "requests per second"
@@ -44,11 +45,9 @@ const (
 
 // Retry defaults.
 //
-// The limiter is a counter over a rolling second, with a default
-// allowance of 10 requests per second per reseller rather than per
-// key, and it is configurable. So the useful backoff is short — the
-// window it is waiting out is a second, not a minute — and a long
-// exponential climb would only add latency.
+// The backoff is deliberately short. The window being waited out is
+// about a second, not a minute, so a long exponential climb would only
+// add latency without improving the odds.
 const (
 	defaultRateLimitAttempts = 4
 	defaultRateLimitBackoff  = 250 * time.Millisecond
@@ -85,8 +84,10 @@ func (e *RateLimitError) Unwrap() error { return e.Err }
 // concrete type with a type assertion or a type switch should move to
 // errors.As. The underlying API error stays reachable that way.
 //
-// This function additionally recognises a throttled *models.ErrorResponse
-// reached by some other route, so one test covers both.
+// It additionally recognises a throttled *models.ErrorResponse reached
+// by some other route, applying exactly the test the retry loop uses —
+// a parsed API error, on the status the limiter uses, matching only the
+// message. A transport error is not one, however its text renders.
 func IsRateLimited(err error) bool {
 	if err == nil {
 		return false
@@ -95,7 +96,11 @@ func IsRateLimited(err error) bool {
 	if errors.As(err, &rle) {
 		return true
 	}
-	return isRateLimitMessage(err.Error())
+	// Deliberately the same test the retry loop uses. A predicate that
+	// said yes to something Do refuses to retry would let a caller
+	// rebuild the unsafe retry one layer up — and a transport error can
+	// have reached the handler, so it is not a throttle.
+	return isThrottled(err)
 }
 
 // isRateLimitMessage reports whether a message is the throttle
@@ -117,8 +122,8 @@ func isRateLimitMessage(msg string) bool {
 // narrower than [IsRateLimited].
 //
 // The safety argument for retrying a request that creates something is
-// that the limit is applied after the key is authenticated but before
-// the request is dispatched, so a throttled call never reached the
+// that the limit is enforced before the request reaches the
+// handler, so a throttled call never reached the
 // handler. That argument holds for the limiter's response and nothing
 // else, so the guard has to be anchored to that response rather than to
 // the text of whatever error came back.
@@ -145,7 +150,10 @@ func isThrottled(err error) bool {
 	if !errors.As(err, &apiErr) {
 		return false
 	}
-	if apiErr.Response != nil && apiErr.Response.StatusCode != http.StatusInternalServerError {
+	// A nil Response means the status cannot be confirmed, which is not
+	// the limiter's own response — and the guarantee that makes
+	// retrying a write safe holds only for that.
+	if apiErr.Response == nil || apiErr.Response.StatusCode != http.StatusInternalServerError {
 		return false
 	}
 	return isRateLimitMessage(apiErr.Message)
@@ -158,9 +166,8 @@ func isThrottled(err error) bool {
 // treated the same way. The default is 4.
 //
 // Retrying is safe, including for requests that create things: the
-// limit is applied after the key is authenticated but before the
-// request is dispatched, so a throttled call never reaches the handler
-// and cannot have had any effect.
+// limit is enforced before the request reaches the handler, so a
+// throttled call cannot have had any effect.
 //
 // Setting 1 disables retrying. That costs nothing for a caller whose
 // allowance is high enough that it never trips the limit.
@@ -224,12 +231,26 @@ func rateLimitWait(ctx context.Context, attempt int, base time.Duration) error {
 // guarded it, leaving the safety outside the function that needed it.
 //
 // The ceiling applies to the growth, not to the caller's own value: a
-// caller who deliberately chooses a gentler first wait gets it.
+// caller who deliberately chooses a gentler wait keeps it on every
+// attempt.
 func backoffFor(attempt int, base time.Duration) time.Duration {
+	// The ceiling bounds the growth, never the caller's own value, and
+	// that has to hold on every attempt rather than only the first.
+	//
+	// Clamping later attempts back to the ceiling made the schedule
+	// decrease — base=5s produced 5s, 1s, 1s — which is not a backoff.
+	// It shrank by eighty per cent at the moment the limiter had just
+	// proven it was still rejecting, and pressed a shared allowance
+	// harder than the caller asked to from the second retry on.
+	ceiling := maxRateLimitBackoff
+	if base > ceiling {
+		ceiling = base
+	}
+
 	wait := base
 	for i := 1; i < attempt; i++ {
-		if wait >= maxRateLimitBackoff {
-			return maxRateLimitBackoff
+		if wait >= ceiling {
+			return ceiling
 		}
 		wait *= 2
 	}

@@ -46,6 +46,16 @@ All notable changes to this project will be documented in this file. The format 
   confirm a rule actually filters, and the snapshot step writes a
   marker file into the guest to confirm a restore actually reverted the
   disk.
+- `api.RateLimitError` reports that every attempt was throttled, and
+  wraps the last API error so existing `*models.ErrorResponse`
+  inspection keeps working through `errors.As`.
+- `api.IsRateLimited` tests for a rate-limit rejection, whether retries
+  were exhausted or switched off.
+- `api.SetRateLimitRetries` and `api.SetRateLimitBackoff` configure the
+  behaviour; the defaults are 4 attempts and a 250ms initial backoff,
+  doubling to a 1s cap. Retrying honours context cancellation, so a
+  caller that gives up is not held by a pending backoff.
+
 
 ### Changed
 
@@ -55,14 +65,25 @@ All notable changes to this project will be documented in this file. The format 
   from a server error by status code — a client that treats it as a
   failed operation can report a build as failed when it never started,
   or retry a create and make two. Retrying is safe even for writes: the
-  limit is applied after the key is authenticated but before the
-  request is dispatched, so a throttled call never reaches the handler.
+  limit is enforced before the request reaches the handler, so a
+  throttled call cannot have had an effect.
 
   A throttled request now surfaces as `*api.RateLimitError` wrapping
   the `*models.ErrorResponse` it previously returned — in every
-  configuration, including with retrying switched off. `errors.As`
-  keeps working; callers matching on the concrete type with a type
-  assertion or a type switch need to move to it.
+  configuration, including with retrying switched off and including a
+  request whose body cannot be replayed. `errors.As` keeps working;
+  callers matching on the concrete type with a type assertion or a type
+  switch need to move to it.
+
+  `api.IsRateLimited` is correspondingly narrower: it now applies the
+  same test the retry loop does, so a transport error whose text
+  happens to contain the throttle wording is no longer reported as a
+  rate limit. A predicate that disagreed with the retry decision would
+  let a caller rebuild the unsafe retry one layer up.
+
+  `Do` accepts a nil context as `context.Background()` rather than
+  panicking, which is what it effectively did while the parameter was
+  discarded.
 
   `Do` now also applies its context to the request itself, not only to
   the retry backoff. The parameter was previously ignored.
@@ -166,19 +187,6 @@ All notable changes to this project will be documented in this file. The format 
 - `examples/server`: a failure mid-swap left a server holding no
   address with no rollback. Released addresses are now restored on the
   way out, best-effort and loudly.
-- `api.RateLimitError` reports that every attempt was throttled, and
-  wraps the last API error so existing `*models.ErrorResponse`
-  inspection keeps working through `errors.As`.
-- `api.IsRateLimited` tests for a rate-limit rejection, whether retries
-  were exhausted or switched off.
-- `api.SetRateLimitRetries` and `api.SetRateLimitBackoff` configure the
-  behaviour; the defaults are 4 attempts and a 250ms initial backoff,
-  doubling to a 1s cap. Retrying honours context cancellation, so a
-  caller that gives up is not held by a pending backoff.
-- The `api` package documentation records the limit: it applies per
-  reseller rather than per key, defaults to 10 requests per second, and
-  is configurable, so clients should not hardcode the default.
-
 ## [v0.7.1] - 2026-08-20
 
 ### Added
