@@ -59,6 +59,13 @@ const (
 //
 // It wraps the last response error, so callers that already inspect
 // *models.ErrorResponse keep working through errors.As.
+//
+// There is deliberately no ErrRateLimited sentinel. The condition is
+// already testable two ways — [IsRateLimited] for a predicate,
+// errors.As for the attempt count and the wrapped error — and a third
+// spelling would be a third thing that has to stay consistent with the
+// other two. It is a small non-breaking addition later if a consumer
+// wants errors.Is support.
 type RateLimitError struct {
 	// Attempts is how many requests were made, including the first.
 	Attempts int
