@@ -116,17 +116,22 @@ func jsonFields(t reflect.Type) map[string]reflect.Type {
 	out := make(map[string]reflect.Type)
 	for i := range t.NumField() {
 		f := t.Field(i)
+		// encoding/json cannot write to an unexported field, so one
+		// covers nothing. Counting it here would report a dropped
+		// field as decoded — a false negative in the one tool whose
+		// entire value is not producing them. The Anonymous case
+		// stays: an embedded unexported type still promotes its
+		// exported fields.
+		if !f.IsExported() && !f.Anonymous {
+			continue
+		}
 		name, _, _ := strings.Cut(f.Tag.Get("json"), ",")
 		if name == "-" {
 			continue
 		}
 		if f.Anonymous && name == "" {
-			ft := f.Type
-			for ft.Kind() == reflect.Ptr {
-				ft = ft.Elem()
-			}
-			if ft.Kind() == reflect.Struct {
-				for k, v := range jsonFields(ft) {
+			if promoted, ok := promotedFields(f.Type); ok {
+				for k, v := range promoted {
 					out[k] = v
 				}
 				continue
@@ -170,6 +175,18 @@ func dedupe(in []string) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// promotedFields returns the fields an embedded struct contributes to
+// its parent, as encoding/json promotes them.
+func promotedFields(t reflect.Type) (map[string]reflect.Type, bool) {
+	for t.Kind() == reflect.Ptr {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		return nil, false
+	}
+	return jsonFields(t), true
 }
 
 // join builds a dotted path.

@@ -9,7 +9,6 @@ import (
 	"github.com/sitehostnz/gosh/pkg/shtypes"
 )
 
-// Update updates the database's backup location.
 // Update changes an existing SSH user, via
 // "cloud/ssh/user/update.json".
 //

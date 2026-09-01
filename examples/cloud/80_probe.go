@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -189,15 +192,26 @@ func stepProbe(ctx context.Context, c clients, _ *state) error {
 }
 
 // isTransport reports whether the error is a failure to reach the API
-// rather than a rejection by it. The API answers HTTP 200 with
-// status:false when it rejects, so a rejection arrives as a decoded
-// message; anything that never got that far is a transport problem.
+// rather than a rejection by it.
+//
+// Read from the error tree rather than from the text. Matching
+// substrings got this wrong in both directions: it missed real
+// transport failures whose wording differs — TLS handshakes, connection
+// reset, i/o timeout, network unreachable — and counted them as
+// rejections, which is the opposite conclusion and exactly the
+// misreading this classification exists to prevent. It also matched
+// "EOF", which is short enough to appear inside a rejection message,
+// and this API's messages are free text with the request URL embedded.
+//
+// The structured version separates the two by construction: a rejection
+// arrives as *models.ErrorResponse, which is none of these types.
 func isTransport(err error) bool {
-	s := err.Error()
-	return strings.Contains(s, "connection refused") ||
-		strings.Contains(s, "no such host") ||
-		strings.Contains(s, "context deadline exceeded") ||
-		strings.Contains(s, "EOF")
+	var uerr *url.Error
+	if errors.As(err, &uerr) {
+		return true // never got an API envelope back
+	}
+	var nerr net.Error
+	return errors.As(err, &nerr) || errors.Is(err, context.DeadlineExceeded)
 }
 
 // oneLine flattens an error for a single log line.

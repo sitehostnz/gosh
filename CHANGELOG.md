@@ -48,12 +48,6 @@ All notable changes to this project will be documented in this file. The format 
 - Recorded-response tests for `cloud/db`, `cloud/db/user`,
   `cloud/ssh/user`, `cloud/stack`, `cloud/stack/image` and
   `cloud/server`, four of which had no tests at all.
-- `models.CloudServer` decodes `created`, `date_updated` and `managed`;
-  `models.Container` decodes `image`, `image_id`, `image_details`,
-  `docker_size`, `backups`, `monitored`, `db_socket`, `date_added` and
-  `date_updated`; `models.StackImage` decodes `registry_path`;
-  `models.StackImageVersion` decodes `docker_size` and `public`. Every
-  one of these was being sent by the API and dropped in silence.
 - `examples/server` walks the whole server lifecycle as a numbered
   journey and exercises all 36 methods in the namespace. Two of its
   steps check the result somewhere other than the API that was asked
@@ -112,13 +106,6 @@ All notable changes to this project will be documented in this file. The format 
   `AcceptedKey` rather than indexing.
 - **Breaking:** `ListStatisticTypesResponse.Return` is
   `server.StatisticTypes` rather than `[]string`.
-- `models.Container.DockerSize` and `models.StackImageVersion.DockerSize`
-  are `shtypes.MaybeBigInt`, because the API sends a bare number on a
-  container and a quoted string on a version.
-- `models.Container.ImageDetails` is a `json.RawMessage`. Its keys are
-  `models.StackImage`'s, but its `labels` is a JSON-encoded string
-  where StackImage's is an object, and its `versions` is an object
-  where StackImage's is a list, so it cannot be decoded as one.
 - `server.UpgradeComponents` documents cores and RAM as constrained
   **per server** rather than per product family: read the allowed sets
   from `ListUpgrades`. A plan with no headroom returns only the current
@@ -189,7 +176,16 @@ All notable changes to this project will be documented in this file. The format 
 - `models.CloudServer`, `models.Container`, `models.StackImage`,
   `models.StackImageVersion` and `dns/template.TemplateDetails` now
   decode fields the API sends that no field received. They were being
-  dropped in silence.
+  dropped in silence — fifteen of them, including almost everything the
+  API reports about a running container.
+
+  Two could not be typed by inspection. `DockerSize` is a bare number on
+  a container and a quoted string on a stack image version, so it is
+  `shtypes.MaybeBigInt` in both. `Container.ImageDetails` has
+  `models.StackImage`'s keys but its `labels` is a JSON-encoded string
+  where StackImage's is an object, and its `versions` is an object where
+  StackImage's is a list — so it cannot be decoded as one and stays a
+  `json.RawMessage`.
 - `examples/server`: the `delete` step deleted servers it did not
   create, falling back to `SH_SERVER_A`/`SH_SERVER_B` when nothing had
   been provisioned. Deleting a server this process did not create now

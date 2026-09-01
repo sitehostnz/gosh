@@ -17,6 +17,11 @@ import (
 const maxArrayElements = 2
 
 var (
+	// apiMessage matches the API's own rejection and status wording,
+	// which is authored by the platform rather than by a customer.
+	apiMessage = regexp.MustCompile(
+		`^(Successful|Error:|Please specify|The |This |You have|Unable to|no |not )`)
+
 	digitsOnly = regexp.MustCompile(`^\d+$`)
 	timestamp  = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}:\d{2})?`)
 	ipv4       = regexp.MustCompile(`^\d{1,3}(\.\d{1,3}){3}$`)
@@ -47,6 +52,20 @@ var (
 // distinction a hand-written fixture routinely gets wrong.
 //
 // # What it does not do
+//
+// Two limits are worth knowing before treating a fixture as a faithful
+// record of the API.
+//
+// A digits-only string becomes "1", and this API represents booleans as
+// the strings "0" and "1" in a good many places — managed, public,
+// is_public, is_missing, server_owner. So the "0" case is
+// unrepresentable in a scrubbed fixture, and a test cannot exercise it
+// from one. Assert those branches in a unit test on the type instead.
+//
+// Capping arrays leaves pagination counters that no real response could
+// carry: total_items says 1 above two rows. Do not assert on the
+// relationship between a count and a row count in a fixture; the
+// counters are an artefact of this tool rather than an observation.
 //
 // It is not a redactor for arbitrary secrets. Values are safe because
 // everything is discarded rather than because anything is recognised,
@@ -175,12 +194,31 @@ func scrubObject(t map[string]any, depth int) map[string]any {
 	return out
 }
 
+// keepVerbatim reports strings that are the API's own words rather
+// than anyone's data.
+//
+// The envelope's message is authored by the platform, and it is what
+// the SDK's control flow reads — whether an unmanaged server is a fault
+// or a fact turns on matching "not managed". Scrubbing it left exactly
+// the fixture that should pin that behaviour unable to assert anything
+// beyond "an error happened".
+func keepVerbatim(s string) (string, bool) {
+	if s == "" {
+		// An empty string is a fact about the API, not a value.
+		return "", true
+	}
+	if apiMessage.MatchString(s) {
+		return s, true
+	}
+	return "", false
+}
+
 // scrubString replaces a string with a placeholder of the same shape.
 func scrubString(s string) string {
+	if keep, ok := keepVerbatim(s); ok {
+		return keep
+	}
 	switch {
-	case s == "":
-		// An empty string is a fact about the API, not a value.
-		return ""
 	case digitsOnly.MatchString(s):
 		return "1"
 	case timestamp.MatchString(s):

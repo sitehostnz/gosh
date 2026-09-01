@@ -1,5 +1,5 @@
 {
-  "msg": "scrubbed",
+  "msg": "Successful",
   "return": [
     {
       "changelog": "scrubbed",
@@ -13,17 +13,17 @@
       "is_public": "1",
       "label": "scrubbed",
       "labels": {
-        "nz.sitehost.image.label": "scrubbed",
-        "nz.sitehost.image.ports": {
-          "80": {
+        "scrubbed-1": "scrubbed",
+        "scrubbed-2": {
+          "1-1": {
             "exposed": true,
             "protocol": "scrubbed",
             "publish": false
           }
         },
-        "nz.sitehost.image.provider": "scrubbed",
-        "nz.sitehost.image.type": "scrubbed",
-        "nz.sitehost.image.volumes": {
+        "scrubbed-3": "scrubbed",
+        "scrubbed-4": "scrubbed",
+        "scrubbed-5": {
           "hash": "scrubbed",
           "source": "scrubbed",
           "volumes": {
@@ -96,17 +96,17 @@
       "is_public": "1",
       "label": "scrubbed",
       "labels": {
-        "nz.sitehost.image.label": "scrubbed",
-        "nz.sitehost.image.ports": {
-          "80": {
+        "scrubbed-1": "scrubbed",
+        "scrubbed-2": {
+          "1-1": {
             "exposed": true,
             "protocol": "scrubbed",
             "publish": false
           }
         },
-        "nz.sitehost.image.provider": "scrubbed",
-        "nz.sitehost.image.type": "scrubbed",
-        "nz.sitehost.image.volumes": {
+        "scrubbed-3": "scrubbed",
+        "scrubbed-4": "scrubbed",
+        "scrubbed-5": {
           "hash": "scrubbed",
           "source": "scrubbed",
           "volumes": {

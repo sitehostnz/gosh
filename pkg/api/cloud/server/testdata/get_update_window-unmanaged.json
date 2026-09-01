@@ -2,6 +2,6 @@
   "error": {
     "code": 1
   },
-  "msg": "scrubbed",
+  "msg": "This server is not managed by SiteHost.",
   "status": false
 }

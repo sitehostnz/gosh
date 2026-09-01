@@ -2,6 +2,7 @@ package server_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/sitehostnz/gosh/internal/apitest"
@@ -48,5 +49,18 @@ func TestGetUpdateWindow_RejectsAnUnmanagedServer(t *testing.T) {
 		server.GetUpdateWindowRequest{ServerName: "s"})
 	if err == nil {
 		t.Fatal("GetUpdateWindow: expected an error for an unmanaged server")
+	}
+
+	// The message itself, not just that an error happened.
+	//
+	// examples/cloud branches on "not managed" to decide whether an
+	// unmanaged server is a fault or a fact. Scrub used to replace the
+	// envelope message, so this fixture could only assert err != nil —
+	// and a reworded message would silently flip that step from
+	// "report and continue" to "fail the whole run" with nothing
+	// noticing. The message is API-authored text rather than customer
+	// data, so it now survives scrubbing and can be pinned here.
+	if !strings.Contains(err.Error(), "not managed") {
+		t.Errorf("error = %q, want it to contain \"not managed\" — examples/cloud branches on that", err)
 	}
 }

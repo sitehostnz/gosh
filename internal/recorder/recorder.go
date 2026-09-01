@@ -21,13 +21,6 @@ import (
 	"github.com/sitehostnz/gosh/pkg/models"
 )
 
-// Package recorder captures real API exchanges so that test fixtures
-// can be derived from evidence rather than from belief.
-//
-// It lives in internal/ deliberately. It is a development tool, and an
-// exported option on a public SDK would be permanent surface that
-// consumers should never call.
-
 // Recording is one request and what the API said back.
 //
 // # Why this exists
@@ -165,6 +158,14 @@ func New(dir string, next http.RoundTripper) http.RoundTripper {
 	if next == nil {
 		next = http.DefaultTransport
 	}
+	// Create the directory here rather than leaving every caller to do
+	// it. Without this, copying the example above produces no
+	// recordings and one stderr line per call, which is a confusing way
+	// to discover a missing directory. Reported rather than returned:
+	// this is a diagnostic, and it must not fail construction.
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		fmt.Fprintf(os.Stderr, "gosh: recorder: %v\n", err)
+	}
 	return &recordingTransport{dir: dir, base: next}
 }
 
@@ -189,7 +190,12 @@ func (t *recordingTransport) RoundTrip(req *http.Request) (*http.Response, error
 		raw, err := io.ReadAll(req.Body)
 		_ = req.Body.Close()
 		if err != nil {
-			return nil, err
+			// Do not fail the call. The invariant this package states —
+			// that recording never breaks what it observes — has to
+			// hold without a reader checking, and returning here was
+			// the one path that broke it. Record what was read and let
+			// the request proceed with it.
+			fmt.Fprintf(os.Stderr, "gosh: recorder: reading request body: %v\n", err)
 		}
 		req.Body = io.NopCloser(bytes.NewReader(raw))
 		rec.Form = parseForm(string(raw))
@@ -224,9 +230,16 @@ func (t *recordingTransport) RoundTrip(req *http.Request) (*http.Response, error
 // write names the file so a directory listing reads as a transcript:
 // endpoint, whether it was accepted, and a counter to keep order.
 func (t *recordingTransport) write(rec Recording) {
+	// Three outcomes, not two. A connection that never reached the API
+	// is neither accepted nor rejected, and a directory listing should
+	// say which — the same distinction the probe step goes to trouble
+	// to make.
 	outcome := "ok"
 	if !rec.OK {
 		outcome = "rejected"
+	}
+	if rec.Status == 0 {
+		outcome = "notreached"
 	}
 	name := fmt.Sprintf("%03d-%s-%s.json",
 		t.seq.Add(1),
@@ -316,13 +329,28 @@ func redactBody(raw []byte) string {
 	return string(out)
 }
 
+// isEmptyValue reports a value that cannot be a secret.
+//
+// An empty string is not a credential, and redacting one destroys
+// evidence: this API never returns a database user's password, and the
+// fixture proving that is a run of empty strings. Replacing them with
+// REDACTED made the fixture say the opposite, and the test asserting
+// the real behaviour failed — correctly.
+func isEmptyValue(v any) bool {
+	if v == nil {
+		return true
+	}
+	s, ok := v.(string)
+	return ok && s == ""
+}
+
 // redactValue walks a decoded body, blanking values under secret keys.
 func redactValue(v any) any {
 	switch t := v.(type) {
 	case map[string]any:
 		out := make(map[string]any, len(t))
 		for k, val := range t {
-			if shouldRedact(k) {
+			if shouldRedact(k) && !isEmptyValue(val) {
 				out[k] = "REDACTED"
 				continue
 			}
