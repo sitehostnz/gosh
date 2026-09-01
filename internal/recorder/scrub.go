@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -47,9 +48,18 @@ var (
 //
 // # What it does not do
 //
-// It is not a redactor for arbitrary secrets. It is safe because it
-// discards everything rather than because it recognises anything, so do
-// not extend it with exceptions that let real values through.
+// It is not a redactor for arbitrary secrets. Values are safe because
+// everything is discarded rather than because anything is recognised,
+// so do not extend that with exceptions that let real values through.
+//
+// Object keys are the exception, and they are a judgement rather than a
+// guarantee. A struct's keys are its shape and must survive; a map
+// keyed by a customer's domain or address must not. Nothing in the JSON
+// distinguishes the two, so [scrubKey] applies the leaf rules to keys
+// that look like data and keeps the rest. It will be wrong in both
+// directions on an endpoint nobody has recorded yet — read a fixture
+// before committing it, particularly from an endpoint whose Return is
+// a map.
 func Scrub(raw []byte) ([]byte, error) {
 	dec := json.NewDecoder(strings.NewReader(string(raw)))
 	dec.UseNumber() // keep 1 and 1.0 distinguishable
@@ -71,11 +81,7 @@ func Scrub(raw []byte) ([]byte, error) {
 func scrubValue(v any, depth int) any {
 	switch t := v.(type) {
 	case map[string]any:
-		out := make(map[string]any, len(t))
-		for k, val := range t {
-			out[k] = scrubValue(val, depth+1)
-		}
-		return out
+		return scrubObject(t, depth)
 	case []any:
 		n := len(t)
 		if n > maxArrayElements {
@@ -98,6 +104,75 @@ func scrubValue(v any, depth int) any {
 		// bool and nil, both of which say something and reveal nothing.
 		return v
 	}
+}
+
+// hostname matches a dotted name ending in a letters-only label, which
+// is what a domain looks like and what a schema key does not.
+var hostname = regexp.MustCompile(`^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{2,}$`)
+
+// scrubKey replaces an object key that looks like data rather than
+// schema.
+//
+// Keys were passed through untouched, which is right for a struct —
+// there the key set is the shape, and replacing it would destroy the
+// thing a fixture exists to record. It is wrong for the responses this
+// API keys by customer data: redirect.ListRedirects returns
+// map[domain]map[sourceURL]Rule, server.ListAllocatedIPs returns a map
+// keyed by the address itself. Scrubbing such a response replaced the
+// IPAddr value and left the address in the key above it.
+//
+// So the leaf rules are applied to keys that look like data —
+// addresses, timestamps, digit strings, anything with an @, anything
+// shaped like a hostname — and every other key is treated as schema
+// and kept.
+//
+// This guesses, and it will guess wrong in both directions: an
+// endpoint keyed by something none of these patterns match still
+// leaks, and a schema key that happens to look like a hostname is
+// destroyed. It errs towards discarding, which is the direction the
+// package's own doc claims. Where the stakes are higher than a guess,
+// check the output before committing it — which is what the "read the
+// fixture before you commit it" line in Scrub's doc is for.
+func scrubKey(k string) string {
+	switch {
+	case digitsOnly.MatchString(k),
+		timestamp.MatchString(k),
+		ipv4.MatchString(k),
+		strings.Contains(k, "@"),
+		hostname.MatchString(k):
+		return scrubString(k)
+	default:
+		return k
+	}
+}
+
+// scrubObject scrubs an object's values, and its keys where they look
+// like data rather than schema.
+func scrubObject(t map[string]any, depth int) map[string]any {
+	out := make(map[string]any, len(t))
+
+	// Sorted, so a data key's replacement is stable between runs and a
+	// fixture does not churn.
+	keys := make([]string, 0, len(t))
+	for k := range t {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var n int
+	for _, k := range keys {
+		replaced := scrubKey(k)
+		if replaced != k {
+			// Number the replacements. Two data keys scrubbing to the
+			// same placeholder would collide and silently collapse the
+			// map, losing the entry count — and the count is part of
+			// the shape a fixture exists to record.
+			n++
+			replaced = fmt.Sprintf("%s-%d", replaced, n)
+		}
+		out[replaced] = scrubValue(t[k], depth+1)
+	}
+	return out
 }
 
 // scrubString replaces a string with a placeholder of the same shape.

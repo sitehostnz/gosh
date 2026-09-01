@@ -62,8 +62,28 @@ func walk(path string, doc any, t reflect.Type, out *[]string) {
 
 // walkObject matches an object's keys against a struct's fields.
 func walkObject(path string, d map[string]any, t reflect.Type, out *[]string) {
-	// An interface{} or map field swallows anything, by design.
-	if t.Kind() == reflect.Interface || t.Kind() == reflect.Map {
+	// An interface{} field swallows anything, by design.
+	if t.Kind() == reflect.Interface {
+		return
+	}
+
+	// A map's keys are unknown, but its values have a type, and that
+	// type can be incomplete like any other. Returning here treated
+	// every map as a catch-all, so three endpoints whose Return is a
+	// map of a concrete struct — redirect.ListRedirects,
+	// server.ListAllocatedIPs, and the disk map on ListUpgrades — got a
+	// clean bill of health whatever the API sent.
+	//
+	// That is the opposite of what this package is for: a silent
+	// all-clear is the failure it exists to eliminate, and it was
+	// issuing one.
+	//
+	// Reporting through the real key gives a better path too —
+	// return.example.co.nz.destination rather than return[].destination.
+	if t.Kind() == reflect.Map {
+		for k, v := range d {
+			walk(join(path, k), v, t.Elem(), out)
+		}
 		return
 	}
 	if t.Kind() != reflect.Struct {

@@ -135,3 +135,55 @@ func TestScrub_RejectsNonJSON(t *testing.T) {
 		t.Fatal("expected an error for a non-JSON body")
 	}
 }
+
+// TestScrub_RemovesDataShapedKeys covers the half the value rules miss.
+//
+// Keys were passed through untouched, which is right for a struct and
+// wrong for the responses this API keys by customer data:
+// redirect.ListRedirects returns map[domain]map[sourceURL]Rule, and
+// server.ListAllocatedIPs is keyed by the address itself — so scrubbing
+// replaced IPAddr and left the address in the key above it.
+func TestScrub_RemovesDataShapedKeys(t *testing.T) {
+	t.Parallel()
+
+	in := `{"return":{
+		"acme-widgets-prod.co.nz":{"disk1":true},
+		"jsmith@example.org":1,
+		"203.0.113.9":{"ip_addr":"203.0.113.9"}
+	}}`
+	out, err := Scrub([]byte(in))
+	if err != nil {
+		t.Fatalf("Scrub: %v", err)
+	}
+
+	for _, leak := range []string{"acme-widgets-prod", "jsmith@example.org", "203.0.113.9"} {
+		if strings.Contains(string(out), leak) {
+			t.Errorf("scrubbed output still contains the key %q", leak)
+		}
+	}
+
+	var got map[string]map[string]any
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	// All three entries must survive. Two data keys scrubbing to the
+	// same placeholder would collide and collapse the map, losing the
+	// entry count — which is part of the shape a fixture records.
+	if len(got["return"]) != 3 {
+		t.Errorf("return has %d entries, want 3 — scrubbed keys must not collide", len(got["return"]))
+	}
+
+	// A schema key is not data and must survive, or the fixture stops
+	// describing the response.
+	var kept bool
+	for _, v := range got["return"] {
+		if m, ok := v.(map[string]any); ok {
+			if _, ok := m["disk1"]; ok {
+				kept = true
+			}
+		}
+	}
+	if !kept {
+		t.Error("the schema key disk1 was scrubbed; only data-shaped keys should be")
+	}
+}

@@ -29,19 +29,33 @@
 // # Reading the journey
 //
 //	10  discover           read-only; safe anywhere
-//	20  provision          creates a Cloud Container
-//	30  stack              deploy a container stack
-//	40  database           add a database and a user
-//	50  sshuser            add an SSH user
+//	40  read               walk every read path and check the shapes
 //	80  probe              deliberate rejections, read-only, no opt-in
-//	90  delete             always last
 //
-// Steps sharing a number are interchangeable; a higher number needs the
-// lower ones. Run with no arguments to print the map and exit.
+// Run with no arguments to print the map and exit.
+//
+// # Nothing here writes yet
+//
+// Every step is read-only. The provision, stack, database, sshuser and
+// delete steps are not implemented, so this journey cannot create a
+// Cloud Container — it reads and probes one that already exists.
+//
+// The mutates flag, anyMutates and runCleanup exist and currently have
+// nothing to act on. They are kept because the write steps are the
+// obvious next work and the shape is shared with examples/server, but
+// they are scaffolding rather than live safety: with no step marked
+// mutates, the SH_EXAMPLE_ALLOW_PROVISION gate can never fire and the
+// cleanup pass scans for a delete step that does not exist. Reading
+// them as working protection would be the wrong direction for that
+// mistake to run, given the probe step deliberately provokes
+// rejections.
 //
 // Required env: SH_API_KEY, SH_CLIENT_ID.
-// Required to create anything: SH_EXAMPLE_ALLOW_PROVISION=1.
-// Optional: SH_LOCATION, SH_PRODUCT, SH_SERVER, SH_RECORD_DIR.
+// Optional: SH_LOCATION, SH_PRODUCT, SH_SERVER, SH_BASE_URL,
+// SH_RECORD_DIR.
+//
+// SH_EXAMPLE_ALLOW_PROVISION is read but nothing currently needs it,
+// since no step writes.
 package main
 
 import (

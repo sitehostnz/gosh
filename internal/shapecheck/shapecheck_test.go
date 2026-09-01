@@ -159,3 +159,46 @@ func TestUndecoded_AcceptsAPointer(t *testing.T) {
 		t.Errorf("Undecoded = %v, want the one missing field", got)
 	}
 }
+
+type concrete struct {
+	A string `json:"a"`
+}
+
+// TestUndecoded_DescendsIntoTypedMapValues records the distinction
+// between a map that absorbs anything and a map whose values have a
+// type.
+//
+// map[string]interface{} is a genuine catch-all. map[string]Concrete is
+// not: the keys are unknown but the values can be missing fields like
+// any struct. Treating both as catch-alls meant three endpoints whose
+// Return is a map of a concrete type — redirect.ListRedirects,
+// server.ListAllocatedIPs, and the disk map on ListUpgrades — were
+// reported clean whatever the API sent.
+func TestUndecoded_DescendsIntoTypedMapValues(t *testing.T) {
+	t.Parallel()
+
+	var v struct {
+		M map[string]concrete `json:"m"`
+	}
+	got, err := Undecoded([]byte(`{"m":{"a-key":{"a":"x","surprise":1}}}`), v)
+	if err != nil {
+		t.Fatalf("Undecoded: %v", err)
+	}
+	want := []string{"m.a-key.surprise"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Undecoded = %v, want %v — a map of a concrete type is not a catch-all", got, want)
+	}
+
+	// And a genuine catch-all still absorbs, so the distinction is the
+	// value type rather than the map.
+	var anyMap struct {
+		M map[string]interface{} `json:"m"`
+	}
+	got, err = Undecoded([]byte(`{"m":{"a-key":{"a":"x","surprise":1}}}`), anyMap)
+	if err != nil {
+		t.Fatalf("Undecoded: %v", err)
+	}
+	if len(got) != 0 {
+		t.Errorf("Undecoded = %v, want nothing for map[string]interface{}", got)
+	}
+}
