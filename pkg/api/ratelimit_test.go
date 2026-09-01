@@ -253,8 +253,15 @@ func TestRateLimit_ContextCancellationStopsBackoff(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	if err := c.Do(ctx, req, nil); !errors.Is(err, context.DeadlineExceeded) {
+	err = c.Do(ctx, req, nil)
+	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("Do error = %v, want context.DeadlineExceeded", err)
+	}
+	// Both facts must survive. Returning only the context error leaves
+	// a rate limit indistinguishable from a hung request, which is the
+	// misdiagnosis this retry exists to prevent.
+	if !IsRateLimited(err) {
+		t.Errorf("Do error = %v, want the throttle still reachable alongside the timeout", err)
 	}
 	if elapsed := time.Since(start); elapsed > time.Second {
 		t.Errorf("Do waited %s after the context expired; backoff is not honouring cancellation", elapsed)
