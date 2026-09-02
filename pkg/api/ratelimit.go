@@ -261,5 +261,17 @@ func backoffFor(attempt int, base time.Duration) time.Duration {
 		}
 		wait *= 2
 	}
+	// Bound the result as well as the growth. The guard above tests
+	// before doubling, so the last doubling was unbounded: base=600ms
+	// gave 600ms, then 1.2s, then 1s — over the ceiling and then
+	// decreasing, which is the fault this function exists to avoid,
+	// reproduced at smaller amplitude.
+	//
+	// Safe on the base > ceiling path, where ceiling is base and wait
+	// starts at base, so this never fires and a gentler configured wait
+	// is still held across every attempt.
+	if wait > ceiling {
+		return ceiling
+	}
 	return wait
 }

@@ -543,3 +543,56 @@ func TestRateLimitError_Rendering(t *testing.T) {
 		t.Error("the wrapped error is not reachable through errors.Is")
 	}
 }
+
+// TestRateLimit_BackoffIsNeverDecreasingAndNeverOverTheCeiling asserts
+// the property rather than sampling it.
+//
+// The table above sampled two bases and both were structurally immune
+// to the defect it was written to catch: 250ms doubles exactly onto the
+// ceiling so the guard fires rather than overshooting, and 5s makes the
+// ceiling equal to itself so the loop returns on its first iteration
+// and never doubles. Twice on this one function the row that mattered
+// was the row that was missing, which is an argument against picking
+// samples at all.
+//
+// These two properties are what a backoff is. Anything satisfying them
+// is acceptable; anything violating them is not, whatever the numbers.
+func TestRateLimit_BackoffIsNeverDecreasingAndNeverOverTheCeiling(t *testing.T) {
+	t.Parallel()
+
+	bases := []time.Duration{
+		time.Millisecond, 100 * time.Millisecond, 250 * time.Millisecond,
+		300 * time.Millisecond, 600 * time.Millisecond, 750 * time.Millisecond,
+		999 * time.Millisecond, time.Second, 1500 * time.Millisecond,
+		5 * time.Second, time.Minute,
+	}
+
+	for _, base := range bases {
+		ceiling := maxRateLimitBackoff
+		if base > ceiling {
+			ceiling = base
+		}
+
+		var prev time.Duration
+		for attempt := 1; attempt <= 10; attempt++ {
+			got := backoffFor(attempt, base)
+
+			if got > ceiling {
+				t.Errorf("backoffFor(%d, %v) = %v, over the ceiling %v", attempt, base, got, ceiling)
+			}
+			if attempt > 1 && got < prev {
+				t.Errorf("backoffFor(%d, %v) = %v, less than the previous wait %v — a schedule that decreases is not a backoff, and it shrinks at the moment the limiter has just proven it is still rejecting",
+					attempt, base, got, prev)
+			}
+			if got <= 0 {
+				t.Errorf("backoffFor(%d, %v) = %v, want a positive wait", attempt, base, got)
+			}
+			prev = got
+		}
+
+		// The caller's own value is the first wait, always.
+		if got := backoffFor(1, base); got != base {
+			t.Errorf("backoffFor(1, %v) = %v, want the configured value", base, got)
+		}
+	}
+}

@@ -130,15 +130,15 @@ func (c *Client) NewRequest(method, uri string, body string) (*http.Request, err
 // started.
 //
 // So a throttled response is retried with a short backoff. This is safe
-// even for requests that create things: the limit is applied after the
-// limit is enforced before the request reaches the handler, so a
-// throttled call never reached the handler.
+// even for requests that create things: a throttled request is rejected
+// without being processed, so the first attempt cannot have had any
+// effect.
 //
 // Retrying needs the request body to be replayable. Bodies built by
 // NewRequest are, because net/http populates GetBody for the reader
-// types it uses; a request carrying a body it cannot replay is attempted
-// once and returned as-is rather than silently sending a truncated
-// second copy.
+// types it uses; a request carrying a body it cannot replay is
+// attempted once and reported as a [RateLimitError] with an attempt
+// count of 1, rather than silently sending a truncated second copy.
 //
 // When every attempt is throttled the result is a [RateLimitError]
 // wrapping the last API error. Use [IsRateLimited] to test for it.
