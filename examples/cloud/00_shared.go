@@ -66,6 +66,16 @@ func newClients() (clients, error) {
 	}
 
 	var opts []api.ClientOpt
+
+	// SH_BASE_URL is read here rather than merely documented. This is
+	// the third time this exact fault has been raised in this
+	// repository: an unrecognised variable that is silently ignored
+	// means someone pointing a journey at a sandbox runs it against
+	// production instead, and finds out afterwards.
+	if base := os.Getenv("SH_BASE_URL"); base != "" {
+		opts = append(opts, api.SetBaseURL(base))
+	}
+
 	if dir := os.Getenv("SH_RECORD_DIR"); dir != "" {
 		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return clients{}, fmt.Errorf("SH_RECORD_DIR: %w", err)
