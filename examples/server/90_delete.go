@@ -61,6 +61,7 @@ func stepDelete(ctx context.Context, c clients, st *state) error {
 			continue
 		}
 		log.Printf("✓ deleted %s", name)
+		confirmGone(ctx, c, name)
 	}
 
 	// The ephemeral key is account state too; leaving it behind
@@ -141,4 +142,37 @@ func observeState(ctx context.Context, c clients, name string) string {
 // server — which is the more expensive mistake.
 func transitionalState(msg string) bool {
 	return strings.Contains(strings.ToLower(msg), "cannot be deleted while in the")
+}
+
+// confirmGone checks a deleted server stops answering.
+//
+// The delete call reports success from the control plane, which says a
+// record changed. Whether the machine is gone is a different question,
+// and one that can be asked directly: its address should stop
+// accepting connections.
+//
+// Reported rather than returned as an error. A server can legitimately
+// keep answering for a short while as the platform tears it down, and
+// failing the cleanup step over that would leave the journey looking
+// broken when the delete itself succeeded. What matters is that a
+// server still answering minutes later is visible rather than silent.
+func confirmGone(ctx context.Context, c clients, name string) {
+	time.Sleep(throttle)
+	got, err := c.server.Get(ctx, server.GetRequest{ServerName: name})
+	if err != nil {
+		// The expected outcome: the server is no longer addressable.
+		log.Printf("  ✓ %s is no longer in the API", name)
+		return
+	}
+	if len(got.Server.Ips) == 0 {
+		log.Printf("  ✓ %s holds no addresses", name)
+		return
+	}
+	addr := got.Server.Ips[0].IPAddr
+	if ok, took := waitReachability(addr, "22", false); ok {
+		log.Printf("  ✓ %s stopped answering on %s (%s)", name, addr, took.Round(time.Second))
+		return
+	}
+	log.Printf("! %s was deleted but %s is still accepting connections; the record changed and the machine may not have",
+		name, addr)
 }

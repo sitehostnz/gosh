@@ -28,3 +28,6 @@ jobs:
         with:
           version: v2.1
           only-new-issues: true
+
+      - name: Pre-MR checks
+        run: python3 .claude/skills/pre-mr-review/scripts/premr.py --base origin/${{ github.base_ref || 'main' }}
