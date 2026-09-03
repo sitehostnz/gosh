@@ -65,6 +65,26 @@ to run without `SH_EXAMPLE_ALLOW_PROVISION=1`.
 | `SH_UPGRADE_PLAN` | — (required by `upgrade-plan`) |
 | `SH_DELETE_SERVERS` | — (comma-separated; the only way `delete` touches a server this run did not create) |
 | `SH_BASE_URL` | the public API |
+| `SH_RECORD_DIR` | — (see the warning below) |
+
+### Recording what the API actually said
+
+Set `SH_RECORD_DIR` and every request and response is written there as
+JSON, including the rejections. It is how the fixtures under
+`pkg/api/**/testdata` were produced, and it is worth turning on while
+changing anything here — a hand-written fixture can only confirm the
+belief that produced it.
+
+**Those files hold live data.** Secret-bearing fields are blanked on the
+way to disk, but that is a reduction rather than a guarantee: the
+recordings still contain real server names, addresses, database names,
+usernames, home directories and key material, and a field naming a
+secret in an unanticipated way will be written in the clear.
+
+So point it outside the repository — `SH_RECORD_DIR=$(mktemp -d)` — and
+run anything derived from it through `internal/scrubtool` before
+committing or sharing. `**/recordings/` is in `.gitignore` as a second
+line of defence, not the first.
 
 ## Getting an API key
 

@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sitehostnz/gosh/internal/recorder"
 	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/api/job"
 	"github.com/sitehostnz/gosh/pkg/api/server"
@@ -118,14 +119,28 @@ func newClients() (clients, error) {
 	if apiKey == "" || clientID == "" {
 		return clients{}, fmt.Errorf("SH_API_KEY and SH_CLIENT_ID required — see README.md for how to create a key")
 	}
+	var opts []api.ClientOpt
+
 	// SH_BASE_URL is read here rather than merely documented. An
 	// unrecognised variable that is silently ignored is the worst
 	// outcome available: someone pointing this journey at a sandbox
 	// before letting it loose would have provisioned, swapped and
 	// deleted two billable servers on production instead.
-	var opts []api.ClientOpt
 	if base := os.Getenv("SH_BASE_URL"); base != "" {
 		opts = append(opts, api.SetBaseURL(base))
+	}
+
+	// SH_RECORD_DIR turns on request/response recording. Every call and,
+	// more usefully, every rejection is written there as JSON, so
+	// fixtures can be derived from what the API actually did rather than
+	// from what we assumed. Rejections cost nothing to collect: nothing
+	// is provisioned and nothing has a side effect.
+	if dir := os.Getenv("SH_RECORD_DIR"); dir != "" {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
+			return clients{}, fmt.Errorf("SH_RECORD_DIR: %w", err)
+		}
+		log.Printf("  recording API calls to %s", dir)
+		opts = append(opts, api.SetTransport(recorder.New(dir, nil)))
 	}
 
 	c, err := api.New(apiKey, clientID, opts...)

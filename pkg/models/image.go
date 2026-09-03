@@ -57,6 +57,11 @@ type (
 		ContainerCount int                    `json:"container_count"`
 		BuildStatus    string                 `json:"build_status"`
 		Versions       []StackImageVersion    `json:"versions"`
+
+		// RegistryPath is the client-scoped registry prefix a
+		// custom image is pushed to. Public catalogue images do
+		// not carry it, so an empty value is normal.
+		RegistryPath string `json:"registry_path"`
 	}
 
 	// StackImageVersion stores the version information for a StackImage.
@@ -73,6 +78,14 @@ type (
 		BuildID     string      `json:"build_id"`
 		BuildStatus string      `json:"build_status"`
 		Pending     interface{} `json:"pending"`
+
+		// DockerSize is the version's size in bytes, sent quoted
+		// here and as a bare number on [Container.DockerSize].
+		DockerSize shtypes.MaybeBigInt `json:"docker_size"`
+
+		// Public arrives as "0" or "1". Note the neighbouring
+		// [StackImage.IsPublic] spells the same idea is_public.
+		Public shtypes.MaybeBool `json:"public"`
 	}
 
 	// Port is for storing the exposed port information for a container.

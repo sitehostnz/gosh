@@ -20,3 +20,8 @@
 .env
 coverage.txt
 bin
+
+# Raw API recordings: live customer data, and credentials the recorder
+# reduces but cannot promise to remove. Run them through
+# internal/scrubtool before committing anything derived from them.
+**/recordings/

@@ -1,0 +1,32 @@
+{
+  "msg": "Successful",
+  "return": [
+    {
+      "client_id": "1",
+      "created": "2026-01-01 00:00:00",
+      "date_updated": "2026-01-01 00:00:00",
+      "id": "1",
+      "label": "scrubbed",
+      "managed": "1",
+      "name": "scrubbed",
+      "owner": true,
+      "primary_ip": "203.0.113.1",
+      "product_id": "1",
+      "state": "scrubbed"
+    },
+    {
+      "client_id": "1",
+      "created": "2026-01-01 00:00:00",
+      "date_updated": "2026-01-01 00:00:00",
+      "id": "1",
+      "label": "scrubbed",
+      "managed": "1",
+      "name": "scrubbed",
+      "owner": true,
+      "primary_ip": "203.0.113.1",
+      "product_id": "1",
+      "state": "scrubbed"
+    }
+  ],
+  "status": true
+}

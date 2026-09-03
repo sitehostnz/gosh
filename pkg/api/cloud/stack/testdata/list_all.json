@@ -1,0 +1,133 @@
+{
+  "msg": "Successful",
+  "return": {
+    "current_items": 1,
+    "current_page": 1,
+    "data": [
+      {
+        "client_id": "1",
+        "containers": [
+          {
+            "backups": true,
+            "container_id": "scrubbed",
+            "date_added": "2026-01-01 00:00:00",
+            "date_updated": "2026-01-01 00:00:00",
+            "db_socket": null,
+            "docker_size": 1,
+            "image": "scrubbed",
+            "image_details": {
+              "client_id": "1",
+              "code": "scrubbed",
+              "is_public": "1",
+              "label": "scrubbed",
+              "version": "scrubbed",
+              "versions": {
+                "id": "1",
+                "labels": "scrubbed",
+                "latest_version": "scrubbed"
+              }
+            },
+            "image_id": 1,
+            "is_missing": "1",
+            "monitored": true,
+            "name": "scrubbed",
+            "pending": null,
+            "size": "1",
+            "ssl_enabled": false,
+            "state": "scrubbed"
+          },
+          {
+            "backups": true,
+            "container_id": "scrubbed",
+            "date_added": "2026-01-01 00:00:00",
+            "date_updated": "2026-01-01 00:00:00",
+            "db_socket": null,
+            "docker_size": 1,
+            "image": "scrubbed",
+            "image_details": {
+              "client_id": "1",
+              "code": "scrubbed",
+              "is_public": "1",
+              "label": "scrubbed",
+              "version": "scrubbed",
+              "versions": {
+                "id": "1",
+                "labels": "scrubbed",
+                "latest_version": "scrubbed"
+              }
+            },
+            "image_id": 1,
+            "is_missing": "1",
+            "monitored": true,
+            "name": "scrubbed",
+            "pending": null,
+            "size": "1",
+            "ssl_enabled": false,
+            "state": "scrubbed"
+          }
+        ],
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "docker_file": "scrubbed",
+        "ip_addr_server": "203.0.113.1",
+        "is_missing": "1",
+        "label": "",
+        "name": "scrubbed",
+        "pending": null,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true
+      },
+      {
+        "client_id": "1",
+        "containers": [
+          {
+            "backups": true,
+            "container_id": "scrubbed",
+            "date_added": "2026-01-01 00:00:00",
+            "date_updated": "2026-01-01 00:00:00",
+            "db_socket": null,
+            "docker_size": 1,
+            "image": "scrubbed",
+            "image_details": {
+              "client_id": "1",
+              "code": "scrubbed",
+              "is_public": "1",
+              "label": "scrubbed",
+              "version": "scrubbed",
+              "versions": {
+                "id": "1",
+                "labels": "scrubbed",
+                "latest_version": "scrubbed"
+              }
+            },
+            "image_id": 1,
+            "is_missing": "1",
+            "monitored": true,
+            "name": "scrubbed",
+            "pending": null,
+            "size": "1",
+            "ssl_enabled": false,
+            "state": "scrubbed"
+          }
+        ],
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "docker_file": "scrubbed",
+        "ip_addr_server": "203.0.113.1",
+        "is_missing": "1",
+        "label": "scrubbed",
+        "name": "scrubbed",
+        "pending": null,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true
+      }
+    ],
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "status": true
+}

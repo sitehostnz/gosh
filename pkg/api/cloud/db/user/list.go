@@ -6,7 +6,16 @@ import (
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
-// List returns a list of cloud database users. It can be filtered by server, host, username.
+// List returns cloud database users, via
+// "cloud/db/user/list_all.json".
+//
+// Every filter is optional: with no options this returns every database
+// user on the account. As with [db.Client.List], a server name that does
+// not resolve is rejected rather than silently ignored, so an empty
+// page means the filter matched nothing real.
+//
+// The password field in each result is always empty. Passwords are
+// write-only; [Client.Update] sets one, nothing reads one back.
 func (s *Client) List(ctx context.Context, opt ListOptions) (response ListResponse, err error) {
 	uri := "cloud/db/user/list_all.json"
 

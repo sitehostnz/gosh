@@ -1,0 +1,46 @@
+{
+  "msg": "Successful",
+  "return": {
+    "current_items": 1,
+    "current_page": 1,
+    "data": [
+      {
+        "client_id": "1",
+        "container": "scrubbed",
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "db_name": "scrubbed",
+        "id": "1",
+        "is_missing": "1",
+        "mysql_host": "scrubbed",
+        "pending": null,
+        "server_id": "1",
+        "server_ip": "203.0.113.1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true,
+        "size": "1"
+      },
+      {
+        "client_id": "1",
+        "container": "scrubbed",
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "db_name": "scrubbed",
+        "id": "1",
+        "is_missing": "1",
+        "mysql_host": "scrubbed",
+        "pending": null,
+        "server_id": "1",
+        "server_ip": "203.0.113.1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true,
+        "size": "1"
+      }
+    ],
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "status": true
+}

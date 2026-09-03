@@ -1,0 +1,67 @@
+{
+  "msg": "Successful",
+  "return": {
+    "current_items": 1,
+    "current_page": 1,
+    "data": [
+      {
+        "client_id": "1",
+        "containers": [
+          "scrubbed"
+        ],
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "home_dir": "scrubbed",
+        "image": "scrubbed",
+        "ip_addr": "203.0.113.1",
+        "is_missing": false,
+        "pending": null,
+        "read_only_config": false,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true,
+        "ssh_keys": [
+          {
+            "content": "ssh-ed25519 AAAA scrubbed",
+            "id": "1",
+            "label": "scrubbed"
+          }
+        ],
+        "username": "scrubbed",
+        "volumes": []
+      },
+      {
+        "client_id": "1",
+        "containers": [
+          "scrubbed",
+          "scrubbed"
+        ],
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "home_dir": "scrubbed",
+        "image": null,
+        "ip_addr": "203.0.113.1",
+        "is_missing": false,
+        "pending": null,
+        "read_only_config": false,
+        "server_id": "1",
+        "server_label": "scrubbed",
+        "server_name": "scrubbed",
+        "server_owner": true,
+        "ssh_keys": [
+          {
+            "content": "ssh-ed25519 AAAA scrubbed",
+            "id": "1",
+            "label": "scrubbed"
+          }
+        ],
+        "username": "scrubbed",
+        "volumes": []
+      }
+    ],
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "status": true
+}
