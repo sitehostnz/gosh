@@ -50,7 +50,7 @@ type (
 		// surfaces "xvda1" / "xvdb1", virtio surfaces "vda" /
 		// "vdb", SCSI / SATA surface "sda" / "scsi0", etc.
 		//
-		// **Don't hardcode a label.** The right value differs per
+		// Don't hardcode a label. The right value differs per
 		// server. Discover dynamically by reading server.Get's
 		// Partitions field — each Partition has a Name (the label
 		// the upgrade endpoint expects).
@@ -100,14 +100,14 @@ type (
 	// IPv4 / IPv6 control how the new server gets its address(es).
 	// There are three paths consumers should know about:
 	//
-	//   1. **Auto-allocation (recommended for most cases).** Pass
+	//   1. Auto-allocation (recommended for most cases). Pass
 	//      []string{"auto"} for IPv4 and/or IPv6. The platform
 	//      picks a free address from the location's pool and binds
 	//      it to the new server. This is the path the public API
 	//      docs explicitly recommend ("simply pass the string
 	//      'auto' to automatically assign an IPv4 address").
 	//
-	//   2. **Specific pre-allocated address.** Pass the address(es)
+	//   2. Specific pre-allocated address. Pass the address(es)
 	//      directly, e.g. []string{"203.0.113.10"}. The address
 	//      must already be allocated to the calling client_id —
 	//      the platform won't transfer pool IPs at provision time
@@ -118,7 +118,7 @@ type (
 	//      server.ListLocations to read pool-wide capacity
 	//      (`available_ipv4`, `available_ipv6`).
 	//
-	//   3. **Manual allocation by SiteHost staff.** Reseller-style
+	//   3. Manual allocation by SiteHost staff. Reseller-style
 	//      arrangements may have IPs reserved for specific clients
 	//      via SiteHost ops, then accessed via path (2) once
 	//      visible in ListIPs. Out of band relative to the API.

@@ -8,16 +8,16 @@
 // package. One thing is not — the login account — and the rest are the
 // usual reason a first attempt fails.
 //
-//  1. **Location** — discoverable. ListLocations returns the code, the
+//  1. Location — discoverable. ListLocations returns the code, the
 //     product families the location carries (ProductTypes) and current
 //     AvailableIPv4. A location with no free IPv4 cannot take a new
 //     server.
 //
-//  2. **Product code** — discoverable, via [Client.ListProducts]. That
+//  2. Product code — discoverable, via [Client.ListProducts]. That
 //     endpoint is undocumented rather than absent; see "Product codes"
 //     below.
 //
-//  3. **Image** — discoverable, but the catalogue is split and the
+//  3. Image — discoverable, but the catalogue is split and the
 //     default listing is not the one you want for a high-performance
 //     product. See ListImages: high-performance images live behind
 //     ImageTypeHPVMDistro plus a mandatory Location, and their codes
@@ -28,14 +28,14 @@
 //     CanProvision does NOT validate the image. It can return success
 //     for a code that Create then rejects.
 //
-//  4. **SSH key** — must be supplied at provision time. A key cannot
+//  4. SSH key — must be supplied at provision time. A key cannot
 //     be injected afterwards, and the password in CreateResponse is
 //     returned once and never again, so automation that misses it has
 //     no way in.
 //
 //     Two steps, and both are required. Register the key on the
 //     account first through the ssh/key endpoints, then pass its
-//     **public key content** in ParamsOptions.SSHKeys — not the key id
+//     public key content in ParamsOptions.SSHKeys — not the key id
 //     that registration returned. Provisioning takes key material but
 //     validates it against the account's registered keys, so an
 //     unregistered key is rejected:
@@ -47,7 +47,7 @@
 //     Passing the id instead of the content fails the same way, since
 //     the id is not key material.
 //
-//  5. **The login username** — NOT exposed by the API. The platform
+//  5. The login username — NOT exposed by the API. The platform
 //     records a default login user per image and uses it when
 //     provisioning, but ListImages does not return it, so a client has
 //     to know it out of band. See LoginUserFor, which records the
@@ -62,7 +62,7 @@
 // labels — so nothing here needs to be hardcoded.
 //
 // It is worth saying why that is not obvious: the endpoint is
-// **undocumented**. It does not appear in the public API documentation
+// undocumented. It does not appear in the public API documentation
 // or its endpoint listing, which is why the Knowledge Base product-code
 // page is maintained by hand and covers only the older VPS families.
 // The endpoint is nonetheless public and supported.
@@ -109,7 +109,7 @@
 //
 // # Why CanProvision is the right way to ask
 //
-// Create does **not** perform the placement check. The request is
+// Create does not perform the placement check. The request is
 // accepted, a subscription is added and a provisioning job is queued;
 // node selection happens later, when the job runs. If nothing can take
 // the server the job then fails with "Not Enough Resources Available To
@@ -135,17 +135,15 @@
 //
 // # Rate limiting
 //
-// The API rate-limits per reseller — that is, per API key's owning
-// reseller, not per key. The default allowance is 10 requests per
-// second; it is configurable per reseller, so a given key may have more
-// or less. Exceeding it returns HTTP 500 with "You have exceeded the
-// number of requests per second for this key".
+// The API applies a per-second request limit and signals it with HTTP
+// 500 and a message rather than with 429, so it cannot be told from a
+// server error by status code alone.
 //
-// That response is safe to retry, including for writes. The limit is
-// checked after the key is authenticated but **before the request is
-// dispatched**, so a throttled call never reaches the handler and
-// cannot have had any effect — a rate-limited provision has not created
-// anything.
+// [api.Client] retries a throttled request, which is safe even for a
+// provision: a throttled request is rejected without being processed,
+// so the attempt cannot have created anything. Configure it with
+// [api.SetRateLimitRetries] and [api.SetRateLimitBackoff], and test for
+// it with [api.IsRateLimited].
 //
 // Job polling in a tight loop is the usual way to trip it.
 //
@@ -179,7 +177,7 @@
 // docs only fully describe the first, so this package-level note
 // captures all three for AI agents and humans reading the SDK:
 //
-//  1. **Auto-allocation (recommended for most cases).** Set
+//  1. Auto-allocation (recommended for most cases). Set
 //     CreateRequest.Params.IPv4 to []string{"auto"} (and likewise
 //     IPv6 if you want one). The platform picks a free address
 //     from the location's pool and binds it to the new server.
@@ -187,15 +185,15 @@
 //     "simply pass the string 'auto' to automatically assign
 //     an IPv4 address."
 //
-//  2. **Specific pre-allocated address.** Pass the address(es)
+//  2. Specific pre-allocated address. Pass the address(es)
 //     directly, e.g. []string{"203.0.113.10"}. The address must
-//     **already be allocated to the calling client_id** — the
+//     already be allocated to the calling client_id — the
 //     platform won't transfer pool IPs into your client at
 //     provision time via this path.
 //
-//     ListIPs(location) returns the IPs **currently allocated to
-//     this client** at that location — *not* the location's free
-//     pool. If ListIPs returns an empty slice, that does **not**
+//     ListIPs(location) returns the IPs currently allocated to this
+//     client at that location, not the location's free
+//     pool. If ListIPs returns an empty slice, that does not
 //     mean the pool is exhausted; it means this client has no
 //     allocations there. Use ListLocations to read pool-wide
 //     capacity (`AvailableIPs`, `AvailableIPv4`, `AvailableIPv6`).
@@ -207,13 +205,13 @@
 //     pass `auto` instead. Don't waste cycles re-discovering
 //     this.
 //
-//  3. **Manual allocation by SiteHost staff.** Reseller-style
+//  3. Manual allocation by SiteHost staff. Reseller-style
 //     arrangements may have IPs reserved for a client by
 //     SiteHost ops; once allocated they're visible via ListIPs
 //     and can be passed via path (2). Out of band relative to
 //     the SDK.
 //
-// **Default to path (1) unless you have a reason not to.** If you
+// Default to path (1) unless you have a reason not to. If you
 // do need a specific address, sanity-check via ListIPs first; if
 // that returns empty, fall back to "auto" rather than retrying or
 // concluding the pool is dry.

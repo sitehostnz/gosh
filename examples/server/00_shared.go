@@ -20,12 +20,10 @@ import (
 )
 
 const (
-	// throttle spaces out calls. The API allows 10 requests per second by
-	// default, per reseller rather than per key, and rejects bursts with
-	// HTTP 500 and a "you have exceeded the number of requests per
-	// second" message. This is deliberately far more conservative than
-	// the limit: the journey is not in a hurry, and the alternative is
-	// retry logic in every step.
+	// throttle spaces out calls. The API applies a per-second request
+	// limit and rejects bursts with HTTP 500. This is deliberately far
+	// more conservative than the limit: the journey is not in a hurry,
+	// and the alternative is retry logic in every step.
 	throttle = 1500 * time.Millisecond
 
 	// jobTimeout bounds a single job. Provisioning is the slow one;
