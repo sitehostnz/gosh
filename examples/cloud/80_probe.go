@@ -39,11 +39,10 @@ type probe struct {
 // # Why rejections, and why they get their own step
 //
 // A test built on a hand-written mock asserts the belief that produced
-// the mock, so it can only confirm that belief. Two bugs in this SDK
-// survived a green suite exactly that way: a provision that sent an
-// array where the API needs a scalar, and a response field declared as
-// a bool that the API sends as a map. Both had tests. Both tests
-// encoded what we sent, and passed while every real call failed.
+// the mock, so it can only confirm that belief. Bugs in this SDK have
+// survived a green suite exactly that way: a response field declared a
+// bool where the API sends a map, so every disk upgrade failed to
+// decode while the fixture asserting the wrong shape kept passing.
 //
 // Recorded rejections are what a mock cannot give you, because you have
 // to be wrong on purpose to obtain one. They are also free: nothing

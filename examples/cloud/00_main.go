@@ -15,11 +15,13 @@
 // the ones that fail. That matters more than it sounds:
 //
 // A hand-written mock encodes what we believe the API accepts, so a
-// test built on one can only confirm the belief that produced it. Two
-// bugs in this SDK survived a green suite that way — a provision that
-// sent an array where a scalar was required, and a decode that declared
-// a map as a bool. Both tests asserted what we sent, and passed while
-// every real call failed.
+// test built on one can only confirm the belief that produced it.
+// Bugs in this SDK have survived a green suite that way. A response
+// field declared a bool where the API sends a map meant every disk
+// upgrade failed to decode, and the fixture asserting the wrong shape
+// passed throughout. Parameters have gone out under names the encoder
+// then dropped, so the call succeeded and the value never arrived —
+// four of those, each with a passing test.
 //
 // Recordings of REJECTIONS are the valuable half. A corpus of successes
 // only says what came back for requests that already worked; neither bug
