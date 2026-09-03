@@ -13,17 +13,17 @@
       "is_public": "1",
       "label": "scrubbed",
       "labels": {
-        "scrubbed-1": "scrubbed",
-        "scrubbed-2": {
-          "1-1": {
+        "nz.sitehost.image.label": "scrubbed",
+        "nz.sitehost.image.ports": {
+          "80": {
             "exposed": true,
             "protocol": "scrubbed",
             "publish": false
           }
         },
-        "scrubbed-3": "scrubbed",
-        "scrubbed-4": "scrubbed",
-        "scrubbed-5": {
+        "nz.sitehost.image.provider": "scrubbed",
+        "nz.sitehost.image.type": "scrubbed",
+        "nz.sitehost.image.volumes": {
           "hash": "scrubbed",
           "source": "scrubbed",
           "volumes": {
@@ -96,17 +96,17 @@
       "is_public": "1",
       "label": "scrubbed",
       "labels": {
-        "scrubbed-1": "scrubbed",
-        "scrubbed-2": {
-          "1-1": {
+        "nz.sitehost.image.label": "scrubbed",
+        "nz.sitehost.image.ports": {
+          "80": {
             "exposed": true,
             "protocol": "scrubbed",
             "publish": false
           }
         },
-        "scrubbed-3": "scrubbed",
-        "scrubbed-4": "scrubbed",
-        "scrubbed-5": {
+        "nz.sitehost.image.provider": "scrubbed",
+        "nz.sitehost.image.type": "scrubbed",
+        "nz.sitehost.image.volumes": {
           "hash": "scrubbed",
           "source": "scrubbed",
           "volumes": {

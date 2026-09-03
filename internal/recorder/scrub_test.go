@@ -187,3 +187,80 @@ func TestScrub_RemovesDataShapedKeys(t *testing.T) {
 		t.Error("the schema key disk1 was scrubbed; only data-shaped keys should be")
 	}
 }
+
+// TestScrub_KeepsOnlyTheEnvelopeMessage pins the one value exception.
+//
+// The message is API-authored and the SDK branches on it, so it stays.
+// Everything else goes, whatever it looks like — the first version of
+// this exception tested the value's shape from inside scrubString,
+// which every string leaf passes through, so a customer's label
+// opening "The " or a note opening "This " survived verbatim. Those
+// are ordinary openings for both.
+func TestScrub_KeepsOnlyTheEnvelopeMessage(t *testing.T) {
+	t.Parallel()
+
+	in := `{"msg":"Successful","return":{
+		"label":"The Big Client Ltd",
+		"note":"This is my prod box",
+		"d":"no idea",
+		"e":"not for sharing",
+		"f":"Please specify a name",
+		"g":"Error: mine",
+		"msg":"The nested one is not the envelope"
+	}}`
+	out, err := Scrub([]byte(in))
+	if err != nil {
+		t.Fatalf("Scrub: %v", err)
+	}
+
+	for _, leak := range []string{
+		"Big Client", "prod box", "no idea", "not for sharing",
+		"Please specify a name", "Error: mine", "nested one",
+	} {
+		if strings.Contains(string(out), leak) {
+			t.Errorf("scrubbed output still contains %q — only the top-level msg is kept", leak)
+		}
+	}
+
+	var got map[string]any
+	if err := json.Unmarshal(out, &got); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if got["msg"] != "Successful" {
+		t.Errorf("msg = %v, want it kept — the SDK's control flow matches on it", got["msg"])
+	}
+}
+
+// TestScrub_KeepsReverseDNSAndNumericKeys is the must-survive side of
+// the key rule.
+//
+// A reverse-DNS namespace and a domain are the same shape, and telling
+// them apart is what the first version got wrong: it rewrote
+// nz.sitehost.image.* to scrubbed-N and the ports map's "80" to "1-1",
+// erasing the only record in the repository of how those labels nest.
+// The earlier test picked "disk1" as its schema key, which no pattern
+// matched, so it reinforced the blind spot rather than catching it.
+func TestScrub_KeepsReverseDNSAndNumericKeys(t *testing.T) {
+	t.Parallel()
+
+	in := `{"labels":{
+		"nz.sitehost.image.ports":{"80":{"exposed":true},"443":{"exposed":false}},
+		"nz.sitehost.image.volumes":{"source":"https://example.test/x"},
+		"acme-widgets-prod.co.nz":{"a":1}
+	}}`
+	out, err := Scrub([]byte(in))
+	if err != nil {
+		t.Fatalf("Scrub: %v", err)
+	}
+	s := string(out)
+
+	for _, keep := range []string{"nz.sitehost.image.ports", "nz.sitehost.image.volumes", `"80"`, `"443"`} {
+		if !strings.Contains(s, keep) {
+			t.Errorf("scrubbed output lost the schema key %s", keep)
+		}
+	}
+	// And a real customer domain is still removed.
+	if strings.Contains(s, "acme-widgets-prod") {
+		t.Error("a customer domain survived as a key")
+	}
+}

@@ -17,10 +17,9 @@ import (
 const maxArrayElements = 2
 
 var (
-	// apiMessage matches the API's own rejection and status wording,
-	// which is authored by the platform rather than by a customer.
-	apiMessage = regexp.MustCompile(
-		`^(Successful|Error:|Please specify|The |This |You have|Unable to|no |not )`)
+	// reverseDNSPrefix matches a leading label short enough to be a
+	// TLD, which is what a reverse-DNS namespace starts with.
+	reverseDNSPrefix = regexp.MustCompile(`^[a-zA-Z]{2,4}$`)
 
 	digitsOnly = regexp.MustCompile(`^\d+$`)
 	timestamp  = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}([ T]\d{2}:\d{2}:\d{2})?`)
@@ -71,7 +70,17 @@ var (
 // everything is discarded rather than because anything is recognised,
 // so do not extend that with exceptions that let real values through.
 //
-// Object keys are the exception, and they are a judgement rather than a
+// There are two exceptions, and both are stated here because the
+// paragraph above would otherwise be a promise the code does not keep.
+//
+// The first is the envelope's own top-level msg, which is kept
+// verbatim. It is API-authored text rather than anyone's data, and the
+// SDK's control flow matches on it. Scoped to that one key at the top
+// level: an earlier version tested the value's shape instead, from
+// inside the string branch every leaf passes through, so a customer's
+// label opening "The " survived.
+//
+// The second is object keys, and it is a judgement rather than a
 // guarantee. A struct's keys are its shape and must survive; a map
 // keyed by a customer's domain or address must not. Nothing in the JSON
 // distinguishes the two, so [scrubKey] applies the leaf rules to keys
@@ -153,12 +162,16 @@ var hostname = regexp.MustCompile(`^[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)*\.[a-zA-Z]{
 // check the output before committing it — which is what the "read the
 // fixture before you commit it" line in Scrub's doc is for.
 func scrubKey(k string) string {
+	// digitsOnly is deliberately not applied to keys. A numeric key is
+	// a port, an index or an id — schema, not data — and scrubbing it
+	// turned the ports map in the stack-image fixture into one keyed
+	// "1-1", destroying the only record in the repository of how that
+	// object is shaped.
 	switch {
-	case digitsOnly.MatchString(k),
-		timestamp.MatchString(k),
+	case timestamp.MatchString(k),
 		ipv4.MatchString(k),
 		strings.Contains(k, "@"),
-		hostname.MatchString(k):
+		isCustomerHostname(k):
 		return scrubString(k)
 	default:
 		return k
@@ -180,6 +193,22 @@ func scrubObject(t map[string]any, depth int) map[string]any {
 
 	var n int
 	for _, k := range keys {
+		// The envelope's own message is API-authored text rather than
+		// customer data, and the SDK's control flow matches on it —
+		// whether an unmanaged server is a fault or a fact turns on
+		// "not managed".
+		//
+		// Scoped to that one key at the top level, deliberately. The
+		// first version tested the *value* instead, from inside
+		// scrubString, which every string leaf passes through — so any
+		// value opening with "The ", "This ", "no " or "not " survived
+		// verbatim. Those are ordinary openings for a server label or a
+		// customer's note, and Scrub's own doc rules out exactly that
+		// kind of exception.
+		if depth == 0 && k == "msg" {
+			out[k] = t[k]
+			continue
+		}
 		replaced := scrubKey(k)
 		if replaced != k {
 			// Number the replacements. Two data keys scrubbing to the
@@ -194,29 +223,35 @@ func scrubObject(t map[string]any, depth int) map[string]any {
 	return out
 }
 
-// keepVerbatim reports strings that are the API's own words rather
-// than anyone's data.
+// isCustomerHostname reports a key that looks like a domain a customer
+// owns, as opposed to a reverse-DNS identifier.
 //
-// The envelope's message is authored by the platform, and it is what
-// the SDK's control flow reads — whether an unmanaged server is a fault
-// or a fact turns on matching "not managed". Scrubbing it left exactly
-// the fixture that should pin that behaviour unable to assert anything
-// beyond "an error happened".
-func keepVerbatim(s string) (string, bool) {
-	if s == "" {
-		// An empty string is a fact about the API, not a value.
-		return "", true
+// The two are the same shape — dotted labels ending in letters — and
+// telling them apart is what the first version got wrong. Reverse-DNS
+// namespaces put the TLD first: nz.sitehost.image.ports is an
+// identifier by construction and can never be customer data, while
+// acme-widgets-prod.co.nz is a domain. So a leading label that looks
+// like a TLD marks the key as schema.
+//
+// This still guesses. A key it does not anticipate leaks, and a schema
+// key shaped like a domain is destroyed; the doc says so, and a fixture
+// from a map-keyed endpoint should be read before it is committed.
+func isCustomerHostname(k string) bool {
+	if !hostname.MatchString(k) {
+		return false
 	}
-	if apiMessage.MatchString(s) {
-		return s, true
+	first, _, ok := strings.Cut(k, ".")
+	if ok && reverseDNSPrefix.MatchString(first) {
+		return false
 	}
-	return "", false
+	return true
 }
 
 // scrubString replaces a string with a placeholder of the same shape.
 func scrubString(s string) string {
-	if keep, ok := keepVerbatim(s); ok {
-		return keep
+	if s == "" {
+		// An empty string is a fact about the API, not a value.
+		return ""
 	}
 	switch {
 	case digitsOnly.MatchString(s):
