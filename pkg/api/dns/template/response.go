@@ -28,6 +28,13 @@ type (
 		Expire       string `json:"expire"`
 		Min          string `json:"min"`
 		DomainCount  string `json:"domain_count"`
+
+		// Both were being dropped: the API sends them and no field
+		// received them. DateAdded can be "0000-00-00 00:00:00" on the
+		// shared templates, which is MySQL's zero date rather than a
+		// parseable time, so it is a string here.
+		DateAdded   string `json:"date_added"`
+		DateUpdated string `json:"date_updated"`
 	}
 
 	// SearchResult is a single hit from SearchTemplates. Note the
