@@ -1,0 +1,20 @@
+{
+  "msg": "Successful.",
+  "return": [
+    {
+      "client_id": "1",
+      "date_added": "2026-01-01 00:00:00",
+      "date_updated": "2026-01-01 00:00:00",
+      "domain_count": "1",
+      "email": "scrubbed",
+      "expire": "1",
+      "min": "1",
+      "nameserver": "scrubbed",
+      "refresh": "1",
+      "retry": "1",
+      "template_id": "1",
+      "template_name": "scrubbed"
+    }
+  ],
+  "status": true
+}
