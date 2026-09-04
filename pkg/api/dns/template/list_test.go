@@ -1,99 +1,68 @@
-package template
+package template_test
 
 import (
 	"context"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
-	"github.com/sitehostnz/gosh/pkg/api"
+	"github.com/sitehostnz/gosh/internal/apitest"
+	"github.com/sitehostnz/gosh/pkg/api/dns/template"
 )
 
-// TestList_Success exercises the happy path: a well-formed GET request
-// with auth params attached, a canned API response, and the parsed
-// response surfaced as DomainTemplate values.
-//
-// Doubles as the test pattern reference for pkg/api/* contributions —
-// httptest.Server stands in for api.sitehost.nz, api.SetBaseURL points
-// the client at it, request shape and response parsing are both asserted.
-func TestList_Success(t *testing.T) {
+func TestList_DecodesARecordedResponse(t *testing.T) {
 	t.Parallel()
-	const (
-		apiKey   = "test-key"
-		clientID = "1234"
-	)
+	ex := apitest.Serve(t, "list_templates.json")
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			t.Errorf("method = %q, want GET", r.Method)
-		}
-		if r.URL.Path != "/dns/domain_templates/list_templates.json" {
-			t.Errorf("path = %q, want /dns/domain_templates/list_templates.json", r.URL.Path)
-		}
-		if got := r.URL.Query().Get("apikey"); got != apiKey {
-			t.Errorf("apikey = %q, want %q", got, apiKey)
-		}
-		if got := r.URL.Query().Get("client_id"); got != clientID {
-			t.Errorf("client_id = %q, want %q", got, clientID)
-		}
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{
-			"status": true,
-			"msg": "OK",
-			"return": [
-				{"client_id": "1234", "template_id": "10", "template_name": "default-nz", "domain_count": "42"},
-				{"client_id": "1234", "template_id": "11", "template_name": "fastmail-mx",  "domain_count": "7"}
-			]
-		}`)
-	}))
-	defer server.Close()
-
-	c, err := api.New(apiKey, clientID, api.SetBaseURL(server.URL))
-	if err != nil {
-		t.Fatalf("api.New: %v", err)
-	}
-
-	got, err := New(c).List(context.Background())
+	got, err := template.New(ex.Client).List(context.Background())
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
 
-	if !got.Status {
-		t.Errorf("Status = false, want true")
+	apitest.AssertDecodesFully(t, ex.Body, template.ListResponse{})
+
+	if len(got.Return) == 0 {
+		t.Fatal("no templates decoded; the fixture has rows")
 	}
-	if len(got.Return) != 2 {
-		t.Fatalf("len(Return) = %d, want 2", len(got.Return))
-	}
-	want := DomainTemplate{
-		ClientID: "1234", TemplateID: "10", TemplateName: "default-nz", DomainCount: "42",
-	}
-	if got.Return[0] != want {
-		t.Errorf("Return[0] = %+v, want %+v", got.Return[0], want)
+	for i, tpl := range got.Return {
+		if tpl.TemplateID == "" {
+			t.Errorf("Return[%d].TemplateID is empty", i)
+		}
 	}
 }
 
-// TestList_APIError verifies that a non-success API response (status:false)
-// surfaces as an error, not as a silently-empty success.
-func TestList_APIError(t *testing.T) {
+// TestGet_ReturnsAnArray pins a shape that reads like a mistake and is
+// not: get_template answers with a list holding one element, rather
+// than the object the name implies.
+func TestGet_ReturnsAnArray(t *testing.T) {
 	t.Parallel()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = io.WriteString(w, `{"status": false, "msg": "Permission denied"}`)
-	}))
-	defer server.Close()
+	ex := apitest.Serve(t, "get_template.json")
 
-	c, err := api.New("k", "1", api.SetBaseURL(server.URL))
+	got, err := template.New(ex.Client).Get(context.Background(),
+		template.GetRequest{TemplateID: "0"})
 	if err != nil {
-		t.Fatalf("api.New: %v", err)
+		t.Fatalf("Get: %v", err)
 	}
 
-	_, err = New(c).List(context.Background())
-	if err == nil {
-		t.Fatal("List: expected error, got nil")
+	apitest.AssertDecodesFully(t, ex.Body, template.GetResponse{})
+
+	if len(got.Return) != 1 {
+		t.Fatalf("Return has %d element(s), want 1 — this endpoint answers with a list", len(got.Return))
 	}
-	if !strings.Contains(err.Error(), "Permission denied") {
-		t.Errorf("error = %q, want it to contain %q", err.Error(), "Permission denied")
+	if got.Return[0].Nameserver == "" {
+		t.Error("Nameserver is empty; the SOA fields are what distinguishes Get from List")
+	}
+}
+
+// TestListRecords_RejectsAnUnknownTemplate records that this endpoint
+// reports absence through an error, unlike dns.GetZone. Note also that
+// template id "0" is a real template rather than a null id, so it is
+// not a usable probe for absence.
+func TestListRecords_RejectsAnUnknownTemplate(t *testing.T) {
+	t.Parallel()
+	ex := apitest.Serve(t, "list_records-unknown.json")
+
+	_, err := template.New(ex.Client).ListRecords(context.Background(),
+		template.ListRecordsRequest{TemplateID: "99999999"})
+	if err == nil {
+		t.Fatal("ListRecords: expected an error for a template that does not exist")
 	}
 }

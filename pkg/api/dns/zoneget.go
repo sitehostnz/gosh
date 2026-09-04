@@ -7,10 +7,28 @@ import (
 	"github.com/sitehostnz/gosh/pkg/net"
 )
 
-// GetZone searches for a domain in the DNS made easy service
-// by sending a request with a query containing the domain name.
-// If the response contains any matching domain, it returns it as part of the GetZoneResponse.
-// If the response is empty, a control to handle this case is missing and should be added.
+// GetZone looks a zone up by name, via "dns/search_domains.json".
+//
+// # Absence is not an error
+//
+// This is a search endpoint, not a fetch. A name that matches nothing
+// comes back status:true with an empty Return — never a rejection. So
+// checking err alone will tell you a zone exists when it does not:
+//
+//	got, err := c.GetZone(ctx, dns.GetZoneRequest{DomainName: name})
+//	if err != nil {
+//	    return err
+//	}
+//	if len(got.Return) == 0 {
+//	    return fmt.Errorf("no zone named %s", name)  // <- required
+//	}
+//
+// Being a search also means it can match more than one zone, so the
+// first element is not guaranteed to be the name asked for. Compare
+// [models.DNSZone.Name] before using it.
+//
+// Verified against a live account, August 2026, with a name under
+// .invalid that cannot be registered.
 func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response GetZoneResponse, err error) {
 	u := "dns/search_domains.json"
 
