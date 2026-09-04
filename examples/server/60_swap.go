@@ -106,19 +106,9 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 	// Cross-assign: the calls refused a moment ago, now accepted
 	// because each target is empty. Each server is given the other's
 	// address, so what it is owed changes rather than being cleared.
-	if err := assign(ctx, c, st.nameB, st.ipA.IPAddr); err != nil {
+	if err := crossAssign(ctx, c, st, held); err != nil {
 		return err
 	}
-	// B is whole again, and what A is owed has changed: its original
-	// address now belongs to B, so the address to give it back is the
-	// free one B just gave up.
-	delete(held, st.nameB)
-	held[st.nameA] = st.ipB.IPAddr
-
-	if err := assign(ctx, c, st.nameA, st.ipB.IPAddr); err != nil {
-		return err
-	}
-	delete(held, st.nameA)
 
 	time.Sleep(throttle)
 	if err := assertHolds(ctx, c.server, st.nameB, st.ipA.IPAddr); err != nil {
@@ -134,10 +124,18 @@ func stepSwap(ctx context.Context, c clients, st *state) error {
 		return err
 	}
 
-	return setPrimaries(ctx, c, map[string]string{
+	if err := setPrimaries(ctx, c, map[string]string{
 		st.nameB: st.ipA.IPAddr,
 		st.nameA: st.ipB.IPAddr,
-	})
+	}); err != nil {
+		return err
+	}
+
+	// Everything above asked the API whether the API had moved the
+	// addresses, which proves a record changed rather than that
+	// anything happened. This looks from outside.
+	reportCutoverWindow(st.ipA.IPAddr, st.ipB.IPAddr, st.nameA, st.nameB)
+	return nil
 }
 
 // assertOccupiedTarget checks that a legacy Xen (LINVPS) server
@@ -292,5 +290,84 @@ func restoreHeld(ctx context.Context, c clients, held map[string]string) {
 			continue
 		}
 		log.Printf("✓ restored %s to %s", addr, name)
+	}
+}
+
+// crossAssign gives each server the other's address.
+//
+// The bookkeeping in the middle is the part worth reading: once A's
+// address belongs to B, what A is owed changes. The address to give it
+// back is no longer its own — that one is taken — but the free one B
+// just gave up.
+func crossAssign(ctx context.Context, c clients, st *state, held map[string]string) error {
+	if err := assign(ctx, c, st.nameB, st.ipA.IPAddr); err != nil {
+		return err
+	}
+	delete(held, st.nameB)
+	held[st.nameA] = st.ipB.IPAddr
+
+	if err := assign(ctx, c, st.nameA, st.ipB.IPAddr); err != nil {
+		return err
+	}
+	delete(held, st.nameA)
+	return nil
+}
+
+// reportCutoverWindow reports what the addresses do between the swap
+// and the reboot, and asserts nothing, because nothing here is
+// reliably true.
+//
+// # The window is indeterminate, and that is the finding
+//
+// Reallocating an address is a control-plane fact. It changes who is
+// billed and who the API says holds it. It does not reconfigure the
+// running guest, which still has the old address on its interface.
+//
+// What that produces, observed across journey runs against servers in
+// one network:
+//
+//   - sometimes the old address keeps accepting SSH, answering as the
+//     machine that has not been reconfigured;
+//   - sometimes it stops answering within seconds.
+//
+// Both were observed on the same code, minutes apart. The difference
+// is presumably how quickly the platform withdraws the old routing and
+// how ARP caches settle, neither of which a caller can see or control.
+//
+// Two earlier versions of this check asserted one of those outcomes
+// each, and each was disproved by the next run. Writing the assertion
+// from a mental model rather than an observation is what produced both.
+//
+// So this reports rather than asserts. A check that fails half the time
+// for reasons unrelated to the code is worse than no check: it trains
+// whoever reads the output to ignore it.
+//
+// The practical consequence is the one worth carrying away. **During
+// this window an address may or may not answer, and neither outcome
+// means anything is wrong.** A cutover plan that waits for the old
+// address to go quiet may wait forever; one that assumes it stays up
+// may lose it immediately. Steps 50 and 70 exist precisely because the
+// guests, not the allocation, decide when traffic actually moves —
+// and step 80 is where reachability becomes the thing under test.
+// It returns nothing: there is no outcome here that constitutes a
+// failure, and a signature that implied otherwise would invite a caller
+// to treat an indeterminate window as a fault.
+func reportCutoverWindow(addrA, addrB, wasA, wasB string) {
+	for _, chk := range []struct{ addr, was string }{{addrA, wasA}, {addrB, wasB}} {
+		out, err := sshRun(chk.addr, "hostname")
+		if err != nil {
+			log.Printf("  %s does not answer; expected during this window, and not a fault", chk.addr)
+			continue
+		}
+		host := strings.TrimSpace(out)
+		if host == chk.was {
+			log.Printf("  %s still answers as %s: the address moved, that guest has not", chk.addr, host)
+			continue
+		}
+		// Answering as the other machine before the reboot would mean
+		// the guests took the new addressing on their own, which would
+		// leave steps 70 and 80 testing nothing. Worth saying loudly.
+		log.Printf("! %s already answers as %q rather than %q; the cutover appears to have happened without the reboot, so step 80 is no longer testing it",
+			chk.addr, host, chk.was)
 	}
 }
