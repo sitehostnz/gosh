@@ -3,10 +3,10 @@
 //
 // # Why this exists
 //
-// The dns and dns/template packages between them wrap thirty methods
-// and had no example. Nothing exercised the template package at all,
-// which is why its behaviour is undocumented: an endpoint nobody calls
-// has no observed quirks, only assumed ones.
+// The dns and dns/template packages wrap close to thirty methods
+// between them, and had no example. Nothing exercised the template
+// package at all, which is why its behaviour is undocumented: an
+// endpoint nobody calls has no observed quirks, only assumed ones.
 //
 // # Recording is the point, not a side effect
 //
