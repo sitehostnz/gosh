@@ -2,8 +2,11 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -11,13 +14,28 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api/dns/template"
 )
 
-// probeZone is a zone name that cannot resolve to anything real.
+// probeZone is a syntactically valid zone name this account does not
+// hold.
 //
-// .invalid is reserved by RFC 2606 precisely so it can never be
-// registered, which makes every probe below safe: a call naming it is
-// rejected before it can do anything, so even the write-shaped
-// endpoints have no effect and this step needs no opt-in.
-const probeZone = "sdk-probe-no-such-zone.invalid"
+// The TLD is real and deliberately so. A name under .invalid is
+// rejected by the API's top-level-domain validation before any lookup
+// happens — "Please specify a valid domain name." — so probing with
+// one records the validator refusing to parse the name and says
+// nothing about how an endpoint reports a zone that is merely absent.
+// The two are different answers to different questions, and the
+// recorded rejection was being read as the second when it was the
+// first.
+//
+// With a valid TLD the probes reach the behaviour they are asking
+// about. They are still safe and still need no opt-in: the account
+// does not hold this zone, so the write-shaped calls below have
+// nothing to act on and are rejected for that reason rather than by a
+// parser.
+//
+// The label is fixed rather than random on purpose. This step creates
+// nothing, so a collision has no consequence, and a stable name keeps
+// the recorded fixtures comparable between runs.
+const probeZone = "gosh-probe-no-such-zone-9f3a2b1c.co.nz"
 
 // probe is one deliberate call whose outcome we want on record.
 type probe struct {
@@ -171,6 +189,11 @@ func templateProbes() []probe {
 			// Worth contrasting with GetZone above: the two endpoints
 			// disagree about how absence is reported, so a caller
 			// cannot assume either convention holds generally.
+			//
+			// Established against a name the API accepts as
+			// well-formed. An earlier version probed a .invalid name
+			// and recorded the TLD validator's refusal, which looks
+			// like the same evidence and is not.
 			what:   "list the records of a template id that does not exist",
 			expect: "rejected — unlike GetZone, this one does report absence through an error",
 			call: func(ctx context.Context, c clients) error {
@@ -185,15 +208,33 @@ func templateProbes() []probe {
 }
 
 // isTransport reports whether the error is a failure to reach the API
-// rather than a rejection by it. This API answers HTTP 200 with
-// status:false when it refuses, so a rejection arrives decoded;
-// anything that never got that far is a transport problem.
+// rather than a rejection by it.
+//
+// Read from the error tree rather than from the text. This is the
+// implementation from examples/cloud, and the comment travels with it
+// because the substring version has now been written twice.
+//
+// Matching substrings got this wrong in both directions: it missed real
+// transport failures whose wording differs — TLS handshakes, connection
+// reset, i/o timeout, network unreachable — and counted them as
+// rejections, which is the opposite conclusion and exactly the
+// misreading this classification exists to prevent. It also matched
+// "EOF", which is short enough to appear inside a rejection message,
+// and this API's messages are free text with the request URL embedded.
+// A rate-limit exhaustion matched none of the four substrings either,
+// so a throttled probe was filed as a genuine API rejection — and with
+// SH_RECORD_DIR set, that noise lands in the corpus this step exists
+// to build.
+//
+// The structured version separates the two by construction: a rejection
+// arrives as *models.ErrorResponse, which is none of these types.
 func isTransport(err error) bool {
-	s := err.Error()
-	return strings.Contains(s, "connection refused") ||
-		strings.Contains(s, "no such host") ||
-		strings.Contains(s, "context deadline exceeded") ||
-		strings.Contains(s, "EOF")
+	var uerr *url.Error
+	if errors.As(err, &uerr) {
+		return true // never got an API envelope back
+	}
+	var nerr net.Error
+	return errors.As(err, &nerr) || errors.Is(err, context.DeadlineExceeded)
 }
 
 // oneLine flattens an error for a single log line.

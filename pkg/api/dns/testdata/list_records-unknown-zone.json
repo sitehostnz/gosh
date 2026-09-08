@@ -1,3 +1,4 @@
 {
-  "msg": "Please specify a valid domain name."
+  "msg": "Error: The specified domain doesn't exist or you don't have access.",
+  "status": false
 }

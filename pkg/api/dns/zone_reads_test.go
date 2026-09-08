@@ -2,6 +2,7 @@ package dns_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/sitehostnz/gosh/internal/apitest"
@@ -63,13 +64,34 @@ func TestGetZone_AbsenceIsNotAnError(t *testing.T) {
 // TestListRecords_RejectsAnUnknownZone contrasts with the above: this
 // endpoint does report absence as an error. The two conventions differ
 // within the same package, so neither can be assumed.
+//
+// # The fixture had to be re-recorded to establish this
+//
+// The first version was probed with a name under .invalid, and what it
+// captured was the API's top-level-domain validation refusing to parse
+// the name — "Please specify a valid domain name." — which would have
+// come back for a zone under .invalid that *did* exist. It said
+// nothing about a well-formed zone that is simply absent, while three
+// tests and two doc comments rested on it as though it did.
+//
+// This fixture is a rejection of a syntactically valid .co.nz name the
+// account does not hold, which is the question being asked.
 func TestListRecords_RejectsAnUnknownZone(t *testing.T) {
 	t.Parallel()
 	ex := apitest.Serve(t, "list_records-unknown-zone.json")
 
 	_, err := dns.New(ex.Client).ListRecords(context.Background(),
-		dns.ListRecordsRequest{Domain: "sdk-probe-no-such-zone.invalid"})
+		dns.ListRecordsRequest{Domain: "gosh-probe-no-such-zone-9f3a2b1c.co.nz"})
 	if err == nil {
 		t.Fatal("ListRecords: expected an error for a zone that does not exist")
 	}
+	// The message has to survive into the error, or a caller cannot
+	// tell a not-found from any other rejection.
+	if !strings.Contains(err.Error(), "doesn't exist") {
+		t.Errorf("ListRecords: error is %q, want the API's not-found message", err)
+	}
+	// Asserted rather than assumed: without a status field the decode
+	// would yield false from Go's zero value, so the test would pass
+	// against a fixture that recorded nothing.
+	apitest.AssertDecodesFully(t, ex.Body, dns.ListRecordsResponse{})
 }

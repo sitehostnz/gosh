@@ -173,6 +173,40 @@ All notable changes to this project will be documented in this file. The format 
 - `examples/server`: `compareWithGuest` carried an inline copy of
   `requireKey`'s guard, including the subtlety about not masking the
   `SH_SSH_KEY_FILE` fallback. It calls the helper.
+- `dns/template.List` documents the sentinel it tells callers to filter
+  on: a shared template carries `ClientID` `"0"`. The advice to filter
+  was there without the value, so it could not be acted on from the doc
+  alone — and a recorded fixture cannot supply it, because scrubbing
+  collapses a digits-only string to `"1"`. A hand-written test on the
+  type pins it instead.
+- `dns.GetZone` no longer carries a `TODO` asking for the
+  empty-response control its own doc comment tells callers to handle
+  themselves. The absence of that control is recorded as a decision,
+  with the test that pins it named, rather than left as an invitation
+  the suite rejects.
+- `examples/dns`: the package doc and the zone step both claimed the
+  default zone was under `.invalid` and "cannot collide with anything
+  real". The API validates the top-level domain, so the reserved names
+  are rejected and the journey generates a name in a live TLD — the two
+  comments asserted the safety property the code had abandoned, which
+  is the claim a reader consults before pointing this at a production
+  account.
+- `examples/dns`: the probe step addressed a `.invalid` name, so every
+  not-found probe recorded the top-level-domain validator refusing to
+  parse it rather than the behaviour being asked about. It probes a
+  well-formed name the account does not hold, which establishes that
+  `dns.ListRecords`, `DeleteZone` and `AddRecord` do report absence
+  through an error — the conclusion three tests already rested on
+  without evidence for it.
+- `examples/dns`: `isTransport` classified errors by searching their
+  text, which counted a TLS failure or a rate-limit exhaustion as an
+  API rejection and could read a rejection carrying the request URL as
+  a transport failure. It reads the error tree, matching the
+  implementation in `examples/cloud`.
+- `examples/dns`: the generated zone name is printed before
+  `CreateZone` rather than after it, so a create whose response is lost
+  leaves a name the operator can still act on with `SH_DELETE_ZONE`.
+
 - `server.Create` ignored `ParamsOptions` entirely, so the IP
   allocation, backup, contact and SSH-key paths its own documentation
   described were unreachable.

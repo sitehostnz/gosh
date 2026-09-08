@@ -19,10 +19,11 @@ import (
 // something delegates to those nameservers. Registration is a
 // different system entirely.
 //
-// The default name is under .invalid, reserved by RFC 2606 so that it
-// can never be registered by anyone. That makes the journey safe to
-// run repeatedly: the zone cannot collide with a real one, and nothing
-// resolves it.
+// The name is generated per run under a real TLD, because the API
+// validates the top-level domain and rejects the reserved ones. See
+// config.zone in 00_shared.go — one statement of the naming rationale
+// rather than three, which is what let the previous version of this
+// comment drift into claiming a property the code had abandoned.
 //
 // # It refuses to adopt a zone it did not create
 //
@@ -36,10 +37,20 @@ func stepZone(ctx context.Context, c clients, st *state) error {
 		return err
 	}
 
+	// Printed before the call, not after. The name is generated per run
+	// and held only in memory, so a CreateZone that reaches the API and
+	// loses its response — a timeout, a reset, a 500 that is not the
+	// throttle message — leaves a zone in a live TLD that nothing has
+	// written down: st.created stays false, step 90 truthfully reports
+	// "nothing to delete", and the error text carries no name because
+	// this is a POST, so the name is in the form body rather than the
+	// URL. SH_DELETE_ZONE is the recovery path and it needs a name.
+	log.Printf("  creating zone %s", st.cfg.zone)
+
 	time.Sleep(throttle)
 	created, err := c.dns.CreateZone(ctx, dns.CreateZoneRequest{DomainName: st.cfg.zone})
 	if err != nil {
-		return fmt.Errorf("CreateZone: %w", err)
+		return fmt.Errorf("CreateZone %s: %w", st.cfg.zone, err)
 	}
 	st.created = true
 	log.Printf("✓ created zone %s", st.cfg.zone)

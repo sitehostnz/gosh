@@ -50,7 +50,15 @@ func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response 
 		return response, err
 	}
 
-	// TODO add control for empty response
+	// No empty-response control, deliberately: this endpoint is a
+	// search, so a name matching nothing is a legitimate empty result
+	// rather than a failure. Callers detect absence with
+	// len(Return) == 0 — see the doc comment above.
+	//
+	// Recorded as a decision rather than left as a gap because it has
+	// been re-litigated once already. Adding the control makes
+	// TestGetZone_AbsenceIsNotAnError fail, which is the tripwire
+	// working, not an oversight to fix.
 
 	return response, nil
 }

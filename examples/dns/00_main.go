@@ -65,9 +65,22 @@
 // # Creating a zone is not registering a domain
 //
 // They are separate operations that both get called "adding a domain".
-// This journey does the first, which is free. It defaults to a name
-// under .invalid — reserved by RFC 2606 so it can never be registered
-// — so a mistake cannot collide with anything real.
+// This journey does the first, which is free and has no effect unless
+// something delegates to SiteHost's nameservers.
+//
+// The name it creates is in a real TLD, and that is not a choice: the
+// API validates the top-level domain, so RFC 2606's reserved names —
+// .invalid, .test, .example — are all rejected with "Please specify a
+// valid domain name." It generates gosh-example-<16 hex>.co.nz, and
+// safety rests on two things that are worth stating separately from
+// each other. The 64-bit random label makes a collision with a
+// registered name vanishingly unlikely, which is a probabilistic
+// argument rather than an impossibility one. And creating a zone is
+// not registering a domain, so even a collision would not take
+// anything from anybody — it would fail to create, because the account
+// does not hold that name.
+//
+// See config.zone in 00_shared.go for the naming rationale.
 //
 // Required env: SH_API_KEY, SH_CLIENT_ID.
 // Required to create anything: SH_EXAMPLE_ALLOW_PROVISION=1.
