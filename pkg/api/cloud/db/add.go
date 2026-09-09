@@ -35,7 +35,23 @@ import (
 // Container, OR pin each DB to a different Container, OR retry on
 // the substring "already a job operating on the container."
 //
-// See examples/cloud-db-compare for the working pattern.
+// # Finding a MySQLHost
+//
+// Use [github.com/sitehostnz/gosh/pkg/api/cloud/stack/integrated] —
+// Client.List names the database stacks on a server, and Client.Add
+// creates one when there is none. A freshly provisioned container
+// server has none, so Add is not an edge case.
+//
+// Do not discover the host by prefix-matching cloud/stack/list_all.json
+// for "mysql" or "mariadb". Integrated stacks are not reliably present
+// in that listing: it has been observed omitting a database stack that
+// was running and accepting databases on the same server. The pattern
+// in examples/cloud-db-compare predates the integrated wrapper and
+// still does it that way, which is why it finds nothing on some
+// servers.
+//
+// See examples/cloud for the current pattern, and
+// examples/cloud-db-compare for the multi-engine comparison.
 func (s *Client) Add(ctx context.Context, request AddRequest) (response AddResponse, err error) {
 	uri := "cloud/db/add.json"
 	keys := []string{
