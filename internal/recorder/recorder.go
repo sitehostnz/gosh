@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -271,6 +272,8 @@ func parseForm(body string) []FormPair {
 		val := unescape(v)
 		if shouldRedact(key) {
 			val = "REDACTED"
+		} else {
+			val = redactEmbedded(val)
 		}
 		out = append(out, FormPair{Key: key, Value: val})
 	}
@@ -363,7 +366,36 @@ func redactValue(v any) any {
 			out = append(out, redactValue(el))
 		}
 		return out
+	case string:
+		return redactEmbedded(t)
 	default:
 		return v
 	}
+}
+
+// embeddedSecret matches a secret-looking assignment inside a value.
+//
+// The value is captured up to whitespace or a quote, which is what
+// bounds an environment assignment in a compose file or a shell line.
+var embeddedSecret = regexp.MustCompile(
+	`([A-Za-z0-9_.-]*(?i:password|passwd|secret|token|apikey|api_key)[A-Za-z0-9_.-]*)(\s*=\s*)([^\s'"]+)`)
+
+// redactEmbedded blanks secret assignments carried inside a value.
+//
+// Key-name redaction is not enough on its own. A docker-compose file is
+// sent as one docker_compose parameter and returned as one docker_file
+// string, so every environment variable in it — MYSQL_ROOT_PASSWORD
+// included — sits inside a value whose key is not secret-looking at
+// all. Without this, recording a stack that sets a database root
+// password writes that password to disk in clear, in a file this
+// package exists to make safe to commit.
+//
+// The empty-value rule from isEmptyValue is deliberately not applied
+// here: an assignment with an empty right-hand side does not match the
+// pattern in the first place, so there is no evidence to destroy.
+func redactEmbedded(v string) string {
+	if v == "" {
+		return v
+	}
+	return embeddedSecret.ReplaceAllString(v, "${1}${2}REDACTED")
 }

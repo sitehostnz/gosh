@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -333,5 +334,67 @@ func TestRecorder_KeepsANonJSONBody(t *testing.T) {
 	recs := readRecordings(t, dir)
 	if len(recs) != 1 || !strings.Contains(recs[0].Body, "502 Bad Gateway") {
 		t.Errorf("body = %q, want the unparseable response kept verbatim", recs[0].Body)
+	}
+}
+
+// TestRedactEmbeddedSecrets covers the secret that key-name redaction
+// cannot see.
+//
+// A docker-compose file travels as a single parameter — docker_compose
+// on the way out, docker_file on the way back — so every environment
+// assignment in it sits inside a value whose own key is innocuous.
+// Recording a stack that sets a database root password therefore wrote
+// that password to disk in clear until this was added, in files this
+// package exists to make safe to commit to a public repository.
+func TestRedactEmbeddedSecrets(t *testing.T) {
+	t.Parallel()
+
+	compose := "services:\n  db:\n    environment:\n" +
+		"      - MYSQL_ROOT_PASSWORD=hunter2\n" +
+		"      - MYSQL_USER=app\n"
+
+	got := parseForm("docker_compose=" + url.QueryEscape(compose) + "&label=web")
+
+	var recorded string
+	for _, p := range got {
+		if p.Key == "docker_compose" {
+			recorded = p.Value
+		}
+	}
+	if recorded == "" {
+		t.Fatal("docker_compose was not recorded at all")
+	}
+	if strings.Contains(recorded, "hunter2") {
+		t.Errorf("the root password survived redaction:\n%s", recorded)
+	}
+	if !strings.Contains(recorded, "MYSQL_ROOT_PASSWORD=REDACTED") {
+		t.Errorf("the assignment was not redacted in place:\n%s", recorded)
+	}
+	// Non-secret assignments must survive: the shape of the compose
+	// file is the evidence a fixture is built from.
+	if !strings.Contains(recorded, "MYSQL_USER=app") {
+		t.Errorf("a non-secret assignment was destroyed:\n%s", recorded)
+	}
+}
+
+// TestRedactEmbeddedInResponse covers the same value coming back.
+//
+// cloud/stack/get.json returns the compose file as docker_file, so a
+// response is as capable of carrying the password as the request that
+// set it.
+func TestRedactEmbeddedInResponse(t *testing.T) {
+	t.Parallel()
+
+	body := []byte(`{"status":true,"return":{"docker_file":"environment:\n  - MYSQL_ROOT_PASSWORD=hunter2\n","name":"cc1"}}`)
+	got := redactBody(body)
+
+	if strings.Contains(got, "hunter2") {
+		t.Errorf("the root password survived redaction in a response:\n%s", got)
+	}
+	if !strings.Contains(got, "MYSQL_ROOT_PASSWORD=REDACTED") {
+		t.Errorf("the assignment was not redacted in place:\n%s", got)
+	}
+	if !strings.Contains(got, `"name":"cc1"`) {
+		t.Errorf("an unrelated field was damaged:\n%s", got)
 	}
 }
