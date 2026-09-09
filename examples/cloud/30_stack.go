@@ -107,6 +107,51 @@ func stepStack(ctx context.Context, c clients, st *state) error {
 // VIRTUAL_HOST is what the proxy routes on. The vhosts label carries
 // the same value for the control panel's benefit; the routing follows
 // the environment variable.
+//
+// # Ports: what a web container can and cannot do
+//
+// Documented at https://kb.sitehost.nz/cloud-containers/containers/ports
+// — read that before this comment, which only adds what the API does
+// when you get it wrong.
+//
+// "expose" rather than "ports", and the reason is the container's type
+// rather than a limit on the API.
+//
+// Web and application containers cannot have their ports changed at
+// all: 80 and 443 are open by default and that is the whole of it. This
+// was established the expensive way before reading the documentation
+// that says so — a stack deployed with "ports: - '8931:80/tcp'" was
+// accepted, returned a job that completed, kept the mapping when read
+// back through cloud/stack/get.json, and came up with state Up, while
+// the port stayed closed from outside both before and after
+// cloud/stack/restart.json completed. cloud/stack/get.json reports the
+// container's own "ports" as null throughout, which is the only hint
+// the API gives.
+//
+// Service containers are the ones that publish. Redis, Postgres,
+// MongoDB, Elasticsearch, Solr and the rest ship with their port
+// exposed and unpublished, and publishing it is supported — subject to
+// rules worth knowing before choosing a number:
+//
+//   - below 1024 is reserved and refused;
+//   - 3306 to 3310 and 8080 are refused specifically, which catches
+//     the NodeJS images, since 8080 is the port they expose;
+//   - a published port must be unique across the containers on a
+//     server.
+//
+// Security groups are not applied to Cloud Containers, so the mechanism
+// examples/server uses to open a port on a virtual server does nothing
+// here — the publish decision is the whole of it.
+//
+// Why this matters rather than being trivia: the use cases are real and
+// they are not web traffic. An MQTT broker, a game server or a mail
+// service speaks a protocol the reverse proxy in front of 80 and 443
+// cannot carry, so a published port is the only route. WebSockets are
+// the exception that misleads, since they upgrade from HTTP and the
+// proxy carries them without one. And a database reachable from
+// outside is a different question again: those live in integrated
+// containers, which these endpoints do not manage, and their ports are
+// in the refused range anyway.
 func composeFor(st *state) string {
 	root := "/data/docker0/www/" + st.stackName
 	return strings.Join([]string{

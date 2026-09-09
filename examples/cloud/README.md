@@ -135,6 +135,30 @@ check and one that does not fail for a neighbour's mistake.
   `examples/cloud-db-compare` does exactly that. On another server the
   listing omitted a database stack that was demonstrably running and
   accepting databases. Use `cloud/stack/integrated/list_all.json`.
+- **A `ports` mapping on a web container does nothing, silently.** Web
+  and application containers cannot have their ports changed — 80 and
+  443 are open by default and that is the whole of it. Deploying a web
+  stack with `ports: - '8931:80/tcp'` was accepted, returned a job that
+  completed, kept the mapping when read back through
+  `cloud/stack/get.json`, and brought the container up `Up` — while the
+  port stayed closed from the internet before *and* after
+  `cloud/stack/restart.json` completed. The container's own `ports`
+  field reads `null` throughout, which is the only clue the API offers.
+
+  **Service containers** are the ones that publish — Redis, Postgres,
+  MongoDB, Elasticsearch and so on ship exposed-but-unpublished.
+  Publishing is subject to rules: below 1024 is reserved, `3306`–`3310`
+  and `8080` are refused outright (which catches the NodeJS images,
+  since 8080 is the port they expose), and a published port must be
+  unique across the server's containers. Security groups are not
+  applied to Cloud Containers, so there is no second lever.
+
+  Rules: <https://kb.sitehost.nz/cloud-containers/containers/ports>
+
+  Worth knowing because the use cases are real and are not web traffic
+  — MQTT, a game server, a mail service. WebSockets are the exception
+  that misleads: they upgrade from HTTP, so the proxy carries them and
+  no published port is needed.
 - **Delete the account SSH key before the server, and wait for the SSH
   user first.** Removing a key enumerates every Cloud SSH user that
   references it and updates each one. Two consequences, both hit in a

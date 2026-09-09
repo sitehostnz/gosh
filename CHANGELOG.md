@@ -109,6 +109,14 @@ All notable changes to this project will be documented in this file. The format 
   and version 1.0 of the add endpoint returns a bare `job_id` string
   where 1.5 returns the usual job object.
 
+- `examples/cloud` records the port behaviour that every observable
+  signal short of a socket contradicts: a web or application container
+  cannot have its ports changed, so a compose `ports` mapping is
+  accepted, survives a read-back, brings the container up, and leaves
+  the port shut — before and after a restart. Service containers are
+  the ones that publish, subject to a reserved range and a block list
+  covering `3306`–`3310` and `8080`. Cited against
+  <https://kb.sitehost.nz/cloud-containers/containers/ports>.
 - `examples/cloud` walks the Cloud Container lifecycle as a numbered
   journey, and every writing step is verified outside the control
   plane: a TCP handshake for the provision, the container serving a

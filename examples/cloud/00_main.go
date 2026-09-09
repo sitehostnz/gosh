@@ -68,6 +68,22 @@
 // "gosh-cloud-journey" produced the name "ch-gosh-clou". Collisions get
 // a digit appended. Everything after step 20 uses the returned name.
 //
+// # Ports belong to the container's type, not to the compose file
+//
+// Web and application containers — which is what this journey deploys —
+// cannot have their ports changed. 80 and 443 are open and that is all.
+// A compose file carrying a "ports" mapping is accepted, keeps the
+// mapping when read back, and comes up with the container running,
+// while the port stays shut; a restart does not change it. Service
+// containers are the ones that publish, subject to a reserved range
+// and a specific block list.
+//
+// This is the single most misleading behaviour in these endpoints,
+// because every observable signal short of the socket itself says it
+// worked. See step 30 for the detail, and
+// https://kb.sitehost.nz/cloud-containers/containers/ports for the
+// rules.
+//
 // # What this journey does not cover
 //
 // Stack copy and backup, volumes, SSL, and postgres database stacks are
