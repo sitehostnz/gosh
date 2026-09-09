@@ -10,6 +10,9 @@ import (
 	"github.com/sitehostnz/gosh/pkg/api"
 )
 
+// testServer is the server name every test here addresses.
+const testServer = "ch-example"
+
 // TestList_Success pins the response shape to what the API actually
 // sends.
 //
@@ -24,7 +27,7 @@ func TestList_Success(t *testing.T) {
 		if r.URL.Path != "/cloud/stack/integrated/list_all.json" {
 			t.Errorf("path = %q, want /cloud/stack/integrated/list_all.json", r.URL.Path)
 		}
-		if got := r.URL.Query().Get("server_name"); got != "ch-example" {
+		if got := r.URL.Query().Get("server_name"); got != testServer {
 			t.Errorf("server_name = %q, want ch-example", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -37,7 +40,7 @@ func TestList_Success(t *testing.T) {
 		t.Fatalf("api.New: %v", err)
 	}
 
-	got, err := New(c).List(context.Background(), ListRequest{ServerName: "ch-example"})
+	got, err := New(c).List(context.Background(), ListRequest{ServerName: testServer})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -63,7 +66,7 @@ func TestList_EmptyIsNotAnError(t *testing.T) {
 	defer srv.Close()
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
-	got, err := New(c).List(context.Background(), ListRequest{ServerName: "ch-example"})
+	got, err := New(c).List(context.Background(), ListRequest{ServerName: testServer})
 	if err != nil {
 		t.Fatalf("List: %v", err)
 	}
@@ -101,7 +104,7 @@ func TestAdd_SendsServerAndName(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
 		}
-		if got := r.PostForm.Get("server"); got != "ch-example" {
+		if got := r.PostForm.Get("server"); got != testServer {
 			t.Errorf("server = %q, want ch-example", got)
 		}
 		if got := r.PostForm.Get("name"); got != StackMariaDB1108 {
@@ -122,7 +125,7 @@ func TestAdd_SendsServerAndName(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).Add(context.Background(), AddRequest{
-		ServerName: "ch-example", Name: StackMariaDB1108,
+		ServerName: testServer, Name: StackMariaDB1108,
 	})
 	if err != nil {
 		t.Fatalf("Add: %v", err)
@@ -157,7 +160,7 @@ func TestAdd_RejectsThe10ResponseShape(t *testing.T) {
 		if err := r.ParseForm(); err != nil {
 			t.Fatalf("ParseForm: %v", err)
 		}
-		if got := r.PostForm.Get("server"); got != "ch-example" {
+		if got := r.PostForm.Get("server"); got != testServer {
 			t.Errorf("server = %q, want ch-example", got)
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -167,7 +170,7 @@ func TestAdd_RejectsThe10ResponseShape(t *testing.T) {
 
 	c, _ := api.New("k", "1", api.SetBaseURL(srv.URL))
 	got, err := New(c).Add(context.Background(), AddRequest{
-		ServerName: "ch-example", Name: StackMySQL84,
+		ServerName: testServer, Name: StackMySQL84,
 	})
 	if err != nil {
 		t.Fatalf("Add: %v", err)
@@ -193,7 +196,7 @@ func TestAdd_RequiresNameAndServer(t *testing.T) {
 	if _, err := cl.Add(context.Background(), AddRequest{Name: StackMySQL57}); err == nil {
 		t.Error("Add: expected an error when ServerName is empty")
 	}
-	if _, err := cl.Add(context.Background(), AddRequest{ServerName: "ch-example"}); err == nil {
+	if _, err := cl.Add(context.Background(), AddRequest{ServerName: testServer}); err == nil {
 		t.Error("Add: expected an error when Name is empty")
 	}
 }
