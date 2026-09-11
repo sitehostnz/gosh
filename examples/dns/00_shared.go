@@ -40,7 +40,8 @@ type config struct {
 	// only way to stay safe is to make collision with something real
 	// vanishingly unlikely — hence the random label below.
 	//
-	// Creating a zone is not registering a domain. It costs nothing and
+	// Creating a zone is not registering a domain — registration is the
+	// billable operation. Creating a zone
 	// has no effect unless something delegates to SiteHost's
 	// nameservers, which nothing will for a name that does not exist.
 	zone string

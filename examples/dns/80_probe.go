@@ -10,32 +10,92 @@ import (
 	"strings"
 	"time"
 
+	"github.com/sitehostnz/gosh/pkg/api"
 	"github.com/sitehostnz/gosh/pkg/api/dns"
 	"github.com/sitehostnz/gosh/pkg/api/dns/template"
 )
 
-// probeZone is a syntactically valid zone name this account does not
-// hold.
+// probeZone is a syntactically valid zone name, in a real TLD, that
+// the probe step refuses to write against unless it has established
+// the account does not hold it.
 //
-// The TLD is real and deliberately so. A name under .invalid is
-// rejected by the API's top-level-domain validation before any lookup
-// happens — "Please specify a valid domain name." — so probing with
-// one records the validator refusing to parse the name and says
-// nothing about how an endpoint reports a zone that is merely absent.
-// The two are different answers to different questions, and the
-// recorded rejection was being read as the second when it was the
-// first.
+// # Why a real TLD
 //
-// With a valid TLD the probes reach the behaviour they are asking
-// about. They are still safe and still need no opt-in: the account
-// does not hold this zone, so the write-shaped calls below have
-// nothing to act on and are rejected for that reason rather than by a
-// parser.
+// The write endpoints validate the top-level domain: CreateZone
+// answers "Please specify a valid domain name." for a name under
+// .invalid, before any lookup happens. So a .invalid probe against
+// those records the validator refusing to parse the name, which is a
+// different answer to a different question than "how does this report
+// a zone that is merely absent".
 //
-// The label is fixed rather than random on purpose. This step creates
-// nothing, so a collision has no consequence, and a stable name keeps
-// the recorded fixtures comparable between runs.
+// That is scoped to the endpoints where it was observed, deliberately.
+// It is not a property of the API: dns/search_domains.json answers a
+// .invalid name with status:true and an empty list — see
+// testdata/search_domains-nomatch.json, which is a recording of
+// exactly that. An earlier version of this comment said the API
+// validates the TLD, full stop, and the tree contained the
+// counterexample at the time it was written.
+//
+// # Why the safety is a check and not a sentence
+//
+// Two probes below are write-shaped. While this name was under
+// .invalid the validator made them categorically incapable of
+// touching anything. A real TLD removes that, and what replaced it was
+// an assertion that the account does not hold the name — enforced by
+// nothing.
+//
+// The name is a fixed constant in a public repository, so it is
+// guessable by construction, and creating it is precisely what someone
+// asking "what does this endpoint say when the zone does exist?" would
+// do. DeleteZone takes the zone and its records and the SDK cannot
+// undo it. So accountHoldsProbeZone establishes the precondition on
+// every run, and the write-shaped probes are omitted when it fails.
+//
+// The label is fixed rather than random because the recorded
+// rejections should be comparable between runs. Scrub replaces
+// hostnames in committed fixtures either way, so the benefit is to the
+// reader of a raw recording rather than to the fixtures.
 const probeZone = "gosh-probe-no-such-zone-9f3a2b1c.co.nz"
+
+// accountHoldsProbeZone reports whether this account holds probeZone.
+//
+// This is what makes the step safe to run without an opt-in, and it
+// has to be a check rather than a sentence.
+//
+// Two of the probes below are write-shaped: DeleteZone and AddRecord.
+// While probeZone was under .invalid the API's own validation made
+// them categorically incapable of touching anything, and that was the
+// whole guarantee. Moving to a real TLD — necessary, because a
+// .invalid probe records the validator rather than the behaviour being
+// asked about — removed it and left an assertion in its place: a
+// comment saying the account does not hold this name. Nothing enforced
+// it.
+//
+// The name is a fixed constant in a public repository, so it is
+// guessable by construction, and creating it is exactly what someone
+// investigating "what does this say when the zone does exist?" would
+// do. A DeleteZone takes the zone and its records, and nothing in the
+// SDK can undo it.
+//
+// GetZone answers the question directly and is already one of the
+// probes, so the cost is one call made earlier than it would have been.
+func accountHoldsProbeZone(ctx context.Context, c clients) (bool, error) {
+	time.Sleep(throttle)
+	got, err := c.dns.GetZone(ctx, dns.GetZoneRequest{DomainName: probeZone})
+	if err != nil {
+		// Cannot establish the precondition, so the write-shaped
+		// probes do not run. Failing here rather than guessing is the
+		// point: the alternative is deleting a zone on the strength of
+		// a call that did not answer.
+		return false, fmt.Errorf("could not establish whether this account holds %s, so the write-shaped probes are unsafe to run: %w", probeZone, err)
+	}
+	if len(got.Return) > 0 {
+		log.Printf("  this account holds %s, so the DeleteZone and AddRecord probes are skipped", probeZone)
+		log.Printf("  (they would act on a real zone; the read-only probes still run)")
+		return true, nil
+	}
+	return false, nil
+}
 
 // probe is one deliberate call whose outcome we want on record.
 type probe struct {
@@ -55,9 +115,14 @@ type probe struct {
 // means the API allows something we thought it would not. Only a
 // transport error, which teaches nothing, fails the step.
 func stepProbe(ctx context.Context, c clients, _ *state) error {
-	probes := append(zoneProbes(), templateProbes()...)
+	held, err := accountHoldsProbeZone(ctx, c)
+	if err != nil {
+		return err
+	}
 
-	var accepted, rejected, transport int
+	probes := append(zoneProbes(held), templateProbes()...)
+
+	var accepted, rejected, transport, throttled int
 	for i, p := range probes {
 		time.Sleep(throttle)
 		log.Printf("  [%d/%d] %s", i+1, len(probes), p.what)
@@ -66,6 +131,15 @@ func stepProbe(ctx context.Context, c clients, _ *state) error {
 		case err == nil:
 			accepted++
 			log.Printf("    accepted — expected: %s", p.expect)
+		case api.IsRateLimited(err):
+			// Neither bucket. A throttle reached the API and was
+			// refused before the endpoint considered the request, so it
+			// teaches nothing about the endpoint — and counting it as a
+			// rejection would file it in the corpus as the API's
+			// considered answer about an absent zone, which is a false
+			// fixture rather than a missing one.
+			throttled++
+			log.Printf("    throttled, so this probe learned nothing: %s", oneLine(err))
 		case isTransport(err):
 			transport++
 			log.Printf("    ✗ transport failure: %v", err)
@@ -75,8 +149,8 @@ func stepProbe(ctx context.Context, c clients, _ *state) error {
 		}
 	}
 
-	log.Printf("✓ %d probe(s): %d accepted, %d rejected, %d transport failure(s)",
-		len(probes), accepted, rejected, transport)
+	log.Printf("✓ %d probe(s): %d accepted, %d rejected, %d throttled, %d transport failure(s)",
+		len(probes), accepted, rejected, throttled, transport)
 	if transport > 0 {
 		return fmt.Errorf("%d probe(s) never reached the API; nothing was learned from them", transport)
 	}
@@ -84,8 +158,8 @@ func stepProbe(ctx context.Context, c clients, _ *state) error {
 }
 
 // zoneProbes exercise the zone and record endpoints.
-func zoneProbes() []probe {
-	return []probe{
+func zoneProbes(accountHoldsIt bool) []probe {
+	probes := []probe{
 		{
 			what:   "list records for a zone that does not exist",
 			expect: "rejected; establishes whether an unknown zone is an error or an empty list",
@@ -109,6 +183,33 @@ func zoneProbes() []probe {
 				return err
 			},
 		},
+		{
+			what:   "list zones with no filters at all",
+			expect: "accepted; the baseline that proves a rejection above is about the request",
+			call: func(ctx context.Context, c clients) error {
+				res, err := c.dns.ListZones(ctx, &dns.ListZoneOptions{})
+				if err == nil {
+					log.Printf("    %d zone(s)", len(res.Return.Data))
+				}
+				return err
+			},
+		},
+	}
+
+	// Write-shaped, and only safe because accountHoldsProbeZone
+	// established the zone is not there. Omitted rather than run-and-
+	// hope when it is: a DeleteZone against a real zone takes it and
+	// its records, and this step carries no opt-in.
+	if accountHoldsIt {
+		return probes
+	}
+	return append(probes, writeShapedZoneProbes()...)
+}
+
+// writeShapedZoneProbes are the probes that would act on probeZone if
+// it existed. Only reached when it does not.
+func writeShapedZoneProbes() []probe {
+	return []probe{
 		{
 			what:   "delete a zone that does not exist",
 			expect: "rejected; a delete of nothing should not report success",
@@ -137,22 +238,9 @@ func zoneProbes() []probe {
 				return err
 			},
 		},
-		{
-			what:   "list zones with no filters at all",
-			expect: "accepted; the baseline that proves a rejection above is about the request",
-			call: func(ctx context.Context, c clients) error {
-				res, err := c.dns.ListZones(ctx, &dns.ListZoneOptions{})
-				if err == nil {
-					log.Printf("    %d zone(s)", len(res.Return.Data))
-				}
-				return err
-			},
-		},
 	}
 }
 
-// templateProbes exercise the DNS template endpoints, which are a
-// separate package and had no coverage at all.
 func templateProbes() []probe {
 	return []probe{
 		{
@@ -221,10 +309,11 @@ func templateProbes() []probe {
 // misreading this classification exists to prevent. It also matched
 // "EOF", which is short enough to appear inside a rejection message,
 // and this API's messages are free text with the request URL embedded.
-// A rate-limit exhaustion matched none of the four substrings either,
-// so a throttled probe was filed as a genuine API rejection — and with
-// SH_RECORD_DIR set, that noise lands in the corpus this step exists
-// to build.
+// A rate limit is not in this predicate's remit at all, in either
+// version: api.RateLimitError is a plain wrapper, so it is neither a
+// *url.Error nor a net.Error and isTransport returns false for it.
+// stepProbe handles it with its own case, because a throttle belongs
+// in neither the accepted nor the rejected tally.
 //
 // The structured version separates the two by construction: a rejection
 // arrives as *models.ErrorResponse, which is none of these types.

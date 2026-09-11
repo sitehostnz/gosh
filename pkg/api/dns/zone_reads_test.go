@@ -2,6 +2,7 @@ package dns_test
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -36,14 +37,22 @@ func TestListZones_DecodesARecordedResponse(t *testing.T) {
 //
 // GetZone is a search. A name matching nothing comes back status:true
 // with an empty list, never a rejection — so a caller checking only err
-// concludes the zone exists. The fixture is a real response to a name
-// under .invalid, which cannot be registered.
+// concludes the zone exists.
+//
+// The fixture is a real response to a well-formed .co.nz name the
+// account does not hold. It was previously recorded against a
+// .invalid name, which was weaker evidence than it looked: the write
+// endpoints reject an unregistrable TLD before doing any lookup, so a
+// .invalid recording can capture the validator rather than the search.
+// It happens not to here — dns/search_domains.json does not validate
+// the TLD — but "happens not to" is the standard this package exists
+// to replace.
 func TestGetZone_AbsenceIsNotAnError(t *testing.T) {
 	t.Parallel()
 	ex := apitest.Serve(t, "search_domains-nomatch.json")
 
 	got, err := dns.New(ex.Client).GetZone(context.Background(),
-		dns.GetZoneRequest{DomainName: "sdk-probe-no-such-zone.invalid"})
+		dns.GetZoneRequest{DomainName: "gosh-probe-no-such-zone-9f3a2b1c.co.nz"})
 	if err != nil {
 		t.Fatalf("GetZone must not error for a name that matches nothing: %v", err)
 	}
@@ -90,8 +99,40 @@ func TestListRecords_RejectsAnUnknownZone(t *testing.T) {
 	if !strings.Contains(err.Error(), "doesn't exist") {
 		t.Errorf("ListRecords: error is %q, want the API's not-found message", err)
 	}
-	// Asserted rather than assumed: without a status field the decode
-	// would yield false from Go's zero value, so the test would pass
-	// against a fixture that recorded nothing.
+	// Worth making on every fixture, for the reason its own doc gives:
+	// it catches a field the API sends that no Go field receives.
 	apitest.AssertDecodesFully(t, ex.Body, dns.ListRecordsResponse{})
+
+	// And the other direction, which AssertDecodesFully does not cover:
+	// it walks fixture to struct, so a fixture *missing* a key passes
+	// it trivially.
+	//
+	// That matters here specifically. Without a status field the decode
+	// yields false from Go's zero value, so this test would report a
+	// rejection against a fixture that recorded nothing — which is how
+	// the first version of it passed while resting on a recording of
+	// the TLD validator. An earlier fix added the call above with a
+	// comment claiming it closed this gap; it did not, and the comment
+	// was worse than the silence because it stopped anyone re-checking.
+	assertFixtureHasStatus(t, ex.Body)
+}
+
+// assertFixtureHasStatus fails if the fixture omits the status field.
+//
+// A rejection this package asserts must be one the API actually
+// reported. Go's zero value for bool is false, so a fixture with no
+// status key decodes to exactly what a recorded rejection decodes to,
+// and every "this is rejected" test would keep passing if a re-record
+// dropped the field.
+func assertFixtureHasStatus(t *testing.T, body []byte) {
+	t.Helper()
+
+	var raw map[string]any
+	if err := json.Unmarshal(body, &raw); err != nil {
+		t.Fatalf("fixture is not a JSON object: %v", err)
+	}
+	if _, ok := raw["status"]; !ok {
+		t.Error("the fixture has no \"status\" field, so a test asserting a rejection " +
+			"passes on Go's zero value rather than on anything the API said")
+	}
 }

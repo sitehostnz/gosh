@@ -88,6 +88,22 @@ All notable changes to this project will be documented in this file. The format 
   a branch that changes shipped code without adding a CHANGELOG entry —
   the omission this repository comments on most, and one the entry
   *content* check had nothing to say about.
+- `examples/dns` walks the DNS lifecycle as a numbered journey — zone
+  create, records, templates, deliberate rejections and teardown. What
+  makes it worth reading alongside the other two is that it documents
+  two opposite absence conventions inside one namespace: `dns.GetZone`
+  is a search, so a name matching nothing returns `status:true` with an
+  empty list, while `dns.ListRecords` reports the same absence through
+  an error. Neither can be assumed from the other.
+
+  It also states what it cannot check rather than implying otherwise:
+  a zone created through the API is not resolvable on SiteHost's
+  nameservers without delegation, so there is no out-of-band resolver
+  check to make, and the journey says so instead of inventing one.
+- Recorded-response tests for `dns` and `dns/template`, built from live
+  exchanges rather than hand-written shapes. The `dns/template` package
+  had no test coverage at all, so its wire contract — including that a
+  shared template carries `ClientID` `"0"` — was previously unpinned.
 
 ### Changed
 
@@ -199,14 +215,15 @@ All notable changes to this project will be documented in this file. The format 
   through an error — the conclusion three tests already rested on
   without evidence for it.
 - `examples/dns`: `isTransport` classified errors by searching their
-  text, which counted a TLS failure or a rate-limit exhaustion as an
-  API rejection and could read a rejection carrying the request URL as
-  a transport failure. It reads the error tree, matching the
-  implementation in `examples/cloud`.
+  text, which counted a TLS failure, a connection reset or an i/o
+  timeout as an API rejection, and could read a rejection carrying the
+  request URL as a transport failure. It reads the error tree, matching
+  the implementation in `examples/cloud`. A throttled probe is handled
+  separately and counted in neither tally, since it never reached the
+  endpoint and so establishes nothing about it.
 - `examples/dns`: the generated zone name is printed before
   `CreateZone` rather than after it, so a create whose response is lost
   leaves a name the operator can still act on with `SH_DELETE_ZONE`.
-
 - `server.Create` ignored `ParamsOptions` entirely, so the IP
   allocation, backup, contact and SSH-key paths its own documentation
   described were unreachable.

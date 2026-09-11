@@ -14,8 +14,8 @@ import (
 // # Creating a zone is not registering a domain
 //
 // These are separate operations that both get described as "adding a
-// domain", and only one of them costs money. This creates a zone in
-// SiteHost's DNS for a name, which is free and has no effect unless
+// domain", and registration is the billable one. This creates a zone in
+// SiteHost's DNS for a name, which has no effect unless
 // something delegates to those nameservers. Registration is a
 // different system entirely.
 //

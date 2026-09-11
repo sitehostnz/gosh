@@ -27,8 +27,12 @@ import (
 // first element is not guaranteed to be the name asked for. Compare
 // [models.DNSZone.Name] before using it.
 //
-// Verified against a live account, August 2026, with a name under
-// .invalid that cannot be registered.
+// Verified against a live account with a well-formed name the account
+// does not hold. Note that this endpoint does not validate the
+// top-level domain — a name under .invalid returns the same empty
+// search rather than a rejection — which is why the evidence is a
+// real TLD: the write endpoints do validate, so a .invalid recording
+// proves less than it appears to.
 func (s *Client) GetZone(ctx context.Context, request GetZoneRequest) (response GetZoneResponse, err error) {
 	u := "dns/search_domains.json"
 

@@ -28,6 +28,23 @@ import (
 // a record for "www.example.com.example.com", which the API accepts
 // without complaint because it is a legal name.
 func stepRecords(ctx context.Context, c clients, st *state) error {
+	// The same guard stepTemplate has, and for the stronger reason.
+	//
+	// Step 20 refuses a zone it did not create, and the package doc
+	// advertises that as the protection for the later steps — but it
+	// only holds on the journey path, because runOne never invokes
+	// step 20. Run standalone against SH_ZONE pointed at a real zone,
+	// this step adds, updates and deletes a record in it.
+	//
+	// The blast radius is small, since every write here keys on the
+	// record this step created rather than on anything already there.
+	// What it can leave behind is a stray sdk-test.* A record in a zone
+	// somebody cares about, if the step fails between adding and
+	// removing it.
+	if !st.created {
+		return fmt.Errorf("the records step adds and deletes records; run the journey so it acts on a zone this process created")
+	}
+
 	name := "sdk-test." + st.cfg.zone
 	if err := addRecord(ctx, c, st, name); err != nil {
 		return err

@@ -64,21 +64,32 @@
 //
 // # Creating a zone is not registering a domain
 //
-// They are separate operations that both get called "adding a domain".
-// This journey does the first, which is free and has no effect unless
-// something delegates to SiteHost's nameservers.
+// They are separate operations that both get called "adding a domain",
+// and registration is the billable one. This journey does the other:
+// it creates a zone in SiteHost's DNS, which has no effect on anything
+// unless a registrar delegates that name to these nameservers.
 //
 // The name it creates is in a real TLD, and that is not a choice: the
-// API validates the top-level domain, so RFC 2606's reserved names —
-// .invalid, .test, .example — are all rejected with "Please specify a
-// valid domain name." It generates gosh-example-<16 hex>.co.nz, and
-// safety rests on two things that are worth stating separately from
-// each other. The 64-bit random label makes a collision with a
-// registered name vanishingly unlikely, which is a probabilistic
-// argument rather than an impossibility one. And creating a zone is
-// not registering a domain, so even a collision would not take
-// anything from anybody — it would fail to create, because the account
-// does not hold that name.
+// zone endpoints validate the top-level domain, so RFC 2606's reserved
+// names — .invalid, .test, .example — are rejected with "Please
+// specify a valid domain name."
+//
+// So what makes it safe to run repeatedly against a live account is
+// two things, and neither is a guarantee that the API would refuse a
+// collision:
+//
+//   - the label is 64 bits from crypto/rand, so colliding with a name
+//     somebody has registered is vanishingly unlikely — probabilistic,
+//     not impossible;
+//   - and a zone here does nothing on its own. Delegation is what
+//     makes a zone authoritative, and the owner of a colliding name
+//     has not delegated to an account they do not control.
+//
+// An earlier version of this paragraph claimed a collision "would fail
+// to create, because the account does not hold that name". That is
+// refuted by the journey's own success path: every run creates a zone
+// for a name the account does not hold, which is exactly the condition
+// under which creates succeed.
 //
 // See config.zone in 00_shared.go for the naming rationale.
 //
