@@ -28,3 +28,34 @@ jobs:
         with:
           version: v2.1
           only-new-issues: true
+
+  pre-mr-checks:
+    # Its own job so a finding is attributed to it rather than reported
+    # as a Go lint failure, and so the checkout can differ: these checks
+    # read the diff against the base branch, which the lint job has no
+    # need of.
+    runs-on: ubuntu-latest
+    # Only on pull requests. There is no base ref to diff against on a
+    # push, and the previous form fell back to "main" for a push event
+    # that this workflow cannot receive anyway — the push trigger is
+    # branches: [master], and the default branch is main.
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Without this the checkout is depth 1 of the merge ref and
+          # creates no refs/remotes/origin/*, so origin/<base> does not
+          # resolve and every diff-based check silently examines an
+          # empty file list. Three of the ten checks worked that way.
+          fetch-depth: 0
+
+      # Before the checks themselves: proves each check still fires on
+      # the fixture written for it. A check that cannot fire reports
+      # exactly what a clean tree reports, and two of these shipped
+      # that way.
+      - name: Pre-MR self-test
+        run: python3 .claude/skills/pre-mr-review/scripts/premr.py --selftest
+
+      - name: Pre-MR checks
+        run: python3 .claude/skills/pre-mr-review/scripts/premr.py --base origin/${{ github.base_ref }}

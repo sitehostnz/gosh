@@ -66,6 +66,29 @@ All notable changes to this project will be documented in this file. The format 
   caller that gives up is not held by a pending backoff.
 
 
+- A pre-MR review skill under `.claude/skills/pre-mr-review`, with a
+  checker covering the classes of defect this repository keeps
+  producing: parameters absent from a `net.Encode` keys list, claims in
+  documentation that the tree contradicts, options a test sets and
+  never asserts, and mutations verified only through the API that
+  performed them. It runs in CI as its own job.
+
+  It reports in two buckets, and the line between them is what the
+  script can prove rather than how often it is right. `--selftest`
+  runs every check against a fixture written to defeat it and fails if
+  one stops firing, because a check that cannot fire reports exactly
+  what a clean tree reports — two of them shipped that way. For the
+  same reason it reports a build artefact added by a branch — a
+  committed `.pyc` is what prompted that one, and the repository's
+  stage-by-explicit-path rule does not help when the artefact appears
+  inside the directory being staged — and asks about a billing claim in
+  documentation, which no fixture can evidence and no reader can probe.
+  For the same reason the checker refuses to run when its base ref does
+  not resolve, rather than examining an empty diff and passing, and reports
+  a branch that changes shipped code without adding a CHANGELOG entry —
+  the omission this repository comments on most, and one the entry
+  *content* check had nothing to say about.
+
 ### Changed
 
 - **Breaking for type assertions:** `api.Client.Do` retries requests
@@ -137,6 +160,19 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- `examples/server`: `confirmGone` read *any* error from `server.Get` as
+  proof the server had been deleted, so a rate limit, a transient
+  network failure or an expired credential printed a tick and a claim
+  it had no basis for. It matches the not-found condition explicitly
+  now and reports anything else as a failure to confirm.
+- `examples/server`: `exists` returned `err == nil`, so a dropped SSH
+  session read as "the file is absent". In the snapshot step absence is
+  the *expected* answer, so a network blip satisfied the guard and the
+  restore check behind it proved nothing. It now distinguishes absent
+  from could-not-tell.
+- `examples/server`: `compareWithGuest` carried an inline copy of
+  `requireKey`'s guard, including the subtlety about not masking the
+  `SH_SSH_KEY_FILE` fallback. It calls the helper.
 - `server.Create` ignored `ParamsOptions` entirely, so the IP
   allocation, backup, contact and SSH-key paths its own documentation
   described were unreachable.

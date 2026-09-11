@@ -25,3 +25,9 @@ bin
 # reduces but cannot promise to remove. Run them through
 # internal/scrubtool before committing anything derived from them.
 **/recordings/
+
+# Python bytecode from the pre-MR checker. Committed once, which is how
+# it got a rule: running the script writes it beside the source, and a
+# scoped "git add .claude/" picks it up without anyone deciding to.
+__pycache__/
+*.pyc

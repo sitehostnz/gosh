@@ -223,7 +223,11 @@ func restoreFrom(ctx context.Context, c clients, name, id, marker string) error 
 	// file is still there", which is a third possible answer the check
 	// was not written to expect — and it reported the wrong one of the
 	// two it did expect.
-	if exists(addr, markerPath) {
+	present, err := exists(addr, markerPath)
+	if err != nil {
+		return fmt.Errorf("before the restore: %w", err)
+	}
+	if present {
 		return fmt.Errorf("the marker at %s is still present after deleting it; the check below would prove nothing", resolved)
 	}
 	log.Printf("  removed the marker; it is absent from the running disk")
@@ -315,7 +319,22 @@ const restoreSettle = 3 * time.Minute
 //
 // It reads the exit status of test(1) rather than any output, so there
 // is no third answer to misinterpret.
-func exists(addr, path string) bool {
-	_, err := sshRun(addr, "test -e "+path)
-	return err == nil
+func exists(addr, path string) (bool, error) {
+	out, err := sshRun(addr, "test -e "+path)
+	if err == nil {
+		return true, nil
+	}
+	// test(1) exits 1 for "not there", and ssh reports that as a
+	// non-zero exit with no output of its own. Anything that produced
+	// output, or failed before the command ran, is a third state: the
+	// question was not answered.
+	//
+	// Returning a bare false for it meant a dropped connection read as
+	// "the file is absent" — which is the good answer for the caller
+	// below, so a network blip made the guard pass and the check that
+	// followed prove nothing.
+	if strings.TrimSpace(out) != "" || !strings.Contains(err.Error(), "Process exited with status") {
+		return false, fmt.Errorf("could not tell whether %s exists on %s: %w", path, addr, err)
+	}
+	return false, nil
 }
