@@ -4,11 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/sitehostnz/gosh/pkg/api/cloud/stack"
 )
+
+// publishedPort is the host port the compose asks to publish.
+//
+// Above 1024 so it is not in the reserved range, and clear of the
+// 3306-3310 and 8080 block list, so a refusal cannot be blamed on the
+// number. See the Ports section below.
+const publishedPort = 8931
 
 // stepStack deploys a website container and fetches it from outside.
 //
@@ -86,7 +94,7 @@ func stepStack(ctx context.Context, c clients, st *state) error {
 	// shell exists to reach the container directly. Reported here so a
 	// standalone run of this step still says what the outside sees.
 	reportPublicRouting(st)
-	return nil
+	return checkPublishedPortStaysShut(st)
 }
 
 // composeFor builds the compose file for a single website container.
@@ -94,7 +102,8 @@ func stepStack(ctx context.Context, c clients, st *state) error {
 // This mirrors what the platform's own tooling writes, and two parts of
 // it are load-bearing in ways nothing documents:
 //
-//   - The external "infra_default" network. The reverse proxy that
+//   - The external "infra_default" network (verified live against API 1.5).
+//     The reverse proxy that
 //     serves ports 80 and 443 lives on it, so a container that does not
 //     join it cannot be routed to at all. Omitting this section
 //     produced a stack whose container reported state Up while every
@@ -108,50 +117,53 @@ func stepStack(ctx context.Context, c clients, st *state) error {
 // the same value for the control panel's benefit; the routing follows
 // the environment variable.
 //
-// # Ports: what a web container can and cannot do
+// # Ports
 //
-// Documented at https://kb.sitehost.nz/cloud-containers/containers/ports
-// — read that before this comment, which only adds what the API does
-// when you get it wrong.
+// As of writing, against API 1.5, it is not possible to publish ports
+// on a www container. 80 and 443 are open by default and that is the
+// whole of it; application containers are the same.
 //
-// "expose" rather than "ports", and the reason is the container's type
-// rather than a limit on the API.
+// Published, not exposed — and the distinction is the compose keyword
+// below. Port 80 *is* exposed, which is how the reverse proxy reaches
+// it over the Docker network. Publishing binds a port to the host so
+// the internet can reach it directly, and that is the part a www
+// container cannot do.
 //
-// Web and application containers cannot have their ports changed at
-// all: 80 and 443 are open by default and that is the whole of it. This
-// was established the expensive way before reading the documentation
-// that says so — a stack deployed with "ports: - '8931:80/tcp'" was
-// accepted, returned a job that completed, kept the mapping when read
-// back through cloud/stack/get.json, and came up with state Up, while
-// the port stayed closed from outside both before and after
-// cloud/stack/restart.json completed. cloud/stack/get.json reports the
-// container's own "ports" as null throughout, which is the only hint
-// the API gives.
+// Rules: https://kb.sitehost.nz/cloud-containers/containers/ports
+//
+// What the API does when you get this wrong is worth recording,
+// because every signal short of the socket says it worked. A stack
+// deployed with "ports: - '8931:80/tcp'" was accepted;
+// cloud/stack/add.json returned a job that completed; the mapping
+// survived a read-back through cloud/stack/get.json byte for byte; the
+// container came up reporting state Up — and the port stayed closed
+// from the internet, both before and after cloud/stack/restart.json
+// completed. Restarting is the obvious thing to try, since Docker binds
+// ports when a container is created, and it changes nothing. The only
+// clue on offer is the container's own "ports" field, which reads null
+// throughout.
 //
 // Service containers are the ones that publish. Redis, Postgres,
-// MongoDB, Elasticsearch, Solr and the rest ship with their port
-// exposed and unpublished, and publishing it is supported — subject to
-// rules worth knowing before choosing a number:
-//
-//   - below 1024 is reserved and refused;
-//   - 3306 to 3310 and 8080 are refused specifically, which catches
-//     the NodeJS images, since 8080 is the port they expose;
-//   - a published port must be unique across the containers on a
-//     server.
+// MongoDB, Elasticsearch and the rest ship with their port exposed and
+// unpublished, and publishing is supported — subject to rules worth
+// knowing before choosing a number: below 1024 is reserved, 3306 to
+// 3310 and 8080 are refused outright (which catches the NodeJS images,
+// since 8080 is what they expose), and a published port must be unique
+// across the containers on a server.
 //
 // Security groups are not applied to Cloud Containers, so the mechanism
 // examples/server uses to open a port on a virtual server does nothing
-// here — the publish decision is the whole of it.
+// here. The publish decision is the whole of it.
 //
 // Why this matters rather than being trivia: the use cases are real and
 // they are not web traffic. An MQTT broker, a game server or a mail
-// service speaks a protocol the reverse proxy in front of 80 and 443
-// cannot carry, so a published port is the only route. WebSockets are
-// the exception that misleads, since they upgrade from HTTP and the
-// proxy carries them without one. And a database reachable from
-// outside is a different question again: those live in integrated
-// containers, which these endpoints do not manage, and their ports are
-// in the refused range anyway.
+// service speaks a protocol the proxy in front of 80 and 443 cannot
+// carry, so a published port is the only route. WebSockets are the
+// exception that misleads, since they upgrade from HTTP and the proxy
+// carries them without one. A database reachable from outside is a
+// different question again: those live in integrated containers, which
+// these endpoints do not manage, and their ports are in the refused
+// range anyway.
 func composeFor(st *state) string {
 	root := "/data/docker0/www/" + st.stackName
 	return strings.Join([]string{
@@ -163,6 +175,16 @@ func composeFor(st *state) string {
 		"            - 'VIRTUAL_HOST=" + st.stackHost + "'",
 		"        expose:",
 		"            - 80/tcp",
+		// Asks to publish a port, deliberately, so that the claim
+		// "a www container cannot publish ports" is a thing this
+		// journey checks rather than a sentence it asserts. Step 30
+		// requires publishedPort to stay shut while 80 answers.
+		//
+		// If the platform ever allows this, that check fails and the
+		// comment above it gets corrected — which is the point. A
+		// dated note would simply go stale in silence.
+		"        ports:",
+		"            - '" + strconv.Itoa(publishedPort) + ":80/tcp'",
 		"        image: 'registry.sitehost.co.nz/sitehost-php85-apache:1.0.0-noble'",
 		"        labels:",
 		"            - nz.sitehost.container.label=" + st.stackHost,
@@ -262,4 +284,31 @@ func reportPublicRouting(st *state) {
 	default:
 		log.Printf("  public %s answers HTTP %d", url, code)
 	}
+}
+
+// checkPublishedPortStaysShut pins the claim in the Ports section.
+//
+// The compose asked to publish publishedPort. On a www container that
+// does nothing, so the port must be closed — and this fails if it ever
+// opens, which is how the documentation above stays honest without a
+// date on it.
+//
+// The pairing is what makes it a real check rather than a vacuous one.
+// Asserting only that a port is shut would pass if this machine had no
+// route to the host at all, or if the stack had failed to deploy. So
+// tcp/80 has to answer in the same breath: 80 open and publishedPort
+// shut can only mean the publish was ignored, which is the claim.
+func checkPublishedPortStaysShut(st *state) error {
+	port := strconv.Itoa(publishedPort)
+
+	if !tcpReachable(st.ip, "80") {
+		return fmt.Errorf("tcp/80 on %s does not answer, so nothing can be concluded about tcp/%s; the stack or the route is the problem",
+			st.ip, port)
+	}
+	if tcpReachable(st.ip, port) {
+		return fmt.Errorf("tcp/%s on %s answers, so a www container CAN publish a port now — the Ports note in this file is out of date and should be corrected",
+			port, st.ip)
+	}
+	log.Printf("✓ out of band: tcp/80 answers and tcp/%s does not, so the compose's publish request was ignored as documented", port)
+	return nil
 }

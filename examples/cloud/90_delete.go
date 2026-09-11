@@ -257,6 +257,8 @@ func teardown(st *state) []teardownPart {
 //
 // # It has to happen before the server is deleted
 //
+// verified live against API 1.5.
+//
 // Removing a key enumerates every container SSH user that references
 // it and updates each one. If a referencing user belongs to a server
 // that has since been deleted, that lookup fails and the call returns

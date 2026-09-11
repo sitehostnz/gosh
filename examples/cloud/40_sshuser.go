@@ -31,6 +31,8 @@ import (
 //
 // # params[ssh_keys][] means something different here
 //
+// verified live against API 1.5.
+//
 // On server.Create the same parameter name carries public key
 // *content*. On cloud/ssh/user it carries the *id* of a key already
 // registered on the account through ssh/key/add.json. Nothing says so,

@@ -106,6 +106,8 @@ func stepDatabase(ctx context.Context, c clients, st *state) error {
 //
 // # MySQLHost is a stack name, and there is an endpoint for it
 //
+// verified live against API 1.5.
+//
 // cloud/db/add.json wants the name of a database stack on the same
 // container server, resolvable inside its Docker network. Those stacks
 // have their own endpoints — cloud/stack/integrated — and that is the

@@ -61,7 +61,8 @@ type config struct {
 
 	// image is sent as the provision image code.
 	//
-	// It must be a code that server.ListImages actually returns. The
+	// It must be a code that server.ListImages actually returns
+	// (verified live against API 1.5). The
 	// endpoint accepts an unknown code at request time — nothing is
 	// rejected, a job id comes back — and the build then sits in
 	// "Configuring server" for twenty minutes before failing, after

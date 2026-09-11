@@ -135,9 +135,14 @@ check and one that does not fail for a neighbour's mistake.
   `examples/cloud-db-compare` does exactly that. On another server the
   listing omitted a database stack that was demonstrably running and
   accepting databases. Use `cloud/stack/integrated/list_all.json`.
-- **A `ports` mapping on a web container does nothing, silently.** Web
-  and application containers cannot have their ports changed — 80 and
-  443 are open by default and that is the whole of it. Deploying a web
+- **As of writing, against API 1.5, it is not possible to
+  publish ports on a www container.** 80 and 443 are open by default
+  and that is the whole of it; application containers are the same. A
+  `ports` mapping is accepted and does nothing, silently.
+
+  *Published*, not *exposed* — port 80 is exposed, which is how the
+  reverse proxy reaches it over the Docker network. Publishing binds it
+  to the host for the internet to reach directly. Deploying a web
   stack with `ports: - '8931:80/tcp'` was accepted, returned a job that
   completed, kept the mapping when read back through
   `cloud/stack/get.json`, and brought the container up `Up` — while the

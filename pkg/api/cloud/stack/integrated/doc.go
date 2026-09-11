@@ -4,6 +4,8 @@
 //
 // # Why this is separate from cloud/stack
 //
+// Behaviour in this package verified live against API 1.5.
+//
 // A database stack is a stack, but it is not one you compose. The names
 // it can take are reserved — cloud/stack/add.json refuses them, listing
 // them in the error — because they belong to these endpoints instead.

@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -207,10 +208,15 @@ func TestComposeSetsVirtualHost(t *testing.T) {
 		}
 	}
 
-	// "ports" would publish to the host, which collides between stacks
-	// and is unnecessary because the proxy uses the Docker network.
-	if strings.Contains(got, "ports:") {
-		t.Errorf("the compose file publishes ports to the host; it should only expose:\n%s", got)
+	// The compose carries both: "expose" is what the proxy routes
+	// through, and a "ports" mapping is asked for deliberately so that
+	// step 30 can check it is ignored. This test used to require the
+	// absence of a ports section, from when the journey simply avoided
+	// publishing; it turned red when the publish became the subject of
+	// a check, which is the test doing its job rather than an
+	// obstacle. See TestComposeAsksToPublishAPort.
+	if !strings.Contains(got, "expose:") {
+		t.Errorf("the compose does not expose 80, which is how the proxy reaches it:\n%s", got)
 	}
 }
 
@@ -356,5 +362,39 @@ func TestTransientRefusalsAreRecognised(t *testing.T) {
 
 	if isTransientRefusal(nil) {
 		t.Error("a nil error is not a refusal")
+	}
+}
+
+// TestComposeAsksToPublishAPort keeps the port check from going
+// vacuous.
+//
+// Step 30 asserts that publishedPort stays shut on a www container,
+// which is only evidence of anything if the compose actually asked for
+// it. Drop the ports mapping and the assertion still passes — for the
+// trivial reason that nothing requested a publish — and the claim in
+// the Ports section quietly stops being tested.
+//
+// The port number is pinned too. Below 1024 is reserved and 3306-3310
+// and 8080 are refused outright, so a number from those ranges would
+// make a refusal say nothing about container type.
+func TestComposeAsksToPublishAPort(t *testing.T) {
+	t.Parallel()
+
+	st := &state{stackName: "cc0123456789abcd", stackHost: "cc0123456789abcd.203.0.113.7.sth.nz"}
+	got := composeFor(st)
+
+	want := "'" + strconv.Itoa(publishedPort) + ":80/tcp'"
+	if !strings.Contains(got, want) {
+		t.Errorf("the compose does not ask to publish a port (%s), so step 30's check proves nothing:\n%s", want, got)
+	}
+	if !strings.Contains(got, "ports:") {
+		t.Errorf("the compose has no ports section:\n%s", got)
+	}
+
+	if publishedPort <= 1024 {
+		t.Errorf("publishedPort = %d is in the reserved range, so a refusal would not be about container type", publishedPort)
+	}
+	if publishedPort == 8080 || (publishedPort >= 3306 && publishedPort <= 3310) {
+		t.Errorf("publishedPort = %d is on the platform's block list, so a refusal would not be about container type", publishedPort)
 	}
 }

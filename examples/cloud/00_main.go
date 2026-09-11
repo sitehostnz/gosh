@@ -70,8 +70,9 @@
 //
 // # Ports belong to the container's type, not to the compose file
 //
-// Web and application containers — which is what this journey deploys —
-// cannot have their ports changed. 80 and 443 are open and that is all.
+// As of writing, against API 1.5, it is not possible to publish
+// ports on a www container — which is what this journey deploys. 80 and
+// 443 are open and that is all.
 // A compose file carrying a "ports" mapping is accepted, keeps the
 // mapping when read back, and comes up with the container running,
 // while the port stays shut; a restart does not change it. Service
