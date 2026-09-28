@@ -31,33 +31,75 @@
 // # Reading the journey
 //
 //	10  discover           read-only; safe anywhere
-//	40  read               walk every read path and check the shapes
+//	20  provision  WRITES  create a container server, prove it answers
+//	30  stack      WRITES  deploy a website container, fetch it
+//	40  sshuser    WRITES  add a container SSH user, log into it
+//	50  database   WRITES  create a database, user and grants
+//	60  read               walk every read path and check the shapes
 //	80  probe              deliberate rejections, read-only, no opt-in
+//	90  delete     WRITES  tear down what this process created
 //
 // Run with no arguments to print the map and exit.
 //
-// # Nothing here writes yet
+// # Every write is verified outside the control plane
 //
-// Every step is read-only. The provision, stack, database, sshuser and
-// delete steps are not implemented, so this journey cannot create a
-// Cloud Container — it reads and probes one that already exists.
+// This is the point of the journey, and the reason it provisions
+// anything at all. Asking the API whether the API did what it said
+// proves that a record changed, not that anything happened. Each
+// writing step therefore has a check that does not go through the
+// control plane:
 //
-// The mutates flag, anyMutates and runCleanup exist and currently have
-// nothing to act on. They are kept because the write steps are the
-// obvious next work and the shape is shared with examples/server, but
-// they are scaffolding rather than live safety: with no step marked
-// mutates, the SH_EXAMPLE_ALLOW_PROVISION gate can never fire and the
-// cleanup pass scans for a delete step that does not exist. Reading
-// them as working protection would be the wrong direction for that
-// mistake to run, given the probe step deliberately provokes
-// rejections.
+//	20  provision  a TCP handshake to tcp/22 completes
+//	30  stack      the compose file round-trips; serving is proven in 40
+//	40  sshuser    an SSH session opens as that account, writes a marker into
+//	               the container, and fetches it back over the Docker network
+//	50  database   the mysql client, run inside the host as the created user,
+//	               names the database, writes a row and reads it back
+//	90  delete     tcp/22 stops answering
+//
+// A completed job, an "Up" state and a returned record are all reported
+// too, because a disagreement between them and reality is worth
+// catching. None of them is the assertion.
+//
+// # The label is not the name
+//
+// A container server's name is derived from the provision label, not
+// equal to it: the platform prefixes "ch-" and truncates, so the label
+// "gosh-cloud-journey" produced the name "ch-gosh-clou". Collisions get
+// a digit appended. Everything after step 20 uses the returned name.
+//
+// # Ports belong to the container's type, not to the compose file
+//
+// As of writing, against API 1.5, it is not possible to publish
+// ports on a www container — which is what this journey deploys. 80 and
+// 443 are open and that is all.
+// A compose file carrying a "ports" mapping is accepted, keeps the
+// mapping when read back, and comes up with the container running,
+// while the port stays shut; a restart does not change it. Service
+// containers are the ones that publish, subject to a reserved range
+// and a specific block list.
+//
+// This is the single most misleading behaviour in these endpoints,
+// because every observable signal short of the socket itself says it
+// worked. See step 30 for the detail, and
+// https://kb.sitehost.nz/cloud-containers/containers/ports for the
+// rules.
+//
+// # What this journey does not cover
+//
+// Stack copy and backup, volumes, SSL, and postgres database stacks are
+// untouched. The database step deploys a MariaDB stack because a fresh
+// container server has none, so which database engines behave
+// identically here is unverified — only the one this journey deploys is
+// exercised.
 //
 // Required env: SH_API_KEY, SH_CLIENT_ID.
-// Optional: SH_LOCATION, SH_PRODUCT, SH_SERVER, SH_BASE_URL,
-// SH_RECORD_DIR.
+// Optional: SH_LOCATION, SH_PRODUCT, SH_IMAGE, SH_LABEL, SH_SERVER,
+// SH_BASE_URL, SH_RECORD_DIR.
 //
-// SH_EXAMPLE_ALLOW_PROVISION is read but nothing currently needs it,
-// since no step writes.
+// Steps that write require SH_EXAMPLE_ALLOW_PROVISION=1. Only servers
+// this process provisioned are ever deleted; a server named by
+// SH_SERVER is never a delete target.
 package main
 
 import (
@@ -87,17 +129,42 @@ func steps() []journeyStep {
 		{
 			order: 10, name: "discover", inTour: true, run: stepDiscover,
 			needs:    "nothing",
-			describe: "find a location and product that offer containers",
+			describe: "find a location and resolve the smallest container product",
 		},
 		{
-			order: 40, name: "read", inTour: true, run: stepRead,
-			needs:    "an existing cloud server; SH_SERVER, or the first on the account",
+			order: 20, name: "provision", inTour: true, mutates: true, run: stepProvision,
+			needs:    "step 10",
+			describe: "create a container server; prove tcp/22 answers",
+		},
+		{
+			order: 30, name: "stack", inTour: true, mutates: true, run: stepStack,
+			needs:    "a container server; state or SH_SERVER",
+			describe: "deploy a website container; fetch it over HTTP",
+		},
+		{
+			order: 40, name: "sshuser", inTour: true, mutates: true, run: stepSSHUser,
+			needs:    "step 30, same process",
+			describe: "add a container SSH user; log into it over SSH",
+		},
+		{
+			order: 50, name: "database", inTour: true, mutates: true, run: stepDatabase,
+			needs:    "steps 30 and 40, same process",
+			describe: "create a database, user and grants; connect as that user",
+		},
+		{
+			order: 60, name: "read", inTour: true, run: stepRead,
+			needs:    "a cloud server; state, SH_SERVER, or the first on the account",
 			describe: "walk every read path and check the shapes agree",
 		},
 		{
 			order: 80, name: "probe", inTour: true, run: stepProbe,
 			needs:    "nothing; read-only",
 			describe: "provoke rejections deliberately and record them",
+		},
+		{
+			order: 90, name: "delete", inTour: true, mutates: true, run: stepDelete,
+			needs:    "step 20, same process",
+			describe: "tear down what this process created; prove it stops answering",
 		},
 	}
 }
@@ -126,7 +193,18 @@ func run(args []string) error {
 	if args[0] == "journey" {
 		return runJourney(ctx, c, st, all)
 	}
-	return runOne(ctx, c, st, all, args[0])
+	// Several names run in one process, in the order given. Steps hand
+	// state to each other — the stack name, the address, the SSH
+	// account — so "stack sshuser database" is the only way to exercise
+	// those three against a server that already exists. Running them as
+	// separate processes cannot work, and the error when you try says
+	// only that something is missing from state.
+	for _, name := range args {
+		if err := runOne(ctx, c, st, all, name); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // printMap prints the journey without touching the API.
@@ -147,6 +225,9 @@ func printMap(all []journeyStep) {
 	fmt.Println("  SH_RECORD_DIR=$(mktemp -d) go run ./examples/cloud probe")
 	fmt.Println()
 	fmt.Println("Steps marked WRITES need SH_EXAMPLE_ALLOW_PROVISION=1.")
+	fmt.Println()
+	fmt.Println("Several steps run in one process, sharing state:")
+	fmt.Println("  SH_SERVER=<name> go run ./examples/cloud stack sshuser database")
 }
 
 // runJourney runs the tour, always attempting cleanup.

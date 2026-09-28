@@ -89,6 +89,44 @@ All notable changes to this project will be documented in this file. The format 
   the omission this repository comments on most, and one the entry
   *content* check had nothing to say about.
 
+- `cloud/stack/integrated` wraps `cloud/stack/integrated/list_all.json`
+  and `cloud/stack/integrated/add.json`, which manage the database
+  stacks a Cloud Container's databases live in. `MySQLHost` on the
+  `cloud/db` calls is the name of one of these stacks — `mariadb1108`,
+  `mysql57` — and a freshly provisioned container server has none, so
+  creating one is ordinary rather than exceptional.
+
+  These were missing from the SDK, and every route to them without the
+  wrapper is a dead end that does not name the right one:
+  `cloud/stack/add.json` refuses those names as reserved and lists them,
+  which reads as "you cannot create these"; the same image under an
+  unreserved name collides on the port it publishes; and prefix-matching
+  `cloud/stack/list_all.json` finds them on some servers and not others.
+  `db.Add`'s doc now points here.
+
+  Note the response shapes differ from the rest of the cloud family: the
+  listing is a bare array of names with no `data` wrapper or pagination,
+  and version 1.0 of the add endpoint returns a bare `job_id` string
+  where 1.5 returns the usual job object.
+
+- `examples/cloud` records the port behaviour that every observable
+  signal short of a socket contradicts: a web or application container
+  cannot have its ports changed, so a compose `ports` mapping is
+  accepted, survives a read-back, brings the container up, and leaves
+  the port shut — before and after a restart. Service containers are
+  the ones that publish, subject to a reserved range and a block list
+  covering `3306`–`3310` and `8080`. Cited against
+  <https://kb.sitehost.nz/cloud-containers/containers/ports>.
+- `examples/cloud` walks the Cloud Container lifecycle as a numbered
+  journey, and every writing step is verified outside the control
+  plane: a TCP handshake for the provision, the container serving a
+  marker this journey wrote over the Docker network for the stack, an
+  SSH session reporting its own account for the SSH user, and — for the
+  database — the `mysql` client connecting as the created user, writing
+  a row, reading it back, and then being refused a write after
+  `grant.Update` reduces it to select-only. A grant list stored in a
+  table says nothing about what a user can do.
+
 ### Changed
 
 - **Breaking for type assertions:** `api.Client.Do` retries requests
