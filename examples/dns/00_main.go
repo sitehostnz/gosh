@@ -22,8 +22,9 @@
 // failed.
 //
 // Rejections are the valuable half of a recording corpus, and the
-// cheapest to collect: address something that cannot exist and nothing
-// is created, so nothing has to be cleaned up.
+// cheapest to collect: address a zone the account does not hold and
+// nothing is created, so nothing has to be cleaned up. "Does not hold"
+// is checked on every run rather than assumed; see step 80.
 //
 // # Reading the journey
 //
@@ -31,7 +32,9 @@
 //	20  zone       create a DNS zone
 //	30  records    add, read back, change and remove a record
 //	40  template   relink the zone to another template, then restore
-//	80  probe      deliberate rejections, read-only, no opt-in
+//	80  probe      deliberate rejections, no opt-in; its delete and
+//	               add-record probes run only once the account is
+//	               shown not to hold the probe zone
 //	90  delete     always last
 //
 // A higher number needs the lower ones. Run with no arguments to print
@@ -144,7 +147,7 @@ func steps() []journeyStep {
 		},
 		{
 			order: 80, name: "probe", inTour: true, run: stepProbe,
-			needs:    "nothing; read-only",
+			needs:    "nothing; delete/add probes run only against an absent zone",
 			describe: "provoke rejections deliberately and record them",
 		},
 		{

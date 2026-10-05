@@ -210,7 +210,10 @@ All notable changes to this project will be documented in this file. The format 
 - `examples/dns`: the probe step addressed a `.invalid` name, so every
   not-found probe recorded the top-level-domain validator refusing to
   parse it rather than the behaviour being asked about. It probes a
-  well-formed name the account does not hold, which establishes that
+  well-formed name, and checks on every run that the account does not
+  hold it — skipping every probe premised on its absence, including the
+  `DeleteZone` and `AddRecord` ones, when it does or when that cannot be
+  established. That establishes that
   `dns.ListRecords`, `DeleteZone` and `AddRecord` do report absence
   through an error — the conclusion three tests already rested on
   without evidence for it.

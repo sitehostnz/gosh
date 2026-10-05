@@ -48,8 +48,9 @@ import (
 // guessable by construction, and creating it is precisely what someone
 // asking "what does this endpoint say when the zone does exist?" would
 // do. DeleteZone takes the zone and its records and the SDK cannot
-// undo it. So accountHoldsProbeZone establishes the precondition on
-// every run, and the write-shaped probes are omitted when it fails.
+// undo it. So probeZoneSkipReason establishes the precondition on
+// every run, and the probes premised on its absence are omitted when it
+// fails.
 //
 // The label is fixed rather than random because the recorded
 // rejections should be comparable between runs. Scrub replaces
@@ -57,44 +58,55 @@ import (
 // reader of a raw recording rather than to the fixtures.
 const probeZone = "gosh-probe-no-such-zone-9f3a2b1c.co.nz"
 
-// accountHoldsProbeZone reports whether this account holds probeZone.
+// probeZoneSkipReason decides whether the probes premised on probeZone
+// being absent can run. It returns "" when they can, and otherwise the
+// reason they are skipped, for the step's summary line.
 //
-// This is what makes the step safe to run without an opt-in, and it
-// has to be a check rather than a sentence.
+// Every probe in absentZoneProbes is premised on absence, not only the
+// write-shaped ones. A read against a zone the account holds succeeds,
+// which the step would log as "accepted" — a finding about the API that
+// the API never made — and with SH_RECORD_DIR set it would file a real
+// zone's records as the answer to "what happens for an unknown zone".
+// So the premise gates the whole group, the same way a throttle keeps a
+// probe out of both tallies: a run that cannot ask the question must
+// not appear to have asked it.
 //
-// Two of the probes below are write-shaped: DeleteZone and AddRecord.
-// While probeZone was under .invalid the API's own validation made
-// them categorically incapable of touching anything, and that was the
-// whole guarantee. Moving to a real TLD — necessary, because a
-// .invalid probe records the validator rather than the behaviour being
-// asked about — removed it and left an assertion in its place: a
-// comment saying the account does not hold this name. Nothing enforced
-// it.
+// The write-shaped probes are what make the gate a safety check rather
+// than a tidiness one; see probeZone for why a sentence is not enough.
 //
-// The name is a fixed constant in a public repository, so it is
-// guessable by construction, and creating it is exactly what someone
-// investigating "what does this say when the zone does exist?" would
-// do. A DeleteZone takes the zone and its records, and nothing in the
-// SDK can undo it.
+// GetZone is a search, so a hit is only a hit when the name matches:
+// the gate compares names, as refuseExisting and the delete step do,
+// rather than trusting the length of the result.
 //
-// GetZone answers the question directly and is already one of the
-// probes, so the cost is one call made earlier than it would have been.
-func accountHoldsProbeZone(ctx context.Context, c clients) (bool, error) {
+// A throttle on the gate call means the precondition could not be
+// established, which is treated as "skip": that is strictly more
+// conservative than running, and it is consistent with the probe loop's
+// position that a throttle teaches nothing. Any other error fails the
+// step, because neither running nor skipping is then justified.
+//
+// One residual risk is named rather than implied. The check and the
+// write-shaped probes are separate calls a few seconds apart — the
+// read-only probes and their throttle sleeps run in between — and the
+// API offers no conditional delete that would close that window.
+func probeZoneSkipReason(ctx context.Context, c clients) (string, error) {
 	time.Sleep(throttle)
 	got, err := c.dns.GetZone(ctx, dns.GetZoneRequest{DomainName: probeZone})
+	if api.IsRateLimited(err) {
+		log.Printf("  could not establish whether this account holds %s (throttled): %s", probeZone, oneLine(err))
+		return "could not establish that the probe zone is absent (throttled)", nil
+	}
 	if err != nil {
-		// Cannot establish the precondition, so the write-shaped
-		// probes do not run. Failing here rather than guessing is the
-		// point: the alternative is deleting a zone on the strength of
-		// a call that did not answer.
-		return false, fmt.Errorf("could not establish whether this account holds %s, so the write-shaped probes are unsafe to run: %w", probeZone, err)
+		return "", fmt.Errorf("could not establish whether this account holds %s, so the probes premised on its absence cannot run: %w", probeZone, err)
 	}
-	if len(got.Return) > 0 {
-		log.Printf("  this account holds %s, so the DeleteZone and AddRecord probes are skipped", probeZone)
-		log.Printf("  (they would act on a real zone; the read-only probes still run)")
-		return true, nil
+	for _, z := range got.Return {
+		if z.Name != probeZone {
+			continue
+		}
+		log.Printf("  this account holds %s, so the probes premised on its absence are skipped", probeZone)
+		log.Printf("  (two of them would act on a real zone; the baseline and template probes still run)")
+		return "this account holds the probe zone", nil
 	}
-	return false, nil
+	return "", nil
 }
 
 // probe is one deliberate call whose outcome we want on record.
@@ -112,15 +124,25 @@ type probe struct {
 // has to be cleaned up.
 //
 // A probe that comes back accepted is a finding, not a failure — it
-// means the API allows something we thought it would not. Only a
-// transport error, which teaches nothing, fails the step.
+// means the API allows something we thought it would not. Two things
+// fail the step: a transport error on any probe, which teaches nothing,
+// and an error other than a throttle on the probeZoneSkipReason call,
+// which leaves the absence probes neither safe to run nor justified to
+// skip.
 func stepProbe(ctx context.Context, c clients, _ *state) error {
-	held, err := accountHoldsProbeZone(ctx, c)
+	skip, err := probeZoneSkipReason(ctx, c)
 	if err != nil {
 		return err
 	}
 
-	probes := append(zoneProbes(held), templateProbes()...)
+	probes := baselineZoneProbes()
+	skipped := 0
+	if skip == "" {
+		probes = append(probes, absentZoneProbes()...)
+	} else {
+		skipped = len(absentZoneProbes())
+	}
+	probes = append(probes, templateProbes()...)
 
 	var accepted, rejected, transport, throttled int
 	for i, p := range probes {
@@ -151,15 +173,39 @@ func stepProbe(ctx context.Context, c clients, _ *state) error {
 
 	log.Printf("✓ %d probe(s): %d accepted, %d rejected, %d throttled, %d transport failure(s)",
 		len(probes), accepted, rejected, throttled, transport)
+	if skipped > 0 {
+		log.Printf("  %d probe(s) skipped: %s", skipped, skip)
+	}
 	if transport > 0 {
 		return fmt.Errorf("%d probe(s) never reached the API; nothing was learned from them", transport)
 	}
 	return nil
 }
 
-// zoneProbes exercise the zone and record endpoints.
-func zoneProbes(accountHoldsIt bool) []probe {
-	probes := []probe{
+// baselineZoneProbes are the zone probes with no premise about
+// probeZone, so they run whatever the gate decides.
+func baselineZoneProbes() []probe {
+	return []probe{
+		{
+			what:   "list zones with no filters at all",
+			expect: "accepted; the baseline that proves a rejection below is about the request",
+			call: func(ctx context.Context, c clients) error {
+				res, err := c.dns.ListZones(ctx, &dns.ListZoneOptions{})
+				if err == nil {
+					log.Printf("    %d zone(s)", len(res.Return.Data))
+				}
+				return err
+			},
+		},
+	}
+}
+
+// absentZoneProbes are every probe premised on probeZone not existing.
+// Only reached when probeZoneSkipReason established that. The last
+// three are write-shaped: a DeleteZone against a real zone takes it and
+// its records, and this step carries no opt-in.
+func absentZoneProbes() []probe {
+	return []probe{
 		{
 			what:   "list records for a zone that does not exist",
 			expect: "rejected; establishes whether an unknown zone is an error or an empty list",
@@ -183,33 +229,6 @@ func zoneProbes(accountHoldsIt bool) []probe {
 				return err
 			},
 		},
-		{
-			what:   "list zones with no filters at all",
-			expect: "accepted; the baseline that proves a rejection above is about the request",
-			call: func(ctx context.Context, c clients) error {
-				res, err := c.dns.ListZones(ctx, &dns.ListZoneOptions{})
-				if err == nil {
-					log.Printf("    %d zone(s)", len(res.Return.Data))
-				}
-				return err
-			},
-		},
-	}
-
-	// Write-shaped, and only safe because accountHoldsProbeZone
-	// established the zone is not there. Omitted rather than run-and-
-	// hope when it is: a DeleteZone against a real zone takes it and
-	// its records, and this step carries no opt-in.
-	if accountHoldsIt {
-		return probes
-	}
-	return append(probes, writeShapedZoneProbes()...)
-}
-
-// writeShapedZoneProbes are the probes that would act on probeZone if
-// it existed. Only reached when it does not.
-func writeShapedZoneProbes() []probe {
-	return []probe{
 		{
 			what:   "delete a zone that does not exist",
 			expect: "rejected; a delete of nothing should not report success",

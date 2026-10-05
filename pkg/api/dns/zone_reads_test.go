@@ -2,7 +2,6 @@ package dns_test
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"testing"
 
@@ -114,25 +113,5 @@ func TestListRecords_RejectsAnUnknownZone(t *testing.T) {
 	// the TLD validator. An earlier fix added the call above with a
 	// comment claiming it closed this gap; it did not, and the comment
 	// was worse than the silence because it stopped anyone re-checking.
-	assertFixtureHasStatus(t, ex.Body)
-}
-
-// assertFixtureHasStatus fails if the fixture omits the status field.
-//
-// A rejection this package asserts must be one the API actually
-// reported. Go's zero value for bool is false, so a fixture with no
-// status key decodes to exactly what a recorded rejection decodes to,
-// and every "this is rejected" test would keep passing if a re-record
-// dropped the field.
-func assertFixtureHasStatus(t *testing.T, body []byte) {
-	t.Helper()
-
-	var raw map[string]any
-	if err := json.Unmarshal(body, &raw); err != nil {
-		t.Fatalf("fixture is not a JSON object: %v", err)
-	}
-	if _, ok := raw["status"]; !ok {
-		t.Error("the fixture has no \"status\" field, so a test asserting a rejection " +
-			"passes on Go's zero value rather than on anything the API said")
-	}
+	apitest.AssertFixtureHasStatus(t, ex.Body)
 }

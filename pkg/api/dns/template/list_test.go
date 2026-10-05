@@ -96,6 +96,9 @@ func TestListRecords_RejectsAnUnknownTemplate(t *testing.T) {
 		t.Errorf("ListRecords: error is %q, want the API's message to survive into it", err)
 	}
 	apitest.AssertDecodesFully(t, ex.Body, template.ListRecordsResponse{})
+	// Without this the test passes against a fixture that records no
+	// rejection at all, since a missing status decodes as false.
+	apitest.AssertFixtureHasStatus(t, ex.Body)
 }
 
 // TestList_SharedTemplatesCarryClientIDZero pins the sentinel the doc
