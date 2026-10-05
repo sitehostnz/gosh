@@ -12,6 +12,7 @@
 package apitest
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -87,6 +88,30 @@ func AssertDecodesFully(t *testing.T, body []byte, v any) {
 	}
 	for _, path := range missing {
 		t.Errorf("the API sends %s and no field decodes it; it is being dropped silently", path)
+	}
+}
+
+// AssertFixtureHasStatus fails if the fixture omits the status field.
+//
+// Use it on every fixture a test cites as a rejection. Go's zero value
+// for bool is false, so a fixture with no status key decodes to exactly
+// what a recorded {"status":false} rejection decodes to, and a test
+// asserting the rejection keeps passing if a re-record drops the field
+// — or if the fixture never recorded a rejection at all.
+//
+// Not every rejection carries the field: some arrive as a 4xx whose
+// body is only a msg. A fixture of that kind needs its own check that
+// the message is the rejection the test cites, not this one.
+func AssertFixtureHasStatus(t *testing.T, body []byte) {
+	t.Helper()
+
+	var raw map[string]any
+	if err := json.Unmarshal(body, &raw); err != nil {
+		t.Fatalf("apitest: fixture is not a JSON object: %v", err)
+	}
+	if _, ok := raw["status"]; !ok {
+		t.Error("the fixture has no \"status\" field, so a test asserting a rejection " +
+			"passes on Go's zero value rather than on anything the API said")
 	}
 }
 

@@ -1,0 +1,18 @@
+{
+  "msg": "Successful.",
+  "return": [
+    {
+      "client_id": "1",
+      "domain_count": "1",
+      "template_id": "1",
+      "template_name": "scrubbed"
+    },
+    {
+      "client_id": "1",
+      "domain_count": "1",
+      "template_id": "1",
+      "template_name": "scrubbed"
+    }
+  ],
+  "status": true
+}

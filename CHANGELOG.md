@@ -88,6 +88,22 @@ All notable changes to this project will be documented in this file. The format 
   a branch that changes shipped code without adding a CHANGELOG entry —
   the omission this repository comments on most, and one the entry
   *content* check had nothing to say about.
+- `examples/dns` walks the DNS lifecycle as a numbered journey — zone
+  create, records, templates, deliberate rejections and teardown. What
+  makes it worth reading alongside the other two is that it documents
+  two opposite absence conventions inside one namespace: `dns.GetZone`
+  is a search, so a name matching nothing returns `status:true` with an
+  empty list, while `dns.ListRecords` reports the same absence through
+  an error. Neither can be assumed from the other.
+
+  It also states what it cannot check rather than implying otherwise:
+  a zone created through the API is not resolvable on SiteHost's
+  nameservers without delegation, so there is no out-of-band resolver
+  check to make, and the journey says so instead of inventing one.
+- Recorded-response tests for `dns` and `dns/template`, built from live
+  exchanges rather than hand-written shapes. The `dns/template` package
+  had no test coverage at all, so its wire contract — including that a
+  shared template carries `ClientID` `"0"` — was previously unpinned.
 
 ### Changed
 
@@ -173,6 +189,44 @@ All notable changes to this project will be documented in this file. The format 
 - `examples/server`: `compareWithGuest` carried an inline copy of
   `requireKey`'s guard, including the subtlety about not masking the
   `SH_SSH_KEY_FILE` fallback. It calls the helper.
+- `dns/template.List` documents the sentinel it tells callers to filter
+  on: a shared template carries `ClientID` `"0"`. The advice to filter
+  was there without the value, so it could not be acted on from the doc
+  alone — and a recorded fixture cannot supply it, because scrubbing
+  collapses a digits-only string to `"1"`. A hand-written test on the
+  type pins it instead.
+- `dns.GetZone` no longer carries a `TODO` asking for the
+  empty-response control its own doc comment tells callers to handle
+  themselves. The absence of that control is recorded as a decision,
+  with the test that pins it named, rather than left as an invitation
+  the suite rejects.
+- `examples/dns`: the package doc and the zone step both claimed the
+  default zone was under `.invalid` and "cannot collide with anything
+  real". The API validates the top-level domain, so the reserved names
+  are rejected and the journey generates a name in a live TLD — the two
+  comments asserted the safety property the code had abandoned, which
+  is the claim a reader consults before pointing this at a production
+  account.
+- `examples/dns`: the probe step addressed a `.invalid` name, so every
+  not-found probe recorded the top-level-domain validator refusing to
+  parse it rather than the behaviour being asked about. It probes a
+  well-formed name, and checks on every run that the account does not
+  hold it — skipping every probe premised on its absence, including the
+  `DeleteZone` and `AddRecord` ones, when it does or when that cannot be
+  established. That establishes that
+  `dns.ListRecords`, `DeleteZone` and `AddRecord` do report absence
+  through an error — the conclusion three tests already rested on
+  without evidence for it.
+- `examples/dns`: `isTransport` classified errors by searching their
+  text, which counted a TLS failure, a connection reset or an i/o
+  timeout as an API rejection, and could read a rejection carrying the
+  request URL as a transport failure. It reads the error tree, matching
+  the implementation in `examples/cloud`. A throttled probe is handled
+  separately and counted in neither tally, since it never reached the
+  endpoint and so establishes nothing about it.
+- `examples/dns`: the generated zone name is printed before
+  `CreateZone` rather than after it, so a create whose response is lost
+  leaves a name the operator can still act on with `SH_DELETE_ZONE`.
 - `server.Create` ignored `ParamsOptions` entirely, so the IP
   allocation, backup, contact and SSH-key paths its own documentation
   described were unreachable.
