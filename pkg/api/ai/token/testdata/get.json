@@ -1,0 +1,23 @@
+{
+  "msg": "Successful",
+  "return": {
+    "config": {
+      "allowed_ips": [
+        "203.0.113.1"
+      ],
+      "capabilities": [
+        "scrubbed",
+        "scrubbed"
+      ],
+      "cost_limit_daily": 1,
+      "cost_limit_hourly": 1,
+      "cost_limit_monthly": 1,
+      "requests_per_minute": 1
+    },
+    "date_added": "2026-01-01 00:00:00",
+    "date_updated": "2026-01-01 00:00:00",
+    "key_id": "scrubbed",
+    "label": "scrubbed"
+  },
+  "status": true
+}

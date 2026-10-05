@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- `ai/token` wraps `/ai/token`: `Add`, `Get`, `List`, `Update` and
+  `Delete` for SiteHost AI platform tokens, with `Capability*`
+  constants for the closed set a token can be granted. `Add` is the
+  only call that ever returns the token secret. On `Update`, a nil
+  `AllowedIPs` leaves the allowlist alone and an empty non-nil slice
+  clears it — sent as `params[allowed_ips][]=`, because the scalar
+  form is accepted with `updated: true` and changes nothing.
+- `examples/ai` walks the token lifecycle and checks each change
+  against ai.sitehost.nz rather than the control plane: capabilities,
+  the IP allowlist and revocation are each shown to be enforced, with
+  every refusal bracketed by a success. It writes only with
+  `SH_EXAMPLE_ALLOW_PROVISION=1`, and revokes its token by key id on
+  failure and on interrupt.
 - `server.ListProducts` wraps `server/products.json`, which lists every
   product orderable at a location with its cores, RAM, disk, bandwidth
   and partitions. The endpoint is undocumented rather than absent; it
