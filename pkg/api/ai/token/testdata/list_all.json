@@ -1,0 +1,24 @@
+{
+  "msg": "Successful",
+  "return": {
+    "current_items": 1,
+    "current_page": 1,
+    "data": [
+      {
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "key_id": "scrubbed",
+        "label": "scrubbed"
+      },
+      {
+        "date_added": "2026-01-01 00:00:00",
+        "date_updated": "2026-01-01 00:00:00",
+        "key_id": "scrubbed",
+        "label": "scrubbed"
+      }
+    ],
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "status": true
+}

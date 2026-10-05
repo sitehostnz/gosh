@@ -11,6 +11,7 @@ import (
 
 	"github.com/sitehostnz/gosh/internal/recorder"
 	"github.com/sitehostnz/gosh/internal/shapecheck"
+	"github.com/sitehostnz/gosh/pkg/api/ai/token"
 	"github.com/sitehostnz/gosh/pkg/api/cloud/db"
 	dbuser "github.com/sitehostnz/gosh/pkg/api/cloud/db/user"
 	cloudserver "github.com/sitehostnz/gosh/pkg/api/cloud/server"
@@ -29,6 +30,11 @@ var types = map[string]func() any{
 	"1.5/cloud/stack/get.json":            func() any { return stack.GetResponse{} },
 	"1.5/cloud/stack/image/list_all.json": func() any { return stackimage.ListResponse{} },
 	"1.5/cloud/server/list_all.json":      func() any { return cloudserver.ListResponse{} },
+	"1.5/ai/token/add.json":               func() any { return token.AddResponse{} },
+	"1.5/ai/token/get.json":               func() any { return token.GetResponse{} },
+	"1.5/ai/token/list_all.json":          func() any { return token.ListResponse{} },
+	"1.5/ai/token/update.json":            func() any { return token.UpdateResponse{} },
+	"1.5/ai/token/delete.json":            func() any { return token.DeleteResponse{} },
 }
 
 func main() {

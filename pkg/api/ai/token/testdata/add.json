@@ -1,0 +1,9 @@
+{
+  "msg": "Successful",
+  "return": {
+    "key_id": "scrubbed",
+    "label": "scrubbed",
+    "token": "scrubbed"
+  },
+  "status": true
+}
